@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% if page.title %}{{ page.title }} · {% endif %}{{ site.title }}</title>
+<meta name="description" content="{{ site.description }}">
+<link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="{{ '/' | relative_url }}">Service Graph Lab</a>
+  <nav>
+    <a href="{{ '/' | relative_url }}">Overview</a>
+    <a href="{{ '/labs/00-prerequisites/' | relative_url }}">Start</a>
+    <a href="{{ '/labs/10-troubleshooting/' | relative_url }}">Troubleshooting</a>
+  </nav>
+</header>
+<main>
+  {% if page.title %}<h1>{{ page.title }}</h1>{% endif %}
+  {% if page.lab %}<p class="labtag">Lab {{ page.lab }}<span class="dot">·</span>{{ page.time }}<span class="dot">·</span>{{ page.level }}</p>{% endif %}
+  {{ content }}
+  {% assign n = page.order %}
+  {% if n %}
+  <nav class="pager">
+    {% if n > 0 %}{% assign prev = n | minus: 1 %}{% for p in site.pages %}{% if p.order == prev %}<a class="prev" href="{{ p.url | relative_url }}">← {{ p.title }}</a>{% endif %}{% endfor %}{% endif %}
+    {% assign next = n | plus: 1 %}{% for p in site.pages %}{% if p.order == next %}<a class="next" href="{{ p.url | relative_url }}">{{ p.title }} →</a>{% endif %}{% endfor %}
+  </nav>
+  {% endif %}
+</main>
+<footer>
+  <p>Built for a free ServiceNow Personal Developer Instance (PDI) and a free-tier AWS account. No MID Server required.</p>
+</footer>
+</body>
+</html>

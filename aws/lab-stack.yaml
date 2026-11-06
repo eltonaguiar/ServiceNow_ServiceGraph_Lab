@@ -1,0 +1,84 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  Service Graph Lab inventory - a VPC, one subnet, a security group and a single tagged
+  EC2 instance for the Service Graph Connector for AWS to discover. Free-tier sized.
+
+Parameters:
+  LabOwner:
+    Type: String
+    Default: labuser
+    Description: Value for the Owner tag.
+  InstanceType:
+    Type: String
+    Default: t3.micro
+    AllowedValues: [t2.micro, t3.micro, t3.small]
+    Description: t3.micro / t2.micro are free-tier eligible in a new account.
+  ApplicationTag:
+    Type: String
+    Default: payments
+    Description: Value for the Application tag (used by the CSDM lab).
+  LatestAmazonLinuxAmi:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+    Description: >
+      Public SSM parameter that always resolves to the newest Amazon Linux 2023 AMI
+      in the region you deploy to. Do not hardcode an ami-... id.
+
+Resources:
+  LabVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.42.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - { Key: Name, Value: sgclab-vpc }
+        - { Key: Environment, Value: lab }
+        - { Key: Owner, Value: !Ref LabOwner }
+        - { Key: Application, Value: !Ref ApplicationTag }
+
+  LabSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref LabVpc
+      CidrBlock: 10.42.1.0/24
+      MapPublicIpOnLaunch: false
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      Tags:
+        - { Key: Name, Value: sgclab-subnet }
+        - { Key: Environment, Value: lab }
+        - { Key: Owner, Value: !Ref LabOwner }
+        - { Key: Application, Value: !Ref ApplicationTag }
+
+  LabSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: sgclab - deliberately no inbound rules
+      VpcId: !Ref LabVpc
+      Tags:
+        - { Key: Name, Value: sgclab-sg }
+        - { Key: Environment, Value: lab }
+        - { Key: Owner, Value: !Ref LabOwner }
+        - { Key: Application, Value: !Ref ApplicationTag }
+
+  LabInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref LatestAmazonLinuxAmi
+      InstanceType: !Ref InstanceType
+      SubnetId: !Ref LabSubnet
+      SecurityGroupIds: [!Ref LabSecurityGroup]
+      Tags:
+        - { Key: Name, Value: sgclab-app-01 }
+        - { Key: Environment, Value: lab }
+        - { Key: Owner, Value: !Ref LabOwner }
+        - { Key: Application, Value: !Ref ApplicationTag }
+
+Outputs:
+  InstanceId:
+    Description: EC2 instance ID - compare this with the CMDB CI object_id
+    Value: !Ref LabInstance
+  VpcId:
+    Value: !Ref LabVpc
+  Region:
+    Value: !Ref "AWS::Region"
