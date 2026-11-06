@@ -18,6 +18,16 @@ permalink: /labs/08-multisource-azure/
 Add a second cloud source describing the same class of CI (Configuration Item), then decide — explicitly — which
 source's data wins. This is the difference between a CMDB and a spreadsheet.
 
+<div class="note">
+<span class="label">Read this before you start</span>
+<p>This lab is <strong>optional and deliberately lighter than the AWS track</strong>. Labs 1–7
+built an AWS inventory step by step, with a verifier, an IRE deep-dive and an ETL edit. Azure
+gets one page, because by now you already know what a connector does — the only new idea here
+is <em>two sources disagreeing</em>, and that idea takes ten minutes, not two hours.</p>
+<p>You can skip it entirely and the lab still teaches its core lesson. If you do run it, treat
+Labs 1–4 as your reference for where each screen lives; do not expect a parallel Lab 1–7.</p>
+</div>
+
 ## 1. Azure side: service principal
 
 1. Azure Portal → **Microsoft Entra ID → App registrations → New registration**
@@ -27,8 +37,19 @@ source's data wins. This is the difference between a CMDB and a spreadsheet.
 4. **Subscriptions → your subscription → Access control (IAM) → Add role assignment**
    → role **Reader** → assign to the app registration.
 
-Optionally create one small free-tier-eligible VM (`B1s`) in one resource group so there is
-real data. Deallocate it when done.
+### If you want real Azure data
+
+An empty subscription still imports account-level CIs, which is enough to see multisource
+behaviour — but a VM makes the disagreement visible:
+
+1. **Virtual machines → Create** → image **Ubuntu Server 24.04 LTS**, size **`B1s`** (the
+   smallest, cheapest burstable size).
+2. Create a new resource group in a region near you; tags: `Environment=lab`, `Owner=yourname`.
+3. Inbound ports: **None**. No public IP.
+4. After it exists, **Stop (deallocate)** it — a deallocated VM still exists as an inventory
+   object and stops compute billing. "Stopped" without deallocation keeps paying for the disk
+   and IP.
+5. Delete the resource group in [Lab 11]({{ '/labs/11-cleanup/' | relative_url }}).
 
 ## 2. ServiceNow side: install and connect
 
@@ -70,6 +91,19 @@ Both connectors can describe the same logical thing (a VM). The questions to ans
 | Two separate CIs for one VM | Identification did not match — different identifiers per cloud, works as designed for distinct assets |
 | One CI, attributes flickering between runs | Both sources update the same attribute and precedence is unstable |
 | Azure CIs absent | Service principal lacks Reader, or the connector's schedules never ran |
+
+### Azure connection failures, specifically
+
+Azure fails differently from AWS, and the error text is unhelpful:
+
+| Error / symptom | Cause | Fix |
+|---|---|---|
+| `AuthorizationFailed` | Role assigned to the **app registration** instead of the **enterprise application** service principal, or assigned at the wrong scope | Re-assign **Reader** at the **subscription** scope to the enterprise application |
+| `InvalidAuthenticationToken` / `AADSTS…` | Wrong **tenant ID**, or the app is single-tenant but the credential points at another directory | Copy the tenant ID from **Entra ID → Overview**, not from the app blade |
+| Authentication fails although the secret is "correct" | You copied the **Secret ID** instead of the **Value** | The value is only visible once, at creation. Create a new secret |
+| Secret worked, then stopped | Client secrets **expire** (12–24 months) | Note the expiry date; create a second secret before it lapses |
+| Test passes but zero CIs | Subscription has no resources, or the connector's schedule was never executed | Create the `B1s` VM above, then **Execute Now** |
+| Only some resource types appear | Connector version covers a subset of Azure resource types | Read the app's **Dependencies**/documentation; this is not a config error |
 
 For genuinely shared assets, the correct pattern is a shared identifier (asset tag, FQDN, or a
 CMDB-managed correlation id) plus an explicit precedence rule — not hoping IRE guesses.

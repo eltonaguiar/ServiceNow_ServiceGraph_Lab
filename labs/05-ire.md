@@ -26,7 +26,7 @@ queue. If you cannot read IRE (Identification and Reconciliation Engine) output,
 
 ## 1. Find the results
 
-Two useful surfaces:
+Two useful surfaces (menu paths move between releases — the direct URLs do not):
 
 - **IRE result tables**: `cmdb_ire_output_item` (one row per processed payload) and
   `cmdb_ire_output_rule` / `cmdb_ire_output_rule_item` (which rule matched).
@@ -34,6 +34,16 @@ Two useful surfaces:
   "IRE results" link from the import set.
 
 Filter to your run by timestamp and by `data_source`.
+
+If the menu path above does not exist on your release, go straight to the table:
+
+```text
+https://<your-instance>.service-now.com/cmdb_ire_output_item_list.do
+https://<your-instance>.service-now.com/cmdb_ire_output_rule_list.do
+```
+
+Also useful: the import set's own record has an **IRE output** related list — that is the only
+path that shows you *one run* without timestamp guessing.
 
 ## 2. Read the outcome
 

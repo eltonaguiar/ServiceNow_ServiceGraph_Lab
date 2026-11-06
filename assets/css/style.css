@@ -32,6 +32,7 @@ body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.65 -apple-s
 .theme-toggle:hover { color:var(--accent); border-color:var(--accent); }
 main { max-width: 60rem; margin:0 auto; padding:2rem 1.4rem 4rem; }
 h1 { font-size:2rem; line-height:1.2; letter-spacing:-.02em; margin:.2rem 0 1rem; }
+.hero { font-size:1.9rem; line-height:1.22; letter-spacing:-.015em; margin:.2rem 0 1rem; font-weight:700; }
 h2 { font-size:1.35rem; margin:2.2rem 0 .6rem; padding-top:.4rem; border-top:1px solid var(--line); }
 h3 { font-size:1.08rem; margin:1.6rem 0 .4rem; }
 p, li, td, th { color:var(--ink); }
@@ -49,7 +50,7 @@ blockquote { margin:1rem 0; padding:.6rem 1rem; border-left:3px solid var(--acce
 .eli5 { border-left:4px solid var(--accent); }
 .eli5 p:first-child { margin-top:0; }
 .eli5 p:last-child, .note p:last-child, .warn p:last-child { margin-bottom:0; }
-.eli5 .label, .warn .label { display:block; font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:.35rem; font-weight:700; }
+.eli5 .label, .warn .label, .note .label { display:block; font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:.35rem; font-weight:700; }
 .warn { background:var(--warn-bg); border-left:4px solid var(--warn-line); }
 .check { list-style:none; padding-left:0; }
 .check li { padding-left:1.6rem; position:relative; margin:.35rem 0; }

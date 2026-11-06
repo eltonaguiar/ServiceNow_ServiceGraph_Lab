@@ -23,7 +23,9 @@ almost no CIs — you want hardware records.
 
 The template at
 [`aws/lab-stack.yaml`](https://github.com/eltonaguiar/ServiceNow_ServiceGraph_Lab/blob/main/aws/lab-stack.yaml)
-creates exactly the resources this lab needs, all tagged:
+creates exactly the resources this lab needs, all tagged. **Clone the repo or download the file
+first** ([Lab 0 §4]({{ '/labs/00-prerequisites/' | relative_url }})) — the command below assumes
+you are in the repo root.
 
 ```bash
 # from a machine with the AWS CLI configured, in your chosen region
@@ -53,7 +55,7 @@ file**, then step through the defaults.
      | Application | payments |
    - Security group: no inbound rules needed; do not open SSH to the world.
 3. Launch, then **stop** the instance once it exists — a stopped instance still appears in
-   inventory and costs nothing for compute.
+   inventory and costs nothing for compute. Do this immediately, not "after the import".
 
 ## Why the tags matter
 

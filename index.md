@@ -5,7 +5,7 @@ order: -3
 permalink: /
 ---
 
-# Put real cloud infrastructure into a real CMDB
+<p class="hero">Put real cloud infrastructure into a real CMDB</p>
 
 A hands-on lab that takes you from an empty free-tier **AWS** (Amazon Web Services) account to
 EC2 servers, VPC networks and a working service model inside a ServiceNow **CMDB**
@@ -80,4 +80,12 @@ the IRE concepts in Labs 5–7 are identical.
 - **Never commit AWS keys.** The lab creates them, uses them in one ServiceNow form, and
   revokes them in Lab 11.
 - A PDI hibernates after inactivity and its URL can change. Re-wake it at
-  [developer.servicenow.com](https://developer.servicenow.com) and update your notes.
+  [developer.servicenow.com](https://developer.servicenow.com) and update your notes. Mid-lab
+  recovery steps are in [Lab 0]({{ '/labs/00-prerequisites/' | relative_url }}).
+- The AWS track assumes a **reasonably recent PDI release** where the Service Graph Connector
+  for AWS is exposed. Older instances may only offer the fallback — that is expected, not a
+  mistake in your setup.
+- The site is documentation; the scripts and the CloudFormation template live in the
+  [repo](https://github.com/eltonaguiar/ServiceNow_ServiceGraph_Lab). Clone it once in Lab 0.
+- Stuck in the first hour? The [Troubleshooting]({{ '/labs/10-troubleshooting/' | relative_url }})
+  page opens with the four failures that stop most people.
