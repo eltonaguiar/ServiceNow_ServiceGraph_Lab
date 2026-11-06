@@ -8,12 +8,17 @@ order: 3
 permalink: /labs/03-iam-connection/
 ---
 
+<div class="eli5">
+<span class="label">ELI5</span>
+<p>Give the connector a key that can <em>look</em> at AWS but never <em>touch</em> it, then prove the key works before running anything.</p>
+</div>
+
 ## Objective
 
 Create the least-privilege identity the connector uses, then wire it into ServiceNow and prove
 the connection works.
 
-## 1. Create a dedicated IAM user
+## 1. Create a dedicated IAM (Identity and Access Management) user
 
 1. AWS console → **IAM → Users → Create user** → name `servicenow-sgc-lab`.
 2. **Do not** enable console access. This identity only calls APIs.
@@ -43,7 +48,7 @@ Notes that save time:
 
 - The connector stores these in a **credential record it manages** (a connection & credential
   alias). You never paste keys into a ticket, a description field, or a git repo.
-- If your release asks for a **MID Server**, you have opened the discovery integration rather
+- If your release asks for a **MID Server** (the agent ServiceNow runs inside your own network), you have opened the discovery integration rather
   than the Service Graph Connector. The SGC path is cloud-to-cloud and needs no MID.
 - If the release offers **"Use IAM role"** instead of keys, you can skip the access key — but
   only when ServiceNow can assume the role, which a PDI cannot. Use keys here.

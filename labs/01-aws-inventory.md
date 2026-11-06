@@ -8,10 +8,15 @@ order: 1
 permalink: /labs/01-aws-inventory/
 ---
 
+<div class="eli5">
+<span class="label">ELI5</span>
+<p>Before you install an inventory tool, put some furniture in the house. If AWS is empty, the connector has nothing to find and you learn nothing.</p>
+</div>
+
 ## Objective
 
-Give the connector something real to discover: a VPC, a subnet, a security group and one
-tagged EC2 instance. An empty AWS account works for the account-level import, but it produces
+Give the connector something real to discover: a VPC (Virtual Private Cloud), a subnet, a security group and one
+tagged EC2 (Elastic Compute Cloud) instance. An empty AWS account works for the account-level import, but it produces
 almost no CIs — you want hardware records.
 
 ## Option A — CloudFormation (recommended)
@@ -36,7 +41,7 @@ file**, then step through the defaults.
 
 1. **VPC → Create VPC** → "VPC and more", 1 AZ, 1 public subnet. Accept the default CIDR.
 2. **EC2 → Launch instance**:
-   - AMI: Amazon Linux 2023
+   - AMI (Amazon Machine Image): Amazon Linux 2023
    - Type: `t3.micro` (free-tier eligible in a new account)
    - Network: the VPC from step 1
    - **Tags** (this is the part that matters):

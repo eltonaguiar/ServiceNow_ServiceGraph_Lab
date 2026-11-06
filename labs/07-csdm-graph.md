@@ -8,12 +8,17 @@ order: 7
 permalink: /labs/07-csdm-graph/
 ---
 
+<div class="eli5">
+<span class="label">ELI5</span>
+<p>A pile of servers is not a service. This lab groups the real EC2 machine under an application service so you can ask "what breaks if this dies?"</p>
+</div>
+
 ## Objective
 
-Turn a pile of discovered CIs into a service you can look at: an application service whose
+Turn a pile of discovered CIs (Configuration Items) into a service you can look at: an application service whose
 service instance points at your real EC2 instance, following the CSDM shape.
 
-## The CSDM shape you are building
+## The CSDM (Common Service Data Model) shape you are building
 
 ```
 Business Service (optional)

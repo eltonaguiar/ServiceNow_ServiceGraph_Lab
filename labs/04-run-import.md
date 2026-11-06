@@ -8,9 +8,14 @@ order: 4
 permalink: /labs/04-run-import/
 ---
 
+<div class="eli5">
+<span class="label">ELI5</span>
+<p>Press the button, then check the box actually filled. "The job ran" and "the data arrived" are two different claims, and this lab makes you prove the second one.</p>
+</div>
+
 ## Objective
 
-Run the scheduled imports and confirm — with numbers, not vibes — that AWS data created CMDB
+Run the scheduled imports and confirm — with numbers, not vibes — that AWS data created CMDB (Configuration Management Database)
 records.
 
 ## 1. Find the schedules
@@ -59,7 +64,8 @@ cmdb_ci_vpc                          1
 ```
 
 If the verifier shows `0` for `cmdb_ci_ec2_instance` while the import set says *Processed*,
-the rows were read from AWS and then dropped by IRE or by the ETL mapping — that is Lab 5's job.
+the rows were read from AWS and then dropped by IRE (Identification and Reconciliation
+Engine) or by the ETL (Extract, Transform, Load) mapping — that is Lab 5's job.
 
 ## 4. Prove the record is real
 

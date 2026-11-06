@@ -8,6 +8,11 @@ order: 12
 permalink: /labs/fallback-ire-api/
 ---
 
+<div class="eli5">
+<span class="label">ELI5</span>
+<p>No Store app on your instance? Feed the same engine by hand. The CMDB mechanics are identical; only the plumbing changes.</p>
+</div>
+
 ## Objective
 
 If the Store app will not install on your PDI (no entitlement, missing release, no
@@ -15,10 +20,10 @@ IntegrationHub), do not abandon the lab. The interesting parts — identificatio
 field mapping, relationships, service graph — are all still available through the **IRE REST
 API**, which ships on every instance.
 
-You end up with the same CMDB records; you just feed them yourself instead of letting the
+You end up with the same CMDB (Configuration Management Database) records; you just feed them yourself instead of letting the
 connector do it.
 
-## 1. Confirm the API exists
+## 1. Confirm the API (Application Programming Interface) exists
 
 Filter Navigator → **System Web Services → REST → REST API Explorer**, search for
 **`identifyreconcile`**. The endpoint is:

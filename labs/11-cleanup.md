@@ -8,6 +8,11 @@ order: 11
 permalink: /labs/11-cleanup/
 ---
 
+<div class="eli5">
+<span class="label">ELI5</span>
+<p>Leave with no live keys and a $0 bill. Kill the credentials <em>first</em>, so nothing keeps calling AWS after you delete the resources.</p>
+</div>
+
 ## Objective
 
 Leave with a $0 bill, no live keys, and a repeatable lab you can run again next week.

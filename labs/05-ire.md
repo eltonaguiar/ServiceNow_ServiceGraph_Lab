@@ -8,6 +8,11 @@ order: 5
 permalink: /labs/05-ire/
 ---
 
+<div class="eli5">
+<span class="label">ELI5</span>
+<p>IRE is the bouncer at the CMDB door: for every record it asks "have I seen this before?" and then creates, updates, or skips. Reading its answers is the single most useful CMDB skill.</p>
+</div>
+
 ## Objective
 
 Explain, per record, why IRE inserted, updated or skipped it — and fix one identification
@@ -15,9 +20,9 @@ problem on purpose.
 
 ## Why this is the heart of the lab
 
-The Identification and Reconciliation Engine is what turns a pile of payloads into a single
+The Identification and Reconciliation Engine (**IRE**) is what turns a pile of payloads into a single
 CMDB. Every connector, every discovery source and every manual import ends up in the same
-queue. If you cannot read IRE output, "the import didn't work" is unknowable.
+queue. If you cannot read IRE (Identification and Reconciliation Engine) output, "the import didn't work" is unknowable.
 
 ## 1. Find the results
 

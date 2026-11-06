@@ -8,9 +8,14 @@ order: 2
 permalink: /labs/02-sgc-install/
 ---
 
+<div class="eli5">
+<span class="label">ELI5</span>
+<p>This is an app install. A free ServiceNow instance may refuse it — that is normal, and Lab 12 is the backup plan. What matters is knowing which layer you are missing.</p>
+</div>
+
 ## Objective
 
-Get the Service Graph Connector for AWS onto the instance and confirm its dependencies,
+Get the Service Graph Connector (SGC) for AWS onto the instance and confirm its dependencies,
 or decide cleanly that this PDI cannot run it and switch to the fallback path.
 
 ## 1. Check what your PDI already has
@@ -28,7 +33,7 @@ friendly name, so search by name rather than id. You may also see it under
 2. If prompted about dependencies, install them. The usual ones are:
    - **Integration Commons for CMDB**
    - **CMDB Identification and Reconciliation** (present on every instance, but the version matters)
-   - **IntegrationHub** — required for the cloud-to-cloud REST flow
+   - **IntegrationHub** (ServiceNow's integration and automation platform) — required for the cloud-to-cloud REST (Representational State Transfer) flow
 3. Wait for the install to finish, then **reload the UI** (the module tree caches).
 
 > If the app is listed but not installable, or the install fails with a licensing or

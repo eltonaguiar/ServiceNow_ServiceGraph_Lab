@@ -8,9 +8,14 @@ order: 8
 permalink: /labs/08-multisource-azure/
 ---
 
+<div class="eli5">
+<span class="label">ELI5</span>
+<p>Two cloud providers describe the same kind of thing. Something has to decide whose answer wins — that something is a reconciliation rule, and you get to set it.</p>
+</div>
+
 ## Objective
 
-Add a second cloud source describing the same class of CI, then decide — explicitly — which
+Add a second cloud source describing the same class of CI (Configuration Item), then decide — explicitly — which
 source's data wins. This is the difference between a CMDB and a spreadsheet.
 
 ## 1. Azure side: service principal

@@ -8,9 +8,15 @@ order: 6
 permalink: /labs/06-etl-mappings/
 ---
 
+<div class="eli5">
+<span class="label">ELI5</span>
+<p>ETL is a translation table: AWS says <code>InstanceId</code>, ServiceNow wants <code>object_id</code>. This lab lets you edit the translation and watch the result.</p>
+</div>
+
 ## Objective
 
-Take control of what AWS data becomes. Inspect the connector's IntegrationHub ETL mapping,
+Take control of what AWS data becomes. Inspect the connector's IntegrationHub ETL
+(Extract, Transform, Load) mapping,
 add one field end to end, and see it land on the CI.
 
 ## 1. Open the mapping

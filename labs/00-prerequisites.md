@@ -8,12 +8,17 @@ order: 0
 permalink: /labs/00-prerequisites/
 ---
 
+<div class="eli5">
+<span class="label">ELI5</span>
+<p>You need two free accounts (ServiceNow and AWS) and a way to notice if the lab starts costing money. The budget alarm is not optional — it is the whole reason the lab stays free.</p>
+</div>
+
 ## Objective
 
 Have a working PDI, a live AWS account with a budget alarm, and verification access to
 both — before you touch any connector.
 
-## 1. Personal Developer Instance
+## 1. Personal Developer Instance (PDI)
 
 1. Sign in at [developer.servicenow.com](https://developer.servicenow.com) → **Request Instance**.
 2. Wait for the **Ready** state, then note the instance URL (`https://devNNNNNN.service-now.com`)
@@ -24,7 +29,7 @@ both — before you touch any connector.
 > If you get an XML "instance not found" page, wake the instance first — it is not a
 > connector problem.
 
-## 2. Free AWS account
+## 2. Free AWS account (Amazon Web Services)
 
 1. Create the account at [aws.amazon.com/free](https://aws.amazon.com/free). A card is
    required for identity verification; you are on the **Free plan** with starter credits.

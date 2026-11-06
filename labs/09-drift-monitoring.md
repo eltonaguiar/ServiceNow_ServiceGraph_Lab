@@ -8,9 +8,14 @@ order: 9
 permalink: /labs/09-drift-monitoring/
 ---
 
+<div class="eli5">
+<span class="label">ELI5</span>
+<p>Clouds change every day. The question is whether your CMDB notices — or quietly rots. You will change AWS on purpose and grade the CMDB's reaction.</p>
+</div>
+
 ## Objective
 
-Make the cloud change and watch the CMDB react. A CMDB that only ever grows is a liability;
+Make the cloud change and watch the CMDB (Configuration Management Database) react. A CMDB that only ever grows is a liability;
 the value is in drift.
 
 ## 1. Drift on purpose
@@ -43,7 +48,7 @@ month of wrong data accumulates.
 
 ## 3. Monitor the connection
 
-- **SGC Central** (newer releases) shows each connection's last run, duration and error count.
+- **SGC (Service Graph Connector) Central** (newer releases) shows each connection's last run, duration and error count.
 - Otherwise, watch the scheduled job: **System Scheduler → Scheduled Jobs → AWS …** — check
   **Last run**, **Next run**, and the run's log for non-zero failures.
 - Check **Import Sets** for rows with `State: Processed with errors` and read the transform

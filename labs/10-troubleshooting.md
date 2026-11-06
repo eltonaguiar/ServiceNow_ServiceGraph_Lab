@@ -8,6 +8,11 @@ order: 10
 permalink: /labs/10-troubleshooting/
 ---
 
+<div class="eli5">
+<span class="label">ELI5</span>
+<p>A ladder, not a guess. Each rung rules out a whole layer, so you never debug the same problem twice: is the instance awake, is the app installed, do the credentials work, did the job run, did rows arrive, did they map, did IRE accept them, do the records look right?</p>
+</div>
+
 ## The failure ladder
 
 Work top to bottom. Each rung eliminates a whole layer, so you never debug the same problem
@@ -50,7 +55,7 @@ Rows read, then dropped. Look at the import set row's `Error` field and at
 match or create), or a reference to a parent CI that does not exist.
 
 **CIs duplicate on every run.**
-Identification is not matching. Check the class's identification rule and confirm the payload
+Identification (IRE — Identification and Reconciliation Engine) is not matching. Check the class's identification rule and confirm the payload
 really carries the identifier attribute; the connector may be mapping a display name but not
 the instance ID.
 
