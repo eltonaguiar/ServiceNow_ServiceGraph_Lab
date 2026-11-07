@@ -69,7 +69,12 @@ What this means for this lab:
 
 ### Safe next checkpoint: check AWS Config in your region (no changes)
 
-1. In the console search bar at the top, type `Config`. Under **Services**, choose **AWS Config**.
+1. In the console search bar at the top, type `AWS Config`. Under **Services**, choose **AWS Config**
+   (Track Resource Inventory and Changes).
+
+   ![AWS console search showing AWS Config under Services]({{ '/assets/img/lab03/console-search-aws-config.png' | relative_url }})
+   *Choose the **AWS Config** service under Services. The search box may suggest extra words such as
+   "Rules"; you only need the service result.*
 2. Confirm the region selector at the top right shows **US East (Ohio) `us-east-2`**, or your Lab 0
    region.
 3. Open **Settings**, or the getting-started page if Config has never been set up, and only *read* it:
@@ -94,7 +99,7 @@ Do this only after reading the costs below. Stay in your Lab 0 region.
    | Support all resource types (`AllSupported`) | `False` |
    | Include global resource types (`IncludeGlobalResourceTypes`) | `False` |
    | List of resource types (`ResourceTypes`) | `AWS::EC2::Instance,AWS::EC2::VPC,AWS::EC2::Subnet,AWS::EC2::SecurityGroup` |
-   | Snapshot delivery frequency | `24hours` (default) |
+   | Snapshot delivery frequency | `24hours` (default). This only sets how often a configuration *snapshot* is delivered to the bucket. It doesn't change how changes are recorded (the template doesn't set periodic recording), so don't expect the lower daily-recording price. |
    | Configuration delivery channel name, SNS topic name, Notification Email | leave the defaults |
 
 3. **Configure stack options:** leave the defaults → **Next**.
@@ -115,7 +120,7 @@ the identity is settled and the Diagnostic Tool passes. Imports are Lab 4.
 - **S3 and SNS:** the delivery bucket and SNS topic bill at their standard rates.
 - **After deleting the stack:** the retained bucket is still there. Empty and delete it yourself
   in [Lab 11]({{ '/labs/11-cleanup/' | relative_url }}).
-- **Cleanup:** stop or delete the recorder when the lab is finished. Keep the Lab 0 budget alert on.
+- **Cleanup:** deleting the `sg-aws-config` stack removes the recorder, delivery channel, role and topic. Afterwards, check that **AWS Config → Settings** shows no recorder still on. If you created a recorder another way, stop it there. The retained S3 bucket stays and keeps its objects until you empty and delete it. Keep the Lab 0 budget alert on.
 
 Optional Guided Setup groups (aggregator, SSM, key rotation, email notification) are for
 multi-account, deep-discovery or production use. Only mark a group skipped after your release's
@@ -123,6 +128,11 @@ Guided Setup confirms it is optional. Run the connector's **Diagnostic Tool** be
 imports.
 
 ## 1. Create a dedicated IAM (Identity and Access Management) user
+
+> **Lab identity, not verified as sufficient.** The user and policy in this section have no AWS
+> Config read access, and they are not the connector's official identity setup (§0). You can create
+> them, but **don't treat §2–§3 as complete, and don't run imports (Lab 4)**, until your release's
+> identity prerequisites are confirmed. Keep anything you created; don't delete it.
 
 1. AWS console → **IAM → Users → Create user** → name `servicenow-sgc-lab`.
 2. **Do not** enable console access. This identity only calls APIs.
@@ -162,6 +172,10 @@ imports.
 5. Copy the **Access key ID** and **Secret access key** now. The secret is shown once.
 
 ## 2. Enter the credentials in ServiceNow
+
+> **Stop here until the identity is settled.** Only enter credentials once your release's Guided
+> Setup has confirmed which identity it needs: this lab user, or the connector's user and role
+> from §0. Don't schedule or run imports yet.
 
 Use whichever setup surface you found in Lab 2.
 
@@ -204,8 +218,9 @@ Click **Test connection** (Guided Setup) or **Validate** (SGC Central).
 ## Checkpoint
 
 <ul class="check">
-<li>A dedicated IAM user exists with read-only permissions and no console access</li>
-<li>One access key exists, and ServiceNow's test returns success</li>
+<li>A dedicated IAM user exists with read-only permissions and no console access, and you know it is <b>not yet confirmed</b> for Config-based imports (§0)</li>
+<li>AWS Config recording is on in your region, or you know why not</li>
+<li>One access key exists, and ServiceNow's test returns success. A passing test does not show that Config imports will work.</li>
 <li>Keys are in ServiceNow only — not in a file, chat, or commit</li>
 </ul>
 
