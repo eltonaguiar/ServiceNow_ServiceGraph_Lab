@@ -46,9 +46,9 @@ permalink: /labs/07-csdm-graph/
       <li><a href="#hands-on-wizard-basics">Wizard Basic Details</a></li>
       <li><a href="#hands-on-step-2">Step 2 — Classic form labels</a></li>
       <li><a href="#hands-on-step-3">Step 3 — Choose a Method</a></li>
-      <li><a href="#hands-on-step-4">Step 4 — Preview</a></li>
+      <li><a href="#hands-on-step-4">Step 4 — Preview and Done</a></li>
+      <li><a href="#hands-on-map">Step 5 — View Map</a></li>
       <li><a href="#hands-on-optional">Optional — script link</a></li>
-      <li><a href="#hands-on-map">Optional — view map</a></li>
       <li><a href="#hands-on-checkpoint">Checkpoint</a></li>
     </ul>
   </div>
@@ -377,16 +377,24 @@ custom mechanics.
 *Screenshot: same modal scrolled — **Manual** and **Dynamic Service** descriptions. UI options are
 grounded in these captures.*
 
-#### Step 3b — Select **Manual** (lab minimum)
+#### Step 3b — Select **Manual** and save (observed on one PDI)
 
-1. In **Service Population Method**, select **Manual** (you may keep the default **-- Select one --**
-   until you are ready — nothing is committed until you continue and save).
-2. Confirm or fill the fields the wizard shows next for Manual (per [Manual method](https://www.servicenow.com/docs/r/zurich/servicenow-platform/configuration-management-database-cmdb/populate-app-service-manual.html)), typically including:
-   - **Class** — choose the CI class (here: virtual machine / **`cmdb_ci_vm_instance`**).
-   - **CI** — pick **`sgclab-app-01`** (avoid `*` searches on large estates).
-3. **Expected:** The record uses a class extending **`cmdb_ci_service_auto`** (often
-   **`cmdb_ci_service_discovered`** for manual creation on many releases). Saving may still be required
-   before **Preview** or **View Map** shows members.
+1. In **Service Population Method**, choose **Manual**, then continue.
+2. On the Manual screen (per [Manual method](https://www.servicenow.com/docs/r/zurich/servicenow-platform/configuration-management-database-cmdb/populate-app-service-manual.html)), one run showed:
+
+| Field | Observed value |
+|---|---|
+| **CMDB Table** | Read-only **`cmdb_ci_service_discovered`** |
+| **Class** | **Virtual Machine Instance** [`cmdb_ci_vm_instance`] |
+| **CI** | **`sgclab-app-01`** |
+| **Comments** | (left blank) |
+
+3. Click **Save**. **Expected:** a green confirmation such as **method added successfully**, and a card
+   showing **Manual** / **`sgclab-app-01`**.
+
+**Screenshots:** The **Choose a Method** dropdown is captured above. Intermediate Save / green-toast
+screens were **not** available for this publish batch — follow the field table; do not assume missing
+images failed on your instance.
 
 **Tag note:** AWS tag `Application=payments` is **cloud metadata**. It is **not** automatically a
 filter field named `Application` on `cmdb_ci_vm_instance`. The wizard **Tags** population method
@@ -395,20 +403,31 @@ requires **Service Mapping** — **not** this minimum path.
 **Expected:** Manual selection plus CI pick — **not** proof of a complete service map, **Service Mapping**
 run, or a production **Payments** workload.
 
-### Step 4 — Preview
+### Step 4 — Preview and **Done**
 {: #hands-on-step-4}
 
-1. Open the **Preview** tab.
+1. Click **Next** to **Preview the Service**.
 
-**Expected:** The tab may show **little or nothing** until population is finished and saved. A blank
-preview is **not** proof you failed — only that there is nothing to review yet. **Do not** claim a
-complete service map until you can open **View Map** (or equivalent) on a **saved** record.
+**Observed on one PDI after Manual save (your preview may differ before save):**
 
-**What you are not proving:**
+| Preview section | Observed |
+|---|---|
+| **Relationships** | **No records** (optional **Set Relationships** panes — business application, technical offering, business offering, parent application service — were left empty on purpose) |
+| **Population Methods Summary** | **Manual** with **`sgclab-app-01`** |
 
-- No running **Payments** workload.
-- No full dependency graph (network-interface/storage partials remain).
-- No automatic business outage simulation.
+Empty **Relationships** on Preview is **normal** when you skipped optional CSDM relationship panes in Basic
+Details — it is **not** the same as the saved **View Map** entry-point drawing.
+
+2. Click **Done**. **Expected:** success text such as **Application service successfully created** for
+   **`Payments (lab)`**, **Environment** **Development**, **Operational status** **Non-Operational**.
+
+**What this still does not prove:**
+
+- No running **Payments** software in AWS.
+- No **`cmdb_rel_ci` Depends on** edges or full connector partials (NIC/storage) resolved.
+- No **Service Mapping** discovery run.
+- **Traffic based discovery** = **Enabled** on the service record is a **property value** — not proof
+  discovery executed or that the map is complete.
 
 ### Optional — Link a CI with a script (advanced)
 {: #hands-on-optional}
@@ -424,13 +443,34 @@ python3 scripts/link_ci.py --list-types
 Pick a relationship type your instance allows for **Manual** population — align with CSDM, not
 assumed **Hosted on** labels.
 
-### Optional — View the map
+### Step 5 — View Map (checkpoint map)
 {: #hands-on-map}
 
-After **Done**, open **View Map** or **Dependency Views** if your release offers them.
+After **Done**, open **View Map** (from the service or wizard result).
 
-**Expected:** The drawing shows **relationships you created**, not completeness. Missing subnets or
-partial storage edges from Labs 4–5 can still leave the picture messier than production reality.
+**Observed on one PDI:**
+
+- Map: entry-point arrow to a single **`sgclab-app-01`** node (virtual machine icon).
+- **Application Service** properties: **Name** **`Payments (lab)`**, **Entry Points** **`sgclab-app-01`**,
+  **Operational status** **Non-Operational**, short description noting a learning example with **no
+  payment software installed**.
+
+That verifies a **saved manual application service** with an **entry-point CI** on the map — **not** a
+complete dependency graph, **not** production Payments, and **not** automatic proof of outage impact.
+
+![View Map for Payments (lab) showing entry point to sgclab-app-01]({{ '/assets/img/lab07/payments-lab-view-map.png' | relative_url }})
+
+*Screenshot: map canvas and Application Service properties (created-by metadata bands redacted). Your
+timeline dates may differ.*
+
+#### Screenshot inventory (Lab 7 hands-on)
+
+| Step | Status |
+|---|---|
+| **Choose a Method** dropdown (top + scrolled) | Published (`choose-method-dropdown-*.png`) |
+| Manual **Save** / green toast / method card | **Missing** this batch — use Step 3b text |
+| **Preview** Relationships vs Population summary | **Missing** this batch — use Step 4 table |
+| **View Map** | Published (`payments-lab-view-map.png`) |
 
 ---
 
@@ -440,10 +480,9 @@ partial storage edges from Labs 4–5 can still leave the picture messier than p
 <ul class="check">
 <li>You can explain <b>VPC</b> vs subnet vs security group without calling the VPC “physical private cabling”</li>
 <li>You know our VM is <b>Amazon Linux 2023</b>, <b>stopped</b>, and the template does <b>not</b> promise <b>SSH</b></li>
-<li>You opened the <b>wizard or classic Service Instance form</b> via the documented module path and entered <code>Payments (lab)</code> with learning intent (classic: <b>Used for</b> = Development, <b>Comments</b> = learning example — wizard: <b>Environment</b> per docs)</li>
-<li>You have <b>not</b> claimed the record is saved, submitted, or fully populated</li>
-<li>You used <b>Manual</b> population toward <code>cmdb_ci_vm_instance</code> / <code>sgclab-app-01</code></li>
-<li>You do <b>not</b> claim a finished production Payments stack or complete dependency graph</li>
+<li>You completed the wizard with <b>Environment</b> <b>Development</b> (when offered), <b>Manual</b> population to <code>sgclab-app-01</code> on <code>cmdb_ci_service_discovered</code>, and optional relationship panes empty if you had nothing to link</li>
+<li>You can explain <b>Preview → Relationships: no records</b> vs <b>View Map</b> still showing an entry-point arrow — observational on one PDI, not a universal guarantee before save</li>
+<li><b>View Map</b> shows <code>sgclab-app-01</code> as an entry point — you still do <b>not</b> claim <b>Depends on</b> / <code>cmdb_rel_ci</code> completeness, <b>Service Mapping</b>, real Payments software, or that <b>Traffic based discovery</b> ran</li>
 </ul>
 
 ---
