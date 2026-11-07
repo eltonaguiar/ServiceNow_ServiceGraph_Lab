@@ -101,19 +101,16 @@ python3 -m pip install boto3 requests   # only needed for Labs 4 and 12
 <details>
 <summary><strong>Debugging: <code>error: externally-managed-environment</code> (PEP 668)</strong></summary>
 
-On Ubuntu 23.04+, Debian 12+, and many other modern Linux distributions (including Ubuntu 24.04 on the ASUS GX10), the system Python is **externally managed**. Running `python3 -m pip install ...` fails with:
+<p>On Ubuntu 23.04+, Debian 12+, and many other modern Linux distributions (including Ubuntu 24.04 on the ASUS GX10), the system Python is <strong>externally managed</strong>. Running <code>python3 -m pip install ...</code> fails with:</p>
 
-```
-error: externally-managed-environment
-× This environment is externally managed
-```
+<pre><code>error: externally-managed-environment
+× This environment is externally managed</code></pre>
 
-This is intentional (PEP 668). Do **not** use `--break-system-packages` unless you know the risks.
+<p>This is intentional (PEP 668). Do <strong>not</strong> use <code>--break-system-packages</code> unless you know the risks.</p>
 
-**Recommended fix — use a virtual environment:**
+<p><strong>Recommended fix — use a virtual environment:</strong></p>
 
-```bash
-# One-time: install venv support
+<pre><code># One-time: install venv support
 sudo apt update
 sudo apt install -y python3-venv python3-full
 
@@ -122,26 +119,25 @@ python3 -m venv .venv
 source .venv/bin/activate
 
 # Now the install works
-pip install boto3 requests
-```
+pip install boto3 requests</code></pre>
 
-Your prompt should show `(.venv)`. While activated, `python3` and `pip` use the isolated environment.
+<p>Your prompt should show <code>(.venv)</code>. While activated, <code>python3</code> and <code>pip</code> use the isolated environment.</p>
 
-**To use the scripts later** (new terminal):
+<p><strong>To use the scripts later</strong> (new terminal):</p>
 
-```bash
-cd ~/mylabclone/ServiceNow_ServiceGraph_Lab   # or wherever you cloned it
+<pre><code>cd ~/mylabclone/ServiceNow_ServiceGraph_Lab   # or wherever you cloned it
 source .venv/bin/activate
-python3 scripts/verify_cmdb.py
-```
+python3 scripts/verify_cmdb.py</code></pre>
 
-Leave the environment with `deactivate`.
+<p>Leave the environment with <code>deactivate</code>.</p>
 
-**Other options:**
-- `pipx` (for standalone tools): `sudo apt install -y pipx && pipx ensurepath`
-- Force system install (not recommended): `python3 -m pip install --break-system-packages boto3 requests`
+<p><strong>Other options:</strong></p>
+<ul>
+<li><code>pipx</code> (for standalone tools): <code>sudo apt install -y pipx && pipx ensurepath</code></li>
+<li>Force system install (not recommended): <code>python3 -m pip install --break-system-packages boto3 requests</code></li>
+</ul>
 
-Prefer the `.venv` approach. It keeps the lab isolated and is the officially recommended method on Ubuntu/Debian.
+<p>Prefer the <code>.venv</code> approach. It keeps the lab isolated and is the officially recommended method on Ubuntu/Debian.</p>
 
 </details>
 
