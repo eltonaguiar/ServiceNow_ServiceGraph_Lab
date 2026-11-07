@@ -18,6 +18,84 @@ permalink: /labs/03-iam-connection/
 Create the least-privilege identity the connector uses, then wire it into ServiceNow and prove
 the connection works.
 
+## 0. Read first: AWS Config is required, and this lab's policy is not the connector's official setup
+
+ServiceNow's public docs say the connector needs **AWS Config with a configuration recorder**
+turned on in every account and region you import from
+([AWS resources used by the connector](https://www.servicenow.com/docs/r/servicenow-platform/service-graph-connectors/sgc-cmdb-aws-concepts.html)).
+The connector ships CloudFormation scripts for this. Download them from the **Download the scripts**
+task in Guided Setup. The scripts are described in
+[Executing scripts required for setting up AWS](https://www.servicenow.com/docs/r/australia/servicenow-platform/service-graph-connectors/sgc-cmdb-aws-script-op.html).
+
+What the downloaded bundle (scripts v2.13, Feb 2026) actually contains:
+
+- **`EnableAWSConfig.yml`** creates:
+  - an S3 delivery bucket. Its `DeletionPolicy` is *Retain*, so deleting the stack leaves the bucket.
+  - a bucket policy.
+  - a recorder role using the AWS managed `AWS_ConfigRole` policy.
+  - the configuration recorder and a delivery channel.
+  - by default, a new SNS topic.
+
+  It has these parameters:
+  - `AllSupported` (`True`/`False`, default `True`).
+  - `IncludeGlobalResourceTypes` (`True`/`False`, default `True`).
+  - `ResourceTypes`, which is only used when `AllSupported` is `False`.
+  - `Frequency` (`1hour`–`24hours`, default `24hours`).
+  - `TopicArn` and `NotificationEmail`.
+- **The ServiceNow identity scripts are built for AWS Organizations.**
+  - `CreateServiceNowUser.yml` creates a user, whose name must be **6–15 characters**, so
+    `servicenow-sgc-lab` (18) won't fit. It also creates the group `SnowMemberAccountAccessGroup`,
+    which may `sts:AssumeRole` a named role in *any* account. The user can rotate its own access key.
+  - The connector's read permissions, including `config:ListDiscoveredResources`,
+    `config:SelectResourceConfig` and `config:BatchGetResourceConfig`, live in the
+    **role** created by `CreateSnowOrganizationAccountAccessRoleInMemberAccount.yml`. That role
+    asks for a management/designated account ID, the user name and an S3 bucket for
+    SSM `SendCommand` output.
+- **SSM and deep-discovery scripts** are optional. They only matter for software inventory from a
+  **running** instance with an SSM instance profile. This lab's `sgclab` stack creates no
+  instance profile, and its instance is stopped.
+
+What this means for this lab:
+
+- **The custom policy in §1 has no `config:` actions.** On its own it is probably not enough for
+  the connector's Config-based import. Don't fix it by adding permissions one by one from error
+  messages, and don't fall back to `ReadOnlyAccess`.
+- **This lab has not verified a single-account (non-Organizations) setup.** That includes whether a
+  plain IAM user with Config read actions, and no assume-role, works on your connector release.
+  Treat §1 as a lab identity only. Follow your release's Guided Setup for the official identity,
+  and if it requires the Organizations role, use that role.
+- **Don't delete anything you already created.** Keep the existing user and policy until you have
+  confirmed what replaces them.
+
+### Safe next checkpoint: check AWS Config in your region (no changes)
+
+1. In the console search bar at the top, type `Config`. Under **Services**, choose **AWS Config**.
+2. Confirm the region selector at the top right shows **US East (Ohio) `us-east-2`**, or your Lab 0
+   region.
+3. Open **Settings**, or the getting-started page if Config has never been set up, and only *read* it:
+   - **Recorder already exists:** don't run `EnableAWSConfig.yml`. AWS allows only one customer-managed
+     recorder per account and region, so the stack would conflict with it. Never delete a recorder someone else
+     created.
+   - **No recorder:** running `EnableAWSConfig.yml` will start billing. Read the costs below first.
+     For this lab, consider `AllSupported` = `False`,
+     `ResourceTypes` = `AWS::EC2::Instance,AWS::EC2::VPC,AWS::EC2::Subnet,AWS::EC2::SecurityGroup`
+     and `IncludeGlobalResourceTypes` = `False`. Leave the other defaults.
+
+### Costs (not free)
+
+- **AWS Config:** billed per configuration item recorded, plus rule evaluations if you add rules
+  ([AWS Config pricing](https://aws.amazon.com/config/pricing/)). It is not part of a free tier.
+  Recording only a few resource types keeps it small.
+- **S3 and SNS:** the delivery bucket and SNS topic bill at their standard rates.
+- **After deleting the stack:** the retained bucket is still there. Empty and delete it yourself
+  in [Lab 11]({{ '/labs/11-cleanup/' | relative_url }}).
+- **Cleanup:** stop or delete the recorder when the lab is finished. Keep the Lab 0 budget alert on.
+
+Optional Guided Setup groups (aggregator, SSM, key rotation, email notification) are for
+multi-account, deep-discovery or production use. Only mark a group skipped after your release's
+Guided Setup confirms it is optional. Run the connector's **Diagnostic Tool** before scheduling
+imports.
+
 ## 1. Create a dedicated IAM (Identity and Access Management) user
 
 1. AWS console → **IAM → Users → Create user** → name `servicenow-sgc-lab`.
@@ -94,6 +172,7 @@ Click **Test connection** (Guided Setup) or **Validate** (SGC Central).
 | `InvalidClientTokenId` | Key ID wrong or deleted | Recreate the access key |
 | `SignatureDoesNotMatch` | Secret typo, or trailing whitespace when pasted | Re-enter the secret |
 | `AccessDenied` on `ec2:DescribeInstances` | Policy not attached, or attached to the wrong user | Recheck the user's policies |
+| `AccessDenied` on a `config:` action, or an empty import | Config not enabled in the region, or the identity has no Config read access | Go back to §0. Don't add permissions by trial and error. |
 | Timeout / 403 from ServiceNow | Outbound REST blocked or proxy in the way | See [Troubleshooting]({{ '/labs/10-troubleshooting/' | relative_url }}) |
 
 ## Checkpoint

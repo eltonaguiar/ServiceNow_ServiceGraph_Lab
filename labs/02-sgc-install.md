@@ -96,6 +96,9 @@ is only where the screens live — so do not hunt for the "right" one:
 If both exist, use Guided Setup once (it creates the credential record for you) and then use
 SGC Central for monitoring. If only one exists, that is the supported path for your release.
 
+> **Before Lab 3:** in Guided Setup, run **Download the scripts** and keep the ZIP. Lab 3 §0
+> explains why AWS Config, set up with `EnableAWSConfig.yml`, is required.
+
 ## Checkpoint
 
 <ul class="check">
