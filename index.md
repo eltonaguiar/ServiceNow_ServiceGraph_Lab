@@ -59,8 +59,38 @@ AWS **Config**, **S3**, storage, and **stopped EC2** can still incur charges; th
 </nav>
 
 <div style="border: 2px solid #d73a49; border-radius: 6px; padding: 12px 16px; margin: 16px 0; background: #fff5f5; color: #24292e;">
-<p style="margin: 0; font-weight: bold; color: #cb2431;">⚠️ Cost warning — this lab may not be completely free</p>
-<p style="margin: 8px 0 0 0; color: #24292e;">AWS and Azure can charge by the hour for a running VM, a public IP, and a disk. On a new account these amounts are usually only cents to a dollar for a short lab, and are often covered by free-tier credits — but they are not guaranteed to be zero. Set the budget alarm immediately, stop or deallocate resources the same day, and delete the stack when you finish. See the <a href="{{ '/labs/00-prerequisites/' | relative_url }}">Prerequisites</a> page for the full cost breakdown.</p>
+<p style="margin: 0; font-weight: bold; color: #cb2431;">⚠️ Cost warning — read this before you spend</p>
+<p style="margin: 8px 0 0 0; color: #24292e;"><strong>AWS policy depends on your account type — not on this website.</strong>
+On the current <a href="https://aws.amazon.com/free/">credit-based Free Plan</a> (common for new accounts since mid‑2025),
+Amazon Web Services states you are not billed for eligible usage while you remain on that plan and your
+<a href="https://aws.amazon.com/free/terms/">Free Tier credits</a> cover it — unless you
+<a href="https://docs.aws.amazon.com/accounts/latest/reference/upgrade-account.html">upgrade to a Paid plan</a>
+or turn on paid‑only services. The Free Plan period ends when credits run out or at six months, whichever
+comes first; after that AWS suspends access. You may have up to <strong>90 days</strong> to upgrade to a Paid
+plan to restore the account; otherwise AWS can permanently close it and delete content (per
+<a href="https://aws.amazon.com/free/terms/">Free Tier terms</a> and
+<a href="https://aws.amazon.com/free/free-tier-faqs/">FAQs</a>). That automatic expiry is
+<strong>not</strong> the same as <strong>you</strong>
+<a href="https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-closing.html">choosing to close</a>
+an account: voluntary closure has its own rules, bills for usage already consumed, and if you reopen within
+90 days <strong>charges for services can restart</strong>. Closing or reopening is account management — not a
+way to reset the lab or avoid paying for usage on a Paid plan.</p>
+<p style="margin: 8px 0 0 0; color: #24292e;"><strong>What we saw while building this lab (text only — your console may differ).</strong>
+On one Free Plan account the billing home showed <em>Free</em>, “no charges while on the free plan,”
+<strong>amount due $0.00</strong>, roughly <strong>182 days</strong> left on the plan period (plan end
+<strong>6 May 2027</strong> in that UI), <strong>$120.00</strong> in remaining Free Tier credits with usage
+described as covered by those credits, and the original <strong>$100</strong> signup credit called out at
+registration (we are not claiming where any additional credits came from). That snapshot supports
+<strong>$0 due for that account at that time</strong> — it is <strong>not</strong> a promise that every
+learner pays nothing.</p>
+<p style="margin: 8px 0 0 0; color: #24292e;">Older accounts may still follow the
+<a href="https://aws.amazon.com/free/terms/">legacy 12‑month free tier</a>; the
+<a href="https://aws.amazon.com/free/free-tier-faqs/">FAQs</a> note signup experiences differ (including
+changes in 2026). Optional Lab 8 uses <strong>Azure</strong>, which has its own billing. This lab
+can still bill you if you: upgrade; join Organizations on a Free plan; exceed credit coverage; leave
+<strong>AWS Config</strong>, <strong>S3</strong>, public IPv4, or disks running; or skip teardown.
+Set the <strong>budget alarm</strong> in Lab 0 (it warns only), follow scoped Labs 1/3/11 cleanup, and
+delete stacks when finished — details stay on those lab pages; this warning does not replace them.</p>
 </div>
 
 <div class="eli5">
