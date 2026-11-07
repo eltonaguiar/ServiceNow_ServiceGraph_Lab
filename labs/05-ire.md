@@ -96,14 +96,28 @@ from **CI Class Manager** → your class → Identification).
 For AWS EC2 on the Service Graph Connector, open identification on **`cmdb_ci_vm_instance`**
 (not `cmdb_ci_ec2_instance`). Rules typically key on the AWS instance id in `object_id`.
 
-Exercises (on your lab VM, e.g. `sgclab-app-01`):
+### Default (observational — enough for basic PoC)
 
-1. Note search attributes, identifier entry, and whether the rule is independent or dependent.
-2. Re-run **`SG-AWS-EC2`** — verified basic PoC stays at **one** row (identification pass).
-3. Optional deep dive: break an identifier by hand, re-import, observe duplicate, clean up.
+On **`cmdb_ci_vm_instance`** (your lab VM, e.g. `sgclab-app-01`):
 
-> Doing (3) once is worth an hour of reading. It is exactly what happens in production when
-> someone "cleans up" a CI by hand.
+1. Read the identification rule: search attributes, identifier, dependent vs independent.
+2. Open **IRE output** or import row **Comments** from the last `SG-AWS-EC2` run (insert vs partial).
+3. Re-run **`SG-AWS-EC2`** and confirm the list stays at **one** row with the **same** `object_id`.
+
+You do **not** need step 4 below to complete the basic PoC.
+
+### Optional exercise 4 — duplicate on purpose (throwaway PDI only)
+
+**Only** on your **own** lab PDI, on the **single throwaway VM** this lab created — **never** on a
+shared, production, or non-lab CMDB.
+
+1. **Before editing:** copy the VM's **`object_id`** and any identification fields to your notes.
+2. Change **only** that identifier on the **one** lab record (simulate a bad manual edit).
+3. Re-run **`SG-AWS-EC2`**: expect a **second** row (duplicate).
+4. **Clean up:** delete **only** the duplicate **you** caused; restore the **original**
+   `object_id` on the surviving record; re-import once; verify **one** row again.
+
+Skip this entirely if you are not on a private throwaway instance.
 
 ## 4. Reconcile duplicates
 

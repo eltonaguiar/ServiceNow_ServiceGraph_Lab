@@ -227,8 +227,8 @@ Every abbreviation used on this site, expanded once, alphabetically.
 
 ## What you need before starting
 
-Only three things: a browser, a free ServiceNow developer instance, and a free AWS account.
-[Lab 0]({{ '/labs/00-prerequisites/' | relative_url }}) walks through both, including the budget
-alarm that keeps the lab at zero cost.
+Only three things: a browser, a ServiceNow developer instance (PDI), and an AWS account.
+[Lab 0]({{ '/labs/00-prerequisites/' | relative_url }}) walks through setup and a **budget alarm**
+that emails on spend — it does **not** cap billing. Cleanup and bucket checks are in Lab 11.
 
 Then: [Lab 1 — build a real AWS inventory]({{ '/labs/01-aws-inventory/' | relative_url }})

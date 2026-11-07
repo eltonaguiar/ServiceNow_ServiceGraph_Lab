@@ -10,7 +10,7 @@ permalink: /labs/00-prerequisites/
 
 <div class="eli5">
 <span class="label">ELI5</span>
-<p>You need two free accounts (ServiceNow and AWS) and a way to notice if the lab starts costing money. The budget alarm is not optional — it is the whole reason the lab stays free.</p>
+<p>You need a ServiceNow PDI, an AWS account, and a budget alarm so spend shows up in email — the alarm warns; it does not stop charges.</p>
 </div>
 
 <div style="border: 2px solid #d73a49; border-radius: 6px; padding: 12px 16px; margin: 16px 0; background: #fff5f5; color: #24292e;">

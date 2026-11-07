@@ -12,9 +12,9 @@ EC2 servers, VPC networks and a working service model inside a ServiceNow **CMDB
 (Configuration Management Database) — reconciled by **IRE** (Identification and Reconciliation
 Engine).
 
-Everything runs on a free **PDI** (Personal Developer Instance) and a free-tier AWS account.
-No **MID Server** (the on-premises agent ServiceNow normally needs), no paid licence, no private
-infrastructure.
+Designed for a free **PDI** (Personal Developer Instance) and a **credit-based AWS account** (Lab 0).
+AWS **Config**, **S3**, storage, and **stopped EC2** can still incur charges; the budget alarm
+**alerts only** — it does not cap spend. No **MID Server**, no production account required.
 
 <div style="border: 2px solid #d73a49; border-radius: 6px; padding: 12px 16px; margin: 16px 0; background: #fff5f5; color: #24292e;">
 <p style="margin: 0; font-weight: bold; color: #cb2431;">⚠️ Cost warning — this lab may not be completely free</p>
@@ -52,7 +52,7 @@ sitting.
 | **When it breaks** | Search the community forum | [Lab 10]({{ '/labs/10-troubleshooting/' | relative_url }}) is a matrix of every failure mode this lab actually hits — store install, IAM, connection test, empty import, duplicate CIs — each with the fix |
 | **Time to first CI** | Hours of modules before a CMDB appears | **~40 minutes** (Labs 0–4), or ~1 hour on the no-Store fallback |
 | **How far it goes** | Stops when the import runs | Continues into IRE identification rules, a CSDM application service over real CIs, AWS-vs-Azure source precedence, and drift monitoring |
-| **Cost** | Depends on the lab entitlement | Free-tier AWS only; nothing chargeable is left running after Lab 11 |
+| **Cost** | Depends on the lab entitlement | Lab 0 + Lab 11 minimize spend; verify billing — Config/S3 buckets may remain (see Lab 3/11) |
 
 Two things this lab is **not**: it is not exam prep, and it is not a reference architecture. The
 free-tier AWS account is a teaching environment, not a production design — the point is that you
@@ -82,7 +82,7 @@ Two pages exist so you never have to guess:
   <a class="card" href="{{ '/labs/08-multisource-azure/' | relative_url }}"><b>8 · Multisource CMDB</b><span>Add Azure, force a reconciliation decision — 40 min</span></a>
   <a class="card" href="{{ '/labs/09-drift-monitoring/' | relative_url }}"><b>9 · Drift + monitoring</b><span>Terminate an instance, watch the CMDB react — 25 min</span></a>
   <a class="card" href="{{ '/labs/10-troubleshooting/' | relative_url }}"><b>10 · Troubleshooting</b><span>Every failure mode this lab hits — reference</span></a>
-  <a class="card" href="{{ '/labs/11-cleanup/' | relative_url }}"><b>11 · Cleanup</b><span>Revoke keys, delete the stack, cost = $0</span></a>
+  <a class="card" href="{{ '/labs/11-cleanup/' | relative_url }}"><b>11 · Cleanup</b><span>Revoke keys, delete stacks, verify billing</span></a>
 </div>
 
 ## What you end up with
@@ -105,9 +105,10 @@ the IRE concepts in Labs 5–7 are identical.
 
 ## Ground rules
 
-- Everything is **free tier**. The only chargeable item is the EC2 instance from Lab 1, and
-  `t3.micro` is free-tier eligible for a limited monthly allowance in a new account. Lab 11
-  deletes it.
+- **Costs are not zero by default.** Running or **stopped** EC2, **AWS Config** recording,
+  **S3** delivery buckets (often **retained** after stack delete), EBS, and public IPv4 can bill.
+  Credits may cover small labs — check **Cost Explorer** and [Lab 11]({{ '/labs/11-cleanup/' | relative_url }}).
+- Set a **budget alarm** in Lab 0; it **warns**, it does **not** stop charges.
 - **Never commit AWS keys.** The lab creates them, uses them in one ServiceNow form, and
   revokes them in Lab 11.
 - A PDI hibernates after inactivity and its URL can change. Re-wake it at
