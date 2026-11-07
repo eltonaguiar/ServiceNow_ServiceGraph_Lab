@@ -23,7 +23,7 @@ Lab 5 minimum: one **`cmdb_ci_vm_instance`** (e.g. list **Name** `sgclab-app-01`
 2. **CMDB Application: SG-AWS** → definition **`SG-AWS-EC2-Instance`** (ETL name, not the **`SG-AWS-EC2`** schedule).
 3. **Map Data to CMDB** → **Virtual Machine Instance** card → **View Mapping**.
 
-**Transform Map Assistant:** with no sample import set, mappings stay **read-only**. Do **not** pick **Select a Sample Import Set** or flip controls to edit for the minimum bar.
+**Transform Map Assistant:** with no sample import set, mappings stay **read-only**. Do **not** pick **Select a Sample Import Set** or flip controls to edit for the minimum bar. **Add Attribute** (and similar edit controls) stay **greyed out** in this mode — that is **expected** without a sample import set, not proof you lack permissions.
 
 ## Minimum checkpoint (verified)
 
@@ -40,6 +40,8 @@ These are **configured** destinations in the ETL — what the connector is set u
 ### Why `ec2Name` inputs look like `resourceId|tagsStr`
 
 On the **Name** row, ServiceNow shows transform type **Multiple Input Script** with inputs **`resourceId`** and **`tagsStr`**. The script also receives a combined **`input`** string (`resourceId|tagsStr`), but the walkthrough script **does not read** `input` — it uses **`resourceId`** and **`tagsStr`** separately. That unused `input` variable is normal; it does **not** mean the transform is a no-op.
+
+**The final `ec2Name` value (and thus CMDB Name) is not `resourceId|tagsStr`.** It is the **Name** tag value **`trim`med** when parse succeeds, otherwise **`resourceId`** as fallback (empty **Name** tag can yield an empty string; multiple **Name** tags → last wins).
 
 **`ec2SourceNativeKey`** uses a separate **concatenate** transform: `connection_alias_id`, `accountId`, `awsRegion`, `resourceId` with **`|`** delimiter.
 
@@ -65,10 +67,11 @@ Part B remains **optional**; the curriculum does not require changing stock **`S
 
 ---
 
-<details>
+<details markdown="1">
 <summary><strong>ELI5 code walkthrough — how <code>ec2Name</code> becomes <code>Name</code> (read-only reference)</strong></summary>
 
 ServiceNow runs a small script **per import row** in the batch. The UI may show the script with `replaceAll("\\", "")` — in the **stored JSON**, that is often serialized as `replaceAll("\\\\", "")` (two backslashes inside quotes = remove one literal backslash in the tag string). Below is the walkthrough shape; line up backslashes with what your PDI displays.
+
 
 ```javascript
 (function(batch, output) {
@@ -98,6 +101,7 @@ ServiceNow runs a small script **per import row** in the batch. The UI may show 
 
 **How to read it (beginner):**
 
+
 1. **IIFE** — `(function…)(batch, output)` defines a function, then ServiceNow calls it with the real **`batch`** and **`output`** arrays.
 2. **Outer loop `i`** — one pass per row in the batch (your lab VM is one of those rows).
 3. **Start at `resourceId`** — default display name is the AWS resource id (e.g. a placeholder like `i-EXAMPLE` in training examples, **not** pasted here from your account).
@@ -118,6 +122,7 @@ This script does **not** prove tags always exist in AWS; it only shows how the c
 <li>Opened <code>SG-AWS-EC2-Instance</code> read-only; <b>Virtual Machine Instance</b> → <b>View Mapping</b></li>
 <li>Can point to <b>Name</b> ← <code>object.ec2Name</code>, <b>Object ID</b> ← <code>resourceId</code>, native key ← <code>ec2SourceNativeKey</code></li>
 <li>Understand <code>ec2Name</code> is transform output, not a CMDB column; list <b>Name</b> is what landed on the VM</li>
+<li><b>Add Attribute</b> greyed out without sample import set — expected for read-only observation</li>
 </ul>
 
 Next: [Lab 7 — CSDM and the service graph]({{ '/labs/07-csdm-graph/' | relative_url }})
