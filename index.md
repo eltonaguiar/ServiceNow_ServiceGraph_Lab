@@ -16,6 +16,48 @@ Designed for a free **PDI** (Personal Developer Instance) and a **credit-based A
 AWS **Config**, **S3**, storage, and **stopped EC2** can still incur charges; the budget alarm
 **alerts only** — it does not cap spend. No **MID Server**, no production account required.
 
+<nav class="toc" aria-label="Contents">
+  <div>
+    <p class="toc-title">On this page</p>
+    <ol class="toc-list">
+      <li><a href="#why">Why this lab, vs ServiceNow's own courses</a></li>
+      <li><a href="#primer">New to the vocabulary?</a></li>
+      <li><a href="#labs">The lab sequence</a></li>
+      <li><a href="#outcome">What you end up with</a></li>
+      <li><a href="#paths">Two paths, same destination</a></li>
+      <li><a href="#rules">Ground rules</a></li>
+    </ol>
+  </div>
+  <div>
+    <p class="toc-title">Start here</p>
+    <ul class="toc-list">
+      <li><a href="{{ '/labs/00-prerequisites/' | relative_url }}">Lab 0 — Prerequisites</a></li>
+      <li><a href="{{ '/basics/' | relative_url }}">Primer — every term in plain English</a></li>
+      <li><a href="{{ '/integration-methods/' | relative_url }}">Integration methods compared</a></li>
+      <li><a href="{{ '/labs/fallback-ire-api/' | relative_url }}">No-Store fallback path</a></li>
+      <li><a href="{{ '/labs/10-troubleshooting/' | relative_url }}">Troubleshooting matrix</a></li>
+      <li><a href="https://github.com/eltonaguiar/ServiceNow_ServiceGraph_Lab">Repo — scripts + CloudFormation</a></li>
+    </ul>
+  </div>
+  <div class="toc-wide">
+    <p class="toc-title">The 12 labs, in order</p>
+    <ul class="toc-list toc-labs">
+      <li><a href="{{ '/labs/00-prerequisites/' | relative_url }}"><b>0</b> Prerequisites</a></li>
+      <li><a href="{{ '/labs/01-aws-inventory/' | relative_url }}"><b>1</b> AWS inventory</a></li>
+      <li><a href="{{ '/labs/02-sgc-install/' | relative_url }}"><b>2</b> Connector install</a></li>
+      <li><a href="{{ '/labs/03-iam-connection/' | relative_url }}"><b>3</b> IAM + connection</a></li>
+      <li><a href="{{ '/labs/04-run-import/' | relative_url }}"><b>4</b> Run the import</a></li>
+      <li><a href="{{ '/labs/05-ire/' | relative_url }}"><b>5</b> IRE results</a></li>
+      <li><a href="{{ '/labs/06-etl-mappings/' | relative_url }}"><b>6</b> ETL mappings</a></li>
+      <li><a href="{{ '/labs/07-csdm-graph/' | relative_url }}"><b>7</b> CSDM + service graph</a></li>
+      <li><a href="{{ '/labs/08-multisource-azure/' | relative_url }}"><b>8</b> Multisource (Azure)</a></li>
+      <li><a href="{{ '/labs/09-drift-monitoring/' | relative_url }}"><b>9</b> Drift + monitoring</a></li>
+      <li><a href="{{ '/labs/10-troubleshooting/' | relative_url }}"><b>10</b> Troubleshooting</a></li>
+      <li><a href="{{ '/labs/11-cleanup/' | relative_url }}"><b>11</b> Cleanup</a></li>
+    </ul>
+  </div>
+</nav>
+
 <div style="border: 2px solid #d73a49; border-radius: 6px; padding: 12px 16px; margin: 16px 0; background: #fff5f5; color: #24292e;">
 <p style="margin: 0; font-weight: bold; color: #cb2431;">⚠️ Cost warning — this lab may not be completely free</p>
 <p style="margin: 8px 0 0 0; color: #24292e;">AWS and Azure can charge by the hour for a running VM, a public IP, and a disk. On a new account these amounts are usually only cents to a dollar for a short lab, and are often covered by free-tier credits — but they are not guaranteed to be zero. Set the budget alarm immediately, stop or deallocate resources the same day, and delete the stack when you finish. See the <a href="{{ '/labs/00-prerequisites/' | relative_url }}">Prerequisites</a> page for the full cost breakdown.</p>
@@ -32,7 +74,7 @@ group them into a "service" so you can answer <em>"if this server dies, what bre
 if any of the words above are unfamiliar.</p>
 </div>
 
-## Why this lab exists — and how it differs from ServiceNow's own Learning content
+<h2 id="why">Why this lab exists — and how it differs from ServiceNow's own Learning content</h2>
 
 ServiceNow's official training is organised as **courses**: you watch a module, answer a check,
 and move on. That teaches the vocabulary well, but it deliberately keeps the environment abstract —
@@ -59,7 +101,7 @@ free-tier AWS account is a teaching environment, not a production design — the
 finish with a working pattern you have personally operated end to end, so the product documentation
 and the certification material have something concrete to attach to.
 
-## New to the vocabulary?
+<h2 id="primer">New to the vocabulary?</h2>
 
 Two pages exist so you never have to guess:
 
@@ -68,7 +110,7 @@ Two pages exist so you never have to guess:
   <a class="card" href="{{ '/integration-methods/' | relative_url }}"><b>Integration methods compared</b><span>Does this cover IntegrationHub and IRE? Why use a Service Graph Connector? What else could you use instead?</span></a>
 </div>
 
-## The lab sequence
+<h2 id="labs">The lab sequence</h2>
 
 <div class="grid">
   <a class="card" href="{{ '/labs/00-prerequisites/' | relative_url }}"><b>0 · Prerequisites</b><span>PDI, AWS account, budget alarm — 15 min</span></a>
@@ -85,7 +127,7 @@ Two pages exist so you never have to guess:
   <a class="card" href="{{ '/labs/11-cleanup/' | relative_url }}"><b>11 · Cleanup</b><span>Revoke keys, delete stacks, verify billing</span></a>
 </div>
 
-## What you end up with
+<h2 id="outcome">What you end up with</h2>
 
 - `cmdb_ci_vm_instance` for your lab EC2 (AWS connector path) — `object_id` is the real `i-…` id
 - Account, datacenter, **cloud network** (VPC), subnet, and security-group CIs from scheduled imports
@@ -93,7 +135,7 @@ Two pages exist so you never have to guess:
 - An IRE result set you can read and explain: inserted vs updated vs skipped, and why
 - A reconciliation precedence rule that decides which source wins when AWS and Azure disagree
 
-## Two paths, same destination
+<h2 id="paths">Two paths, same destination</h2>
 
 | Path | Use when | Time |
 |---|---|---|
@@ -103,7 +145,7 @@ Two pages exist so you never have to guess:
 Start with Lab 0 either way. If the install fails at Lab 2, take the fallback and come back —
 the IRE concepts in Labs 5–7 are identical.
 
-## Ground rules
+<h2 id="rules">Ground rules</h2>
 
 - **Costs are not zero by default.** Running or **stopped** EC2, **AWS Config** recording,
   **S3** delivery buckets (often **retained** after stack delete), EBS, and public IPv4 can bill.
