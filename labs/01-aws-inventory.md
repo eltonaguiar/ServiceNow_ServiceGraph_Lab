@@ -123,6 +123,12 @@ instance in the EC2 console, in the same region. Or go to **EC2 → Instances** 
 - A **terminated** instance is deleted, so there is nothing to discover. That is why you stop it
   rather than terminate it.
 
+> Stopping compute primarily conserves credits on a confirmed **AWS Free plan**. It does **not**
+> extend the six-month Free plan limit, and associated **Elastic Block Store (EBS)** storage or
+> other retained resources may still incur metered costs. **Paid** or legacy accounts can incur real
+> charges. Keep the current narrow lab scope and clean up when finished; Free plan expiry alone does
+> **not** automatically upgrade to **Paid**.
+
 - A stopped instance has no compute charge, but its EBS volume is still billed. Any public IPv4
   address or other attached resource may also cost money.
 - `t3.micro` is only free-tier eligible for some accounts and periods. It may not be free in yours,

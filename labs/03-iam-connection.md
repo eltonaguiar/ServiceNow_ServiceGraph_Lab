@@ -70,6 +70,15 @@ What this means for this lab:
 - **Don't delete anything you already created.** Keep the existing user and policy until you have
   confirmed what replaces them.
 
+> **Why we keep this standalone and narrow:** recording only **Elastic Compute Cloud (EC2)**
+> instances, **virtual private cloud (VPC)** networks, subnets and security groups primarily
+> conserves eligible **AWS Free plan** credits. It does **not** extend the six-month limit or cap
+> usage. Do **not** create or join **AWS Organizations** or configure **AWS Control Tower** merely
+> because a connector script or role name mentions organizations: those actions can trigger a paid
+> upgrade and loss of Free Tier credit benefits. The custom same-account **Security Token Service
+> (STS)** role is **not** organization enrollment. Keep the current recording scope unchanged while
+> debugging partial import results.
+
 ### Safe next checkpoint: check AWS Config in your region (no changes)
 
 1. In the console search bar at the top, type `AWS Config`. Under **Services**, choose **AWS Config**
@@ -257,12 +266,15 @@ narrowing) and `sgclab`.*
 5. **Diagnostic Tool:** skip SSM setup, SSM Deep Discovery and EKS. A green connection test on
    its own doesn't show that imports will work, so run the diagnostics before any import (Lab 4).
 
-### Costs (not free)
+### Metered usage and credit conservation
 
-- **AWS Config:** billed per configuration item recorded, plus rule evaluations if you add rules
-  ([AWS Config pricing](https://aws.amazon.com/config/pricing/)). It is not part of a free tier.
-  Recording only a few resource types keeps it small.
-- **S3 and SNS:** the delivery bucket and SNS topic bill at their standard rates.
+- **AWS Config:** usage is metered per configuration item recorded, with additional evaluations if
+  rules are configured. Narrow recording reduces metered usage and eligible credit consumption; it is
+  **not** a guarantee of zero cost or a spend cap. Check [current Config pricing](https://aws.amazon.com/config/pricing/)
+  and your account’s credit coverage before deployment.
+- **Simple Storage Service (S3)** and **Simple Notification Service (SNS):** metered usage may
+  consume eligible credits; on Paid or legacy accounts uncovered usage can be charged. Check actual
+  billing. A genuine Free plan expiring does **not** by itself roll into Paid.
 - **After deleting the stack:** the retained bucket is still there. Empty and delete it yourself
   in [Lab 11]({{ '/labs/11-cleanup/' | relative_url }}).
 - **Cleanup:** deleting the `sg-aws-config` stack removes the recorder, delivery channel, role and topic. Afterwards, check that **AWS Config → Settings** shows no recorder still on. If you created a recorder another way, stop it there. The retained S3 bucket stays and keeps its objects until you empty and delete it. Keep the Lab 0 budget alert on.

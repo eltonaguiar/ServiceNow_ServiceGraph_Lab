@@ -15,9 +15,12 @@ permalink: /labs/11-cleanup/
 
 ## Objective
 
-Leave with no live keys, cloud resources torn down **where you can verify**, and billing checked in
-the console. This lab does **not** guarantee a zero balance — especially if **AWS Config** or a
-**retained S3 bucket** from `sg-aws-config` still exists ([Lab 3]({{ '/labs/03-iam-connection/' | relative_url }})).
+Leave with no live keys, cloud resources torn down **where you can verify**, and usage and credits
+checked in the **correct** account. On a confirmed **AWS Free plan**, cleanup mainly prevents
+unnecessary credit consumption; it does **not** extend the six-month plan limit. On **Paid** or
+legacy accounts it also prevents continuing out-of-pocket charges. Retained **AWS Config** /
+**Simple Storage Service (S3)** resources can continue metered usage. Do **not** rely on eventual Free
+plan suspension as your cleanup procedure or data backup ([Lab 3]({{ '/labs/03-iam-connection/' | relative_url }})).
 
 ## 1. Revoke the credentials first
 
@@ -60,6 +63,11 @@ keeps calling a deleted account generates nothing but errors.
 
 **Stopped EC2 is not free** (EBS and related charges can continue). Do not treat “instance stopped”
 as “lab paid for.” Read what Cost Explorer shows for your account; credits may mask small amounts.
+
+Check **Current plan**, remaining credits and expiry as well as costs. Free plan expiry or credit
+exhaustion closes or suspends access rather than automatically rolling into **Paid**. Data recovery
+during the **90-day** retention period requires a paid upgrade; save evidence before expiry. Do **not**
+upgrade or create an organization as part of cleanup.
 
 ## 5. What to keep
 

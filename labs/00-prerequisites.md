@@ -14,8 +14,8 @@ permalink: /labs/00-prerequisites/
 </div>
 
 <div style="border: 2px solid #d73a49; border-radius: 6px; padding: 12px 16px; margin: 16px 0; background: #fff5f5; color: #24292e;">
-<p style="margin: 0; font-weight: bold; color: #cb2431;">⚠️ Cost warning — this lab may not be completely free</p>
-<p style="margin: 8px 0 0 0; color: #24292e;">AWS and Azure can charge by the hour for a running VM, a public IP, and a disk. On a new account these amounts are usually only cents to a dollar for a short lab, and are often covered by free-tier credits — but they are not guaranteed to be zero. <strong>Your credit card is on file, so if you go over budget or leave resources running after credits expire, you can be charged.</strong> Set the budget alarm immediately, stop or deallocate resources the same day, and delete the stack when you finish. See the collapsible cost breakdown below for real numbers.</p>
+<p style="margin: 0; font-weight: bold; color: #cb2431;">⚠️ AWS plan check — conserve credits and avoid unintended upgrades</p>
+<p style="margin: 8px 0 0 0; color: #24292e;">Confirm the <strong>current plan</strong> for the <strong>Amazon Web Services (AWS)</strong> account you are using. A genuine <strong>Free plan</strong> does <strong>not</strong> automatically become <strong>Paid</strong> merely because credits run out or six months pass; access ends instead. Small scope and prompt cleanup preserve credits, but <strong>cannot</strong> extend the six‑month cap. Creating or joining <strong>AWS Organizations</strong> or setting up an <strong>AWS Control Tower</strong> landing zone can trigger a paid upgrade — neither is needed for this lab. <strong>Paid</strong>, legacy, and optional <strong>Microsoft Azure</strong> (Lab 8) accounts have different billing rules. Set budget <strong>alerts</strong> (they warn; they do not cap spend) and follow [Lab 11]({{ '/labs/11-cleanup/' | relative_url }}) cleanup. Read §2 below for official sources and the full explanation.</p>
 </div>
 
 ## Objective
@@ -57,7 +57,11 @@ the app.
 ### Create the account
 
 1. Go to [aws.amazon.com/free](https://aws.amazon.com/free) and create an account.
-2. A credit card is required for identity verification. AWS will not charge it while you stay on the Free plan and have credits remaining, but the card is still required.
+2. Follow the sign-up experience AWS presents. Many customers on the simplified experience do
+   **not** need a payment method at signup, although AWS may request one for identity verification;
+   other sign-up routes can differ. A payment method on file does **not** by itself mean a confirmed
+   Free plan silently becomes Paid when credits expire — check the actual plan and any upgrade
+   confirmation before continuing.
 3. After signup you will see a welcome / getting-started screen. You can skip the agent-toolkit prompts for this lab — they are not required.
 4. Confirm your plan in the account menu (top right). A typical new Free plan looks like this:
    - **Current plan:** Free
@@ -74,19 +78,50 @@ the app.
 
 ### What the Free plan actually means in 2026
 
-New accounts are on a **credit-based Free plan**, not the old “750 free hours per month for 12 months” model.
+Verify **Current plan**, **credits remaining**, and **plan expiry** for this specific account.
+New-customer credits are not a blanket protection for Paid or **legacy 12‑month Free Tier**
+accounts. AWS also introduced a simplified, project-based sign-up experience in October 2026; its
+screens and feature availability differ from the advanced AWS experience.
 
-<div style="border: 2px solid #d73a49; border-radius: 6px; padding: 12px 16px; margin: 16px 0; background: #fff5f5; color: #24292e;">
-<p style="margin: 0; font-weight: bold; color: #cb2431;">⚠️ Free-ish, not free — your credit card is on file</p>
-<p style="margin: 8px 0 0 0; color: #24292e;">You start with <strong>$100 in credits</strong> and roughly <strong>six months</strong> on the Free plan. Charges for this lab are usually only cents to a dollar and come out of those credits instead of your card. <strong>Be cautious: your credit card is on file.</strong> If you go over budget, exhaust the credits, or the plan ends and resources are still running, AWS can charge the card. Set the budget alarm immediately and delete the stack the same day. A public IPv4 address and a running (or stopped-but-not-deleted) instance still consume credits.</p>
-</div>
+> **Our caution is primarily about conserving credits, not an automatic paid rollover.** Keep the
+> lab small so credits last for more learning sessions. The Free plan still ends after **six months
+> or credit exhaustion, whichever comes first**. Saving credits does **not** extend that time limit.
+
+When a Free plan expires, account or project access is suspended or closed. AWS retains the data for
+**90 days**; recovering access requires upgrading to **Paid** during that period (not free
+read-only access). Afterward, AWS can permanently delete account content and resources. Export lab
+evidence before expiry rather than relying on paid recovery.
+
+Paid upgrades are separate actions. Do **not** choose **Upgrade** for this lab, create or join
+**AWS Organizations**, or set up an **AWS Control Tower** landing zone. AWS also lists Partner
+Network enrollment, Professional Services contracts, Enterprise Agreements, Skill Builder Team
+subscriptions, and **HIPAA** or **SEC** compliance designation as automatic-upgrade triggers. An
+**IAM Identity Center** *organization-instance* workflow can create an organization and trigger
+upgrade; a **standalone account instance** is a different documented option — not every Identity
+Center setup does this. None of those workflows are required here.
 
 Practical consequences:
 
-- Credits cover eligible services, including the small EC2 instance and public IP used in this lab.
-- A public **IPv4 address is billed per hour** (even if the instance is stopped). This is the most common surprise.
-- Leaving an instance running for weeks will quietly use up credits. The lab is designed for hours, not days.
-- Upgrading to a Paid plan removes the safety net — do not do it for this lab.
+- Limit **AWS Config** recording to the existing four lab resource types and keep one region. This
+  primarily conserves credits; it is not a spend cap.
+- Stopping **Elastic Compute Cloud (EC2)** stops compute usage; **Elastic Block Store (EBS)** and
+  other retained resources may continue to incur metered costs. Check which resources remain rather
+  than assuming every public **Internet Protocol (IP)** charge behaves the same when an instance is
+  stopped (see cost tables below — not re-verified in this pass).
+- Credits cover eligible charges only. Paid accounts can be billed for uncovered usage even with
+  credits remaining. Check credit applicability and each expiry in the console; current AWS pages
+  **disagree** on post-upgrade credit validity — do not assume one universal rule.
+- Keep budget alerts and inspect the actual balance and days remaining. Alerts are not a spending
+  cap; do not confuse them with the simplified experience’s separate project spend-limit feature.
+- These AWS rules do **not** describe Azure. Keep optional Azure trial and cleanup guidance
+  separate (§3).
+
+Official sources: [Choosing a plan](https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier-plans.html),
+[Free Tier terms](https://aws.amazon.com/free/terms/),
+[current FAQs](https://aws.amazon.com/free/free-tier-faqs/),
+[new-experience upgrades](https://docs.aws.amazon.com/accounts/latest/reference/upgrade-account.html),
+[Identity Center setup](https://docs.aws.amazon.com/singlesignon/latest/userguide/get-set-up-for-idc.html),
+[Promotional credit exclusions](https://aws.amazon.com/awscredits/). Checked November 2026.
 
 <details>
 <summary><strong>How much does it actually cost? (AWS vs Azure)</strong></summary>
@@ -132,7 +167,10 @@ So the rule for this lab is not "it is free, leave it" but:
 > up later" as the failure mode. Lab 11 is designed to take four minutes, not to be a chore you
 > postpone.
 
-The budget alarm is your only early warning, which is why it is step 2 and not an afterthought.
+Budget alerts are one warning mechanism, not a spend cap. Also inspect the plan’s credit balance,
+expiry date and AWS notices. These cautions preserve credits on a Free plan and help avoid
+out-of-pocket charges on Paid or legacy accounts; they do **not** imply automatic paid rollover when
+a Free plan ends.
 
 ## 3. Free Azure account (optional — Lab 8 only)
 

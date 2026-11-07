@@ -12,9 +12,14 @@ EC2 servers, VPC networks and a working service model inside a ServiceNow **CMDB
 (Configuration Management Database) — reconciled by **IRE** (Identification and Reconciliation
 Engine).
 
-Designed for a free **PDI** (Personal Developer Instance) and a **credit-based AWS account** (Lab 0).
-AWS **Config**, **S3**, storage, and **stopped EC2** can still incur charges; the budget alarm
-**alerts only** — it does not cap spend. No **MID Server**, no production account required.
+Designed for a free **Personal Developer Instance (PDI)** and a small **credit-based AWS lab
+account** ([Lab 0]({{ '/labs/00-prerequisites/' | relative_url }})). **Amazon Web Services (AWS)
+Config**, **Simple Storage Service (S3)**, **Elastic Block Store (EBS)** disks, and other retained
+resources can consume credits even after **Elastic Compute Cloud (EC2)** compute stops. On a
+confirmed **AWS Free plan**, cautious scope primarily **preserves credits**: the plan ends after
+six months or credit exhaustion, whichever comes first — expiry alone does **not** automatically
+switch to Paid. **Paid** or **legacy** accounts have different billing exposure. A budget **alert**
+warns; it does **not** cap spend. No **MID Server**, no production account required.
 
 <nav class="toc" aria-label="Contents">
   <div>
@@ -87,8 +92,11 @@ learner pays nothing.</p>
 <a href="https://aws.amazon.com/free/terms/">legacy 12‑month free tier</a>; the
 <a href="https://aws.amazon.com/free/free-tier-faqs/">FAQs</a> note signup experiences differ (including
 changes in 2026). Optional Lab 8 uses <strong>Azure</strong>, which has its own billing. This lab
-can still bill you if you: upgrade; join Organizations on a Free plan; exceed credit coverage; leave
-<strong>AWS Config</strong>, <strong>S3</strong>, public IPv4, or disks running; or skip teardown.
+can still bill you if you: upgrade; join <strong>AWS Organizations</strong> or set up
+<strong>Control Tower</strong> on a Free plan; exceed credit coverage; leave
+<strong>AWS Config</strong>, <strong>S3</strong>, public <strong>Internet Protocol (IPv4)</strong>
+addresses, or disks running; or skip teardown. Keeping the lab small <strong>conserves credits</strong>
+but does <strong>not</strong> extend the six‑month Free plan cap.
 Set the <strong>budget alarm</strong> in Lab 0 (it warns only), follow scoped Labs 1/3/11 cleanup, and
 delete stacks when finished — details stay on those lab pages; this warning does not replace them.</p>
 </div>
@@ -177,10 +185,14 @@ the IRE concepts in Labs 5–7 are identical.
 
 <h2 id="rules">Ground rules</h2>
 
-- **Costs are not zero by default.** Running or **stopped** EC2, **AWS Config** recording,
-  **S3** delivery buckets (often **retained** after stack delete), EBS, and public IPv4 can bill.
-  Credits may cover small labs — check **Cost Explorer** and [Lab 11]({{ '/labs/11-cleanup/' | relative_url }}).
-- Set a **budget alarm** in Lab 0; it **warns**, it does **not** stop charges.
+- **Conserve credits; confirm your plan.** **AWS Config** recording, retained **S3** objects,
+  **EBS**, and allocated resources can consume credits. Stopping **EC2** stops compute usage, not
+  every associated resource cost. The Free plan ends after six months or credit exhaustion;
+  **Paid**/legacy accounts can incur out-of-pocket charges. Check plan, credit balance, expiry and
+  usage in the **correct** account, then follow [Lab 11]({{ '/labs/11-cleanup/' | relative_url }}).
+- Set a **budget alert** in Lab 0; it **warns**, it is **not** a spending cap. Avoid paid upgrades
+  and **AWS Organizations** / **Control Tower** setup for this standalone lab (either can trigger
+  a paid upgrade on a Free plan).
 - **Never commit AWS keys.** The lab creates them, uses them in one ServiceNow form, and
   revokes them in Lab 11.
 - A PDI hibernates after inactivity and its URL can change. Re-wake it at
