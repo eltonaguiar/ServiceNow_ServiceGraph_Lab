@@ -81,6 +81,32 @@ What this means for this lab:
      `ResourceTypes` = `AWS::EC2::Instance,AWS::EC2::VPC,AWS::EC2::Subnet,AWS::EC2::SecurityGroup`
      and `IncludeGlobalResourceTypes` = `False`. Leave the other defaults.
 
+### If there is no recorder: create the `sg-aws-config` stack
+
+Do this only after reading the costs below. Stay in your Lab 0 region.
+
+1. CloudFormation → **Create stack → With new resources (standard)** → **Upload a template file** →
+   `EnableAWSConfig.yml` from the downloaded ZIP → **Next**.
+2. **Stack name:** `sg-aws-config`. Change these parameters from their defaults:
+
+   | Parameter | Value |
+   |---|---|
+   | Support all resource types (`AllSupported`) | `False` |
+   | Include global resource types (`IncludeGlobalResourceTypes`) | `False` |
+   | List of resource types (`ResourceTypes`) | `AWS::EC2::Instance,AWS::EC2::VPC,AWS::EC2::Subnet,AWS::EC2::SecurityGroup` |
+   | Snapshot delivery frequency | `24hours` (default) |
+   | Configuration delivery channel name, SNS topic name, Notification Email | leave the defaults |
+
+3. **Configure stack options:** leave the defaults → **Next**.
+4. **Review:** the template creates an IAM role (the Config recorder role), so tick the
+   acknowledgement that CloudFormation might create IAM resources. Then click **Submit**.
+5. Wait for the overall stack status to show **CREATE_COMPLETE**. Then check **AWS Config → Settings**:
+   recording should be on, and only those four types should be recorded.
+
+This step only turns on recording. It does **not** give the ServiceNow identity permission to read
+Config. That permission comes from the connector's identity setup (§0). Don't start imports until
+the identity is settled and the Diagnostic Tool passes. Imports are Lab 4.
+
 ### Costs (not free)
 
 - **AWS Config:** billed per configuration item recorded, plus rule evaluations if you add rules
