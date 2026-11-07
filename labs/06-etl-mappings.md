@@ -10,80 +10,119 @@ permalink: /labs/06-etl-mappings/
 
 <div class="eli5">
 <span class="label">ELI5</span>
-<p>ETL is the translator between cloud JSON and CMDB fields. <strong>First</strong> find how your connector already maps your lab VM — only then, optionally, change something on a throwaway PDI.</p>
+<p>The connector’s ETL is a recipe card: it says which AWS JSON fields fill which CMDB columns. This lab you <strong>read</strong> the recipe for your lab VM’s <strong>Name</strong> — you do not edit the stock card unless you later choose Part B on your own PDI.</p>
 </div>
 
 ## Prerequisites
 
-- Lab 5 **minimum** complete: one **`cmdb_ci_vm_instance`**, same identity on EC2 rerun.
-- **Own PDI** — not a shared instance.
+Lab 5 minimum: one **`cmdb_ci_vm_instance`** (e.g. list **Name** `sgclab-app-01`, discovery source **SG-AWS**).
 
-## Two parts
+## Where to open (read-only)
 
-| Part | Required? | What you do |
-|---|---|---|
-| **A — Observational** | **Yes** | Locate the EC2/VM mapping definition; trace how **`name`**, **`object_id`**, and tag fields are filled **today** |
-| **B — Optional edit** | No | Add **one** string field on a **clone/sandbox** mapping, verify, **rollback** |
+1. **All** → **IntegrationHub ETL** → **Configuration → IntegrationHub ETL**.
+2. **CMDB Application: SG-AWS** → definition **`SG-AWS-EC2-Instance`** (ETL name, not the **`SG-AWS-EC2`** schedule).
+3. **Map Data to CMDB** → **Virtual Machine Instance** card → **View Mapping**.
 
-Part A does not assume classic EC2 **`DescribeInstances`** JSON (`Reservations[].Instances[]`). This connector path is tied to **AWS Config** / Service Graph payloads — **your** import set row payload is the source of truth for JSON paths.
+**Transform Map Assistant:** with no sample import set, mappings stay **read-only**. Do **not** pick **Select a Sample Import Set** or flip controls to edit for the minimum bar. **Add Attribute** (and similar edit controls) stay **greyed out** in this mode — that is **expected** without a sample import set, not proof you lack permissions.
 
-## Part A — Verified navigation (read-only)
+## Minimum checkpoint (verified)
 
-Walkthrough-confirmed path (yours should match before you trust it):
+These are **configured** destinations in the ETL — what the connector is set up to write. They are **not** a runtime execution trace (no import-set preview required for this bar).
 
-1. **All** → search **IntegrationHub ETL**.
-2. **Configuration → IntegrationHub ETL**.
-3. Expand **CMDB Application: SG-AWS** (count varies, e.g. **33**).
-4. Open **Name** **`SG-AWS-EC2-Instance`** — this is the **ETL definition**, not the scheduled import label **`SG-AWS-EC2`** and not the data source alone.
+| CMDB target (`cmdb_ci_vm_instance`) | Source column on `object` |
+|---|---|
+| **Name** | **`ec2Name`** (via script — see below) |
+| **Object ID** | **`resourceId`** |
+| **Source native key** | **`ec2SourceNativeKey`** |
 
-**Transform Map Assistant** banner (verbatim meaning): no import set associated → maps are **read-only** until you pick a sample import set under **Specify Basic Details**. For this lab: **stay read-only** — do **not** select a sample, **do not** deactivate assistant controls to “unlock” edit.
+**`ec2Name` is not a CMDB column.** It is a **transform output** that feeds **Name** on the VM table — your list shows **`sgclab-app-01`** in **Name**, not a field literally called `ec2Name`.
 
-**Step 3 — Map Data to CMDB and Add Relationships** → **Select CMDB Classes to Map Source Data**. Observed cards on one instance:
+### Why `ec2Name` inputs look like `resourceId|tagsStr`
 
-| Card | Count | Notes |
-|---|---|---|
-| **Virtual Machine Instance** | 1 | Table **`cmdb_ci_vm_instance`**; dependent on `cmdb_ci_logical_datacenter`, `cmdb_ci_rubrik_cluster`, `cmdb_ci_kubernetes_cluster`, `cmdb_ci_virtualization_server`, `cmdb_ci_computer`; condition `object.isDeletedResource=false` |
-| Availability Zone | 1 | (shown; details not expanded in walkthrough) |
-| Cloud Network | 1 | |
-| Cloud Subnet | 1 | |
+On the **Name** row, ServiceNow shows transform type **Multiple Input Script** with inputs **`resourceId`** and **`tagsStr`**. The script also receives a combined **`input`** string (`resourceId|tagsStr`), but the walkthrough script **does not read** `input` — it uses **`resourceId`** and **`tagsStr`** separately. That unused `input` variable is normal; it does **not** mean the transform is a no-op.
 
-Next learner step: **View Mapping** on the **Virtual Machine Instance** card only (field-level mappings not yet captured in this doc — describe what you see in notes).
+**The final `ec2Name` value (and thus CMDB Name) is not `resourceId|tagsStr`.** It is the **Name** tag value **`trim`med** when parse succeeds, otherwise **`resourceId`** as fallback (empty **Name** tag can yield an empty string; multiple **Name** tags → last wins).
 
-**Do not** toggle controls, select sample import sets, or edit mappings for Part A minimum.
+**`ec2SourceNativeKey`** uses a separate **concatenate** transform: `connection_alias_id`, `accountId`, `awsRegion`, `resourceId` with **`|`** delimiter.
 
-## Part A — After View Mapping (no edits)
+![Name maps to object.ec2Name (configured mapping)]({{ '/assets/img/lab06/etl-vm-name-mapping.png' | relative_url }})
+*Screenshot: **Target Name** ← **`object.ec2Name`**. Verifies **configuration** on this definition; not proof of a single import-row debug run.*
 
-1. On the VM from Lab 5, note display **`name`**, tags, and list columns you can see **without** pasting ids into git.
-2. In **View Mapping** for **Virtual Machine Instance**, record **target fields** and **source paths** exactly as labeled in the UI (do not assume `Reservations[].Instances[]`).
-3. Optional cross-check: latest **`SG-AWS-EC2`** import set row **payload** in ServiceNow — compare shape to source paths (keep payload private).
+## What’s next for this lab
+
+| You are here | Next step |
+|---|---|
+| **Part A done** (navigation + Name / Object ID / native key observed, read-only) | Continue to **[Lab 7 — CSDM and service graph]({{ '/labs/07-csdm-graph/' | relative_url }})** and link **`cmdb_ci_vm_instance`** under an application service |
+| Want to **edit** a mapping | **Part B** below — own PDI, clone/customize only if your release supports it, one string field, **rollback** |
+
+Part B remains **optional**; the curriculum does not require changing stock **`SG-AWS-EC2-Instance`** mappings.
 
 ## Part B — Optional edit (own PDI only)
 
-Skip Part B unless you have a **supported** way to duplicate or customize mappings without breaking the store connector, and you can **revert**.
-
-| Do | Don't (unsafe defaults) |
+| Do | Don't |
 |---|---|
-| Map a plain **string** to an existing string or `u_*` attribute | Point **`model_id`** at raw **`InstanceType`** without a reference/catalog transform |
-| Clone/customize only if your release documents it | Edit **stock** connector mappings in production scope |
-| Revert mapping, re-import, confirm VM unchanged | Deliberately break **`name`** mapping to “learn” — use payload inspection instead |
-| One field, one re-import, rollback | Leave broken mappings on a shared instance |
+| Clone/customize only if supported | Edit production stock definitions |
+| One string field, re-import, revert | Break **Name** mapping “to learn” |
+| Confirm VM list still **one** row | Leave experimental mappings on a shared instance |
 
-After an optional edit: **Execute Now** on **`SG-AWS-EC2`** only, confirm the VM count still **1**, then **undo** the mapping change.
+---
+
+<details markdown="1">
+<summary><strong>ELI5 code walkthrough — how <code>ec2Name</code> becomes <code>Name</code> (read-only reference)</strong></summary>
+
+ServiceNow runs a small script **per import row** in the batch. The UI may show the script with `replaceAll("\\", "")` — in the **stored JSON**, that is often serialized as `replaceAll("\\\\", "")` (two backslashes inside quotes = remove one literal backslash in the tag string). Below is the walkthrough shape; line up backslashes with what your PDI displays.
+
+
+```javascript
+(function(batch, output) {
+   for (var i = 0; i < batch.length; i++) {
+      var input = batch[i].input; // Combined resourceId|tagsStr — assigned but NOT used below.
+      var ec2Name = batch[i].resourceId;
+      if(!gs.nil(batch[i].tagsStr)){
+         try{
+            var str = batch[i].tagsStr.replaceAll("\\", "");
+            str = str.replaceAll('""', '"');
+            str = str.replaceAll(':"}', ':""}');
+            var tags = JSON.parse(str);
+            if(!gs.nil(tags) && tags.length >0){
+               for(var t=0; t < tags.length; t++){
+                  var tag = tags[t];
+                  if(tag.key.toUpperCase() === 'NAME'){
+                     ec2Name = tag.value.trim();
+                  }
+               }
+            }
+         }catch(err){ ec2Name = batch[i].resourceId; }
+      }
+      output[i] = ec2Name;
+   }
+})(batch, output);
+```
+
+**How to read it (beginner):**
+
+
+1. **IIFE** — `(function…)(batch, output)` defines a function, then ServiceNow calls it with the real **`batch`** and **`output`** arrays.
+2. **Outer loop `i`** — one pass per row in the batch (your lab VM is one of those rows).
+3. **Start at `resourceId`** — default display name is the AWS resource id (e.g. a placeholder like `i-EXAMPLE` in training examples, **not** pasted here from your account).
+4. **`tagsStr` present** — try to parse AWS tags JSON. **`gs.nil`** / **length** skip empty work.
+5. **String cleanup** — three `replaceAll` fixes are **import-set-specific** escapes, not general JSON repair.
+6. **Inner loop `t`** — walk tags; if key is **`NAME`** (case-insensitive), **`trim`** and use that value.
+7. **`output[i] = ec2Name`** — this value is what the ETL attaches to **`object.ec2Name`**, which the **Name** row maps into **`cmdb_ci_vm_instance.name`** (`sgclab-app-01` in the lab).
+8. **`catch`** — on parse failure, fall back to **`resourceId`**.
+9. **Edge cases** — empty **Name** tag → empty string; several **Name** tags → **last** match in the array wins.
+
+This script does **not** prove tags always exist in AWS; it only shows how the connector **would** prefer a **Name** tag over the raw id when parsing succeeds.
+
+</details>
 
 ## Checkpoint
 
-**Minimum (Part A only):**
-
 <ul class="check">
-<li>You opened <code>SG-AWS-EC2-Instance</code> under IntegrationHub ETL and saw <b>Virtual Machine Instance</b> card (read-only)</li>
-<li>You linked one VM field to a transform target <b>without</b> assuming REST EC2 JSON shape</li>
-<li>You know where import row <b>payload</b> lives for path verification</li>
-</ul>
-
-**Optional (Part B):**
-
-<ul class="check">
-<li>One string mapping added, verified, and <b>reverted</b></li>
+<li>Opened <code>SG-AWS-EC2-Instance</code> read-only; <b>Virtual Machine Instance</b> → <b>View Mapping</b></li>
+<li>Can point to <b>Name</b> ← <code>object.ec2Name</code>, <b>Object ID</b> ← <code>resourceId</code>, native key ← <code>ec2SourceNativeKey</code></li>
+<li>Understand <code>ec2Name</code> is transform output, not a CMDB column; list <b>Name</b> is what landed on the VM</li>
+<li><b>Add Attribute</b> greyed out without sample import set — expected for read-only observation</li>
 </ul>
 
 Next: [Lab 7 — CSDM and the service graph]({{ '/labs/07-csdm-graph/' | relative_url }})
