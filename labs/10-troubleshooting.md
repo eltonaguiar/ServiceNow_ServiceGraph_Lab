@@ -23,7 +23,9 @@ If you have read nothing else on this page, read this table. These four account 
 | The instance URL stopped resolving / XML error page | PDI hibernated | Wake it at developer.servicenow.com, re-check the URL, re-test the connection | [Lab 0]({{ '/labs/00-prerequisites/' | relative_url }}) |
 | App listed, **Install greyed out** or entitlement error | PDI not licensed for the Store app | Take the fallback path, do not keep retrying | [Lab 12]({{ '/labs/fallback-ire-api/' | relative_url }}) |
 | Connection test fails with `AccessDenied` | Policy not attached, or attached to a different IAM user | Compare the policy attached to the *user that owns the key* | [Lab 3]({{ '/labs/03-iam-connection/' | relative_url }}) |
-| Import set says **Processed with errors**, zero CIs | Rows read then dropped — no identifier, or wrong discovery source | Open a row's `Error`, then `cmdb_ire_output_item` | [Lab 4]({{ '/labs/04-run-import/' | relative_url }}) / [Lab 5]({{ '/labs/05-ire/' | relative_url }}) |
+| Import set says **Processed**, **zero inserts**, zero CIs in the list you expect | Often wrong table, dependency partial, or ran schedules out of order | Check `cmdb_ci_network` for VPC; `cmdb_ire_partial_payloads`; datacenter CI for region | [Lab 4]({{ '/labs/04-run-import/' | relative_url }}) / [Lab 5]({{ '/labs/05-ire/' | relative_url }}) |
+| Concurrent job stuck in **Pending** | Queued work — not a reason to Execute Now again | Wait, refresh **Concurrent Import Set Jobs** tab | [Lab 4 §2]({{ '/labs/04-run-import/' | relative_url }}) |
+| Import set says **Processed with errors**, zero CIs | Rows read then dropped — no identifier, or wrong discovery source | Open a row's `Error` / **Comments**, then `cmdb_ire_output_item` | [Lab 4]({{ '/labs/04-run-import/' | relative_url }}) / [Lab 5]({{ '/labs/05-ire/' | relative_url }}) |
 
 Everything below is the same material in diagnostic order, for when the table above does not
 match your symptom.
@@ -64,10 +66,15 @@ from a copied block is the most common cause.
 The read-only policy is missing an action. Read the action name from the import set error and
 add it, or use managed `ReadOnlyAccess` in the lab and narrow later.
 
-**Import set processes, zero CIs appear.**
-Rows read, then dropped. Look at the import set row's `Error` field and at
-`cmdb_ire_output_item` for rejection reasons. Frequently: an empty identifier (so IRE cannot
-match or create), or a reference to a parent CI that does not exist.
+**Import set processes, zero CIs appear (or Processed with zero Inserts).**
+Rows read, then dropped or parked. Check, in order:
+
+1. Are you on the **right class**? Verified VPC lands in **`cmdb_ci_network`**, not `cmdb_ci_vpc`.
+2. Import set row **Comments** (partial/warning is not success).
+3. `cmdb_ire_partial_payloads` for `MISSING_MATCHING_ATTRIBUTES` (common when datacenter/region CI is missing).
+4. `cmdb_ire_output_item` for hard rejections.
+
+Frequently: parent CI missing (run **`SG-AWS-Datacenters`** before **`SG-AWS-VPC`**), or an empty identifier.
 
 **CIs duplicate on every run.**
 Identification (IRE — Identification and Reconciliation Engine) is not matching. Check the class's identification rule and confirm the payload
@@ -92,21 +99,22 @@ the app *registration object* instead of the **Enterprise Application** service 
 Two sources update the same attribute with no precedence. Set an explicit reconciliation rule
 in CI Class Manager rather than letting source order decide.
 
-## "Processed with errors" — which errors matter
+## "Processed" and "Processed with errors" — which signals matter
 
-This is the single most misread signal in the whole lab. The import set state is coarse; the
-row-level `Error` is what tells you whether anything was lost.
+This is the single most misread part of the lab. Schedule state and even **Processed** row counts
+are coarse. **Inserts** on Transform Histories and the **target CI list** are what prove success.
 
-| Row error class | CIs lost? | Action |
+| Signal | CIs lost? | Action |
 |---|---|---|
-| Type coercion (`invalid integer`, `invalid reference`, date parse) | No — CI created, field blank | Cosmetic on the first run; fix mapping in Lab 6 if the field matters |
-| Missing identifier / no matching identification rule | **Yes** — row skipped by IRE | This is the real failure. Check `cmdb_ire_output_item` for the skip reason |
-| `AccessDenied` on a `Describe*` | Partial — that resource type missing | Add the action to the policy; do not broaden to `ReadOnlyAccess` permanently |
-| Duplicate/unique constraint | Yes, for that row | Two mappings writing the same attribute; inspect ETL |
+| **Processed** with **0 Inserts** and empty target list | **Yes** for that pass — often dependency partial | See `cmdb_ire_partial_payloads`; fix schedule order (Lab 4) |
+| Row Comment = partial / warning | **Yes** until rerun after dependency fixed | Do not treat as success |
+| Type coercion (`invalid integer`, `invalid reference`, date parse) | No — CI may still be created, field blank | Cosmetic; Lab 6 if the field matters |
+| Missing identifier / no matching identification rule | **Yes** — row skipped by IRE | `cmdb_ire_output_item` |
+| `AccessDenied` on a `Describe*` | Partial — that resource type missing | Lab 3 policy — absence of credential errors elsewhere is **not** proof IAM is complete |
+| Duplicate/unique constraint | Yes, for that row | Inspect ETL / two schedules on same class |
 
-Rule of thumb: **compare import-set row count with CI count.** Close numbers mean the errors
-were tolerated field-level noise. A large gap means records were dropped and you are debugging
-IRE, not the connector.
+Rule of thumb: **compare source row count, Inserts/Updates, and the CI list for the correct class.**
+Do **not** assume "errors are almost always fine" or that **Processed** alone proves data landed.
 
 ## Navigation paths move between releases
 
@@ -118,6 +126,9 @@ in the Filter Navigator instead — tables are far more stable than menus:
 | Import set runs | `sys_import_set_run_list.do` |
 | Import set rows + errors | `sys_import_set_row_list.do` |
 | IRE outcomes | `cmdb_ire_output_item_list.do` |
+| IRE partial / dependency payloads | `cmdb_ire_partial_payloads_list.do` |
+| Cloud Networks (VPC on verified path) | `cmdb_ci_network_list.do` |
+| AWS Datacenters | `cmdb_ci_aws_datacenter_list.do` |
 | IRE rule hits | `cmdb_ire_output_rule_list.do` |
 | EC2 CIs | `cmdb_ci_ec2_instance_list.do` |
 | VM CIs (Azure) | `cmdb_ci_vm_instance_list.do` |

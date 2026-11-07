@@ -30,6 +30,9 @@ Two useful surfaces (menu paths move between releases — the direct URLs do not
 
 - **IRE result tables**: `cmdb_ire_output_item` (one row per processed payload) and
   `cmdb_ire_output_rule` / `cmdb_ire_output_rule_item` (which rule matched).
+- **`cmdb_ire_partial_payloads`** — payloads parked when a **dependency** could not be resolved
+  (verified example: VPC before datacenter, reason `MISSING_MATCHING_ATTRIBUTES`, lookup key
+  `<connection>|<account>|<region>`).
 - The human view: **Configuration → Identification and Reconciliation → IRE Results**, or the
   "IRE results" link from the import set.
 
@@ -40,10 +43,23 @@ If the menu path above does not exist on your release, go straight to the table:
 ```text
 https://<your-instance>.service-now.com/cmdb_ire_output_item_list.do
 https://<your-instance>.service-now.com/cmdb_ire_output_rule_list.do
+https://<your-instance>.service-now.com/cmdb_ire_partial_payloads_list.do
 ```
 
 Also useful: the import set's own record has an **IRE output** related list — that is the only
 path that shows you *one run* without timestamp guessing.
+
+### When transforms look "fine" but lists are empty
+
+On the verified VPC-before-datacenter run:
+
+- Transform Histories showed **Processed = 2**, **Errors = 0**, **Inserts = 0**.
+- **`cmdb_ci_network`** and **`cmdb_ci_vpc`** were both empty.
+- Import Set row **Comments** carried partial/warning text (not a green success story).
+- **Import Log** was empty; syslog export had no helpful warning — **`cmdb_ire_partial_payloads`**
+  export had the exact JSON reason.
+
+That combination means **dependency partial**, not "IRE is broken" and not "credentials are wrong."
 
 ## 2. Read the outcome
 
@@ -53,6 +69,13 @@ path that shows you *one run* without timestamp guessing.
 | **Updated** | Matched an existing CI; attributes were merged |
 | **Skipped / No change** | Matched, and nothing differed — the healthy steady state |
 | **Rejected / Error** | Payload violated a rule (missing identifier, bad reference, duplicate items in one payload) |
+| **Partial / parked** (`cmdb_ire_partial_payloads`) | Waiting on another CI (e.g. datacenter for region) — fix order, rerun the **same** schedule |
+
+### One source row ≠ one CI
+
+A single import row can create **many** inserts (tags, relations, supporting records). That is why
+a VPC rerun can show **15 inserts** and **2 processed** source rows — not fifteen VPCs. Always open
+the **target class** you care about (`cmdb_ci_network` for VPC in Lab 4).
 
 A second import with no changes in AWS should produce **mostly "no change"**. If it produces
 another insert, your identification is broken and you now have duplicates. That is the single
@@ -97,10 +120,10 @@ insert/update/no-change split without opening the UI.
 ## Checkpoint
 
 <ul class="check">
-<li>You can name the identification rule that matched your EC2 CI</li>
-<li>A second import produced "no change", not a second insert</li>
-<li>You created a duplicate on purpose and cleaned it up</li>
-<li>You can state the difference between Inserted, Updated and Rejected in one sentence each</li>
+<li>You opened <code>cmdb_ire_partial_payloads</code> or row Comments and can explain a <code>MISSING_MATCHING_ATTRIBUTES</code> partial</li>
+<li>You know VPC maps to <code>cmdb_ci_network</code> on the verified connector path</li>
+<li>You can state the difference between Inserted, Updated, Rejected, and Partial in one sentence each</li>
+<li>Optional (when EC2 is verified on your instance): identification rule for EC2, second run "no change", deliberate duplicate exercise</li>
 </ul>
 
 Next: [Lab 6 — change an ETL mapping]({{ '/labs/06-etl-mappings/' | relative_url }})

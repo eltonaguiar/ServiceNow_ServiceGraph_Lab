@@ -22,10 +22,15 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-TABLES = [
+# Lab 4 verified checkpoint tables (EC2 optional until that schedule is run).
+REQUIRED_TABLES = [
     "cmdb_ci_cloud_service_account",
+    "cmdb_ci_aws_datacenter",
+    "cmdb_ci_network",
+]
+OPTIONAL_TABLES = [
     "cmdb_ci_ec2_instance",
-    "cmdb_ci_vpc",
+    "cmdb_ci_vpc",  # often empty when VPCs map to cmdb_ci_network
 ]
 
 
@@ -76,19 +81,27 @@ def count(base: str, token: str, table: str, query: str | None = None) -> int:
 
 def cmd_counts(base: str, token: str) -> int:
     print(f"{'table':<34}{'count':>8}")
-    empty = []
-    for table in TABLES:
+    empty_required = []
+    for table in REQUIRED_TABLES:
+        try:
+            n = count(base, token, table)
+        except SystemExit:
+            print(f"{table:<34}{'missing':>8}")
+            empty_required.append(table)
+            continue
+        print(f"{table:<34}{n:>8}")
+        if n == 0:
+            empty_required.append(table)
+    for table in OPTIONAL_TABLES:
         try:
             n = count(base, token, table)
         except SystemExit:
             print(f"{table:<34}{'missing':>8}")
             continue
         print(f"{table:<34}{n:>8}")
-        if n == 0:
-            empty.append(table)
-    if empty:
-        print("\nEMPTY:", ", ".join(empty))
-        print("Rows may be arriving and being dropped by IRE — see Lab 5 and Lab 10.")
+    if empty_required:
+        print("\nEMPTY (required for Lab 4 VPC checkpoint):", ", ".join(empty_required))
+        print("Rows may be parked in IRE partials or dropped — see Labs 4, 5, and 10.")
         return 1
     return 0
 

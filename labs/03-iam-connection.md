@@ -241,14 +241,19 @@ narrowing) and `sgclab`.*
 
    - **Account ID may be hidden.** A filled-in account ID can appear masked or blank in the form or
      in a screenshot, so don't assume it's missing. Check the field itself.
-   - **Save once,** after the Standalone Account ID is entered. If ServiceNow rejects blank
-     Organization fields, note the error and stop. Don't invent values. It is unconfirmed whether
-     blank Organization fields are accepted.
-   - **Only after Save succeeds,** click **Test Connection**. The lab hasn't recorded a test result
-     yet.
+   - **Save once,** after the Standalone Account ID is entered. On a verified standalone run,
+     **blank** Management account, Aggregator, and Organization Account / Name fields were
+     **accepted** after clearing literal placeholders such as `<ORG_ID>` / `<ORG_NAME>`.
+     If ServiceNow rejects the save, note the exact error and stop — don't invent org values.
+   - **Only after Save succeeds,** click **Test Connection**. On a verified standalone instance
+     the UI showed the exact message **`Test Connection feature not available for Standalone Account`**.
+     That is **not** an authentication failure — it only means this button is unsupported in
+     standalone mode. Absence of credential errors in the Import Log is likewise **not** proof
+     that AWS calls will succeed; the first real proof is Lab 4's scheduled imports and CI lists.
 
-   So far, the credential record and the assume-role setup are confirmed. Saving the instance,
-   the connection test and imports are not yet confirmed.
+   Verified on a standalone walkthrough: credential alias saved, instance saved with
+   `SnowOrganizationAccountAccessRole`, region `us-east-2`, Standalone Account ID populated,
+   org/aggregator fields blank. Imports are Lab 4.
 5. **Diagnostic Tool:** skip SSM setup, SSM Deep Discovery and EKS. A green connection test on
    its own doesn't show that imports will work, so run the diagnostics before any import (Lab 4).
 
@@ -349,6 +354,7 @@ Click **Test connection** (Guided Setup) or **Validate** (SGC Central).
 | Result | Meaning | Do this |
 |---|---|---|
 | Green / "Connection successful" | Credentials and region are correct | Continue |
+| **`Test Connection feature not available for Standalone Account`** (verbatim on one verified run) | Standalone instance profile — **not** a failed auth test | Continue to Lab 4; prove connectivity with scheduled imports |
 | `InvalidClientTokenId` | Key ID wrong or deleted | Recreate the access key |
 | `SignatureDoesNotMatch` | Secret typo, or trailing whitespace when pasted | Re-enter the secret |
 | `AccessDenied` on `ec2:DescribeInstances` | Policy not attached, or attached to the wrong user | Recheck the user's policies |
@@ -360,7 +366,7 @@ Click **Test connection** (Guided Setup) or **Validate** (SGC Central).
 <ul class="check">
 <li>A dedicated IAM user exists with read-only permissions and no console access, and you know it is <b>not yet confirmed</b> for Config-based imports (§0)</li>
 <li>AWS Config recording is on in your region, or you know why not</li>
-<li>One access key exists, and ServiceNow's test returns success. A passing test does not show that Config imports will work.</li>
+<li>One access key exists; instance settings saved (standalone account ID, STS role, region). A green or unavailable Test Connection does <b>not</b> prove imports work — Lab 4 does.</li>
 <li>Keys are in ServiceNow only — not in a file, chat, or commit</li>
 </ul>
 
