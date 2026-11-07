@@ -101,14 +101,36 @@ python3 -m pip install boto3 requests   # only needed for Labs 4 and 12
 <details>
 <summary><strong>Debugging: <code>error: externally-managed-environment</code> (PEP 668)</strong></summary>
 
-<p>On Ubuntu 23.04+, Debian 12+, and many other modern Linux distributions (including Ubuntu 24.04 on the ASUS GX10), the system Python is <strong>externally managed</strong>. Running <code>python3 -m pip install ...</code> fails with:</p>
+<div class="eli5">
+<span class="label">ELI5</span>
+<p>Your computer’s main Python is locked on purpose so casual installs can’t break system tools. We make a private little Python just for this lab, turn it on when we need it, and install the packages there instead of fighting the lock.</p>
+</div>
+
+<p><strong>What happened?</strong></p>
+<p>On Ubuntu 23.04+, Debian 12+, and many other modern Linux systems (including Ubuntu 24.04 on the ASUS GX10), the system Python is <strong>externally managed</strong>. When you run <code>python3 -m pip install ...</code> you get:</p>
 
 <pre><code>error: externally-managed-environment
 × This environment is externally managed</code></pre>
 
-<p>This is intentional (PEP 668). Do <strong>not</strong> use <code>--break-system-packages</code> unless you know the risks.</p>
+<p>This is intentional (PEP 668). Ubuntu uses its own package manager (<code>apt</code>) to install and update Python packages that system tools depend on. If you install things with <code>pip</code> into the same Python, you can accidentally upgrade or replace a library that those tools need, and then something important breaks. The error is the OS protecting itself.</p>
 
-<p><strong>Recommended fix — use a virtual environment:</strong></p>
+<p><strong>Why not just force it with <code>--break-system-packages</code>?</strong></p>
+<p>You can override the lock, but that is exactly what the protection is trying to stop. It works until it doesn’t — a later system update or another tool can then fail in confusing ways. For a lab that only needs a couple of packages, it is not worth the risk.</p>
+
+<p><strong>What we do instead: a virtual environment</strong></p>
+<p>A virtual environment is a private copy of Python + its own package folder that lives inside the lab directory (the <code>.venv</code> folder). It is completely separate from the system Python. Installing packages there cannot touch Ubuntu’s own Python libraries.</p>
+
+<p>Think of it like this:</p>
+<ul>
+<li>System Python = the house tools that came with the building. Don’t mess with them.</li>
+<li>Virtual environment = a toolbox you keep in one room of the lab. Only you use it, and only when you are working on this project.</li>
+</ul>
+
+<p><strong>What “activating” the environment actually does</strong></p>
+<p>When you run <code>source .venv/bin/activate</code>, your terminal temporarily changes which <code>python3</code> and <code>pip</code> commands it finds first. Instead of the system ones, it uses the ones inside <code>.venv</code>. Your prompt also changes to show <code>(.venv)</code> so you know the switch is on.</p>
+<p>Nothing is permanently changed. Close the terminal or run <code>deactivate</code> and you are back to the normal system Python. The packages stay installed in the <code>.venv</code> folder, waiting for the next time you activate it.</p>
+
+<p><strong>Recommended fix — create and use a virtual environment:</strong></p>
 
 <pre><code># One-time: install venv support
 sudo apt update
@@ -118,26 +140,26 @@ sudo apt install -y python3-venv python3-full
 python3 -m venv .venv
 source .venv/bin/activate
 
-# Now the install works
+# Now the install works (packages go into .venv, not the system)
 pip install boto3 requests</code></pre>
 
-<p>Your prompt should show <code>(.venv)</code>. While activated, <code>python3</code> and <code>pip</code> use the isolated environment.</p>
+<p>Your prompt should show <code>(.venv)</code>. While it is active, <code>python3</code> and <code>pip</code> use the isolated environment.</p>
 
-<p><strong>To use the scripts later</strong> (new terminal):</p>
+<p><strong>To use the scripts later</strong> (any new terminal):</p>
 
 <pre><code>cd ~/mylabclone/ServiceNow_ServiceGraph_Lab   # or wherever you cloned it
 source .venv/bin/activate
 python3 scripts/verify_cmdb.py</code></pre>
 
-<p>Leave the environment with <code>deactivate</code>.</p>
+<p>Leave the environment with <code>deactivate</code> when you are finished.</p>
 
-<p><strong>Other options:</strong></p>
+<p><strong>Other options (less ideal for this lab):</strong></p>
 <ul>
-<li><code>pipx</code> (for standalone tools): <code>sudo apt install -y pipx && pipx ensurepath</code></li>
+<li><code>pipx</code> — good for single standalone tools, but less convenient when a lab needs several packages together.</li>
 <li>Force system install (not recommended): <code>python3 -m pip install --break-system-packages boto3 requests</code></li>
 </ul>
 
-<p>Prefer the <code>.venv</code> approach. It keeps the lab isolated and is the officially recommended method on Ubuntu/Debian.</p>
+<p>Prefer the <code>.venv</code> approach. It is the officially recommended way on Ubuntu/Debian, keeps the lab isolated, and avoids any chance of breaking system tools.</p>
 
 </details>
 
