@@ -45,7 +45,7 @@ permalink: /labs/07-csdm-graph/
       <li><a href="#hands-on-step-1">Step 1 — List and New</a></li>
       <li><a href="#hands-on-wizard-basics">Wizard Basic Details</a></li>
       <li><a href="#hands-on-step-2">Step 2 — Classic form labels</a></li>
-      <li><a href="#hands-on-step-3">Step 3 — Manual populate</a></li>
+      <li><a href="#hands-on-step-3">Step 3 — Choose a Method</a></li>
       <li><a href="#hands-on-step-4">Step 4 — Preview</a></li>
       <li><a href="#hands-on-optional">Optional — script link</a></li>
       <li><a href="#hands-on-map">Optional — view map</a></li>
@@ -338,22 +338,62 @@ form does **not** by itself prove **Service Mapping** or full service-map popula
 **Expected:** You can advance to **Populate** (wizard) or save a draft classic record without
 claiming the lab checkpoint is done.
 
-### Step 3 — Populate with the Manual method
+### Step 3 — Populate the Application Service (Choose a Method)
 {: #hands-on-step-3}
 
-1. Choose **Manual** as **Service population method** (per
-   [Manual method](https://www.servicenow.com/docs/r/zurich/servicenow-platform/configuration-management-database-cmdb/populate-app-service-manual.html)).
-2. **Expected:** The record will use a class extending **`cmdb_ci_service_auto`** (often
-   **`cmdb_ci_service_discovered`** for manual creation on many releases).
-3. Add your lab virtual machine **CI**: class **`cmdb_ci_vm_instance`**, name **`sgclab-app-01`**
-   (pick from the list; avoid `*` searches on large estates).
+On **Populate the Application Service**, open **Choose a Method** (or **Next** to that modal). You
+have **not** chosen a method yet until you pick one from **Service Population Method** and continue.
+
+A **configuration item (CI)** is one tracked thing in the **Configuration Management Database (CMDB)**
+(for example your lab virtual machine). Population methods decide **which CIs become members** of the
+application service — not whether a real **Payments** application is installed in AWS.
+
+#### Service population methods (this wizard screen)
+
+Wording below matches the **Choose a Method** modal on one PDI (November 2026) plus
+[Create a Service instance](https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/create-it-services.html).
+**Roles** come from that page; your instance may differ.
+
+| Method (UI label) | What it means in everyday terms | Prerequisites / notes (product + screenshot) |
+|---|---|---|
+| **Top-Down Discovery** | Let **Service Mapping** walk connections from an entry point and build the map. | UI: “Use CI connections to map the application service.” Requires **Service Mapping**, role **`service_mapping_admin`**, and a **leaf** domain. Doc role: **`sm_admin`**. Not this lab’s minimum path. |
+| **Dynamic CI Groups** | Fill the service from an existing **CMDB group** (a saved group of CIs). | UI: “Use CMDB groups to populate the application service.” Doc: [Dynamic CI Group](https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/create-it-services.html) method. Role **`app_service_admin`**. You must already maintain CMDB groups — not required for our one-VM lab. |
+| **Tags** | Populate from tag lists or tag families on CIs. | UI: requires **Service Mapping** and **`service_mapping_admin`**. Doc role: **`sm_admin`**. Lab AWS **tags** are not the same as picking this wizard method (see tag note below). |
+| **Manual** | You pick specific CIs (for example `sgclab-app-01`) by class and name. | UI: “Manually select CIs to create a service.” Doc: [Manual method](https://www.servicenow.com/docs/r/zurich/servicenow-platform/configuration-management-database-cmdb/populate-app-service-manual.html). Role **`app_service_admin`**. **Simplest for this lab** — no Service Mapping entitlement required. |
+| **Dynamic Service** | Service membership **updates when CI relationships change** (per wizard text). | UI: “Create App Service and dynamically update based on CI relationship changes.” Doc lists a separate **Dynamic Service** population method ([Create a Service instance](https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/create-it-services.html)); role **`app_service_admin`**. **Not** the same as **Dynamic CI Groups** (groups vs relationship-driven updates). This lab does **not** configure Dynamic Service rules. |
+
+**Dynamic CI Groups vs Dynamic Service (short distinction):** **Dynamic CI Groups** attach the service
+to a **CMDB group** membership set. **Dynamic Service** (product + UI) is a **relationship-driven**
+population style — exact rules are product-defined; we only document what the wizard states, not
+custom mechanics.
+
+![Choose a Method modal with Service Population Method dropdown (top of list)]({{ '/assets/img/lab07/choose-method-dropdown-top.png' | relative_url }})
+
+*Screenshot: wizard progress on **Populate the Application Service**; dropdown shows the first methods
+(through **Manual**). No account identifiers visible — crop reviewed before commit.*
+
+![Choose a Method dropdown scrolled to Manual and Dynamic Service]({{ '/assets/img/lab07/choose-method-dropdown-scrolled.png' | relative_url }})
+
+*Screenshot: same modal scrolled — **Manual** and **Dynamic Service** descriptions. UI options are
+grounded in these captures.*
+
+#### Step 3b — Select **Manual** (lab minimum)
+
+1. In **Service Population Method**, select **Manual** (you may keep the default **-- Select one --**
+   until you are ready — nothing is committed until you continue and save).
+2. Confirm or fill the fields the wizard shows next for Manual (per [Manual method](https://www.servicenow.com/docs/r/zurich/servicenow-platform/configuration-management-database-cmdb/populate-app-service-manual.html)), typically including:
+   - **Class** — choose the CI class (here: virtual machine / **`cmdb_ci_vm_instance`**).
+   - **CI** — pick **`sgclab-app-01`** (avoid `*` searches on large estates).
+3. **Expected:** The record uses a class extending **`cmdb_ci_service_auto`** (often
+   **`cmdb_ci_service_discovered`** for manual creation on many releases). Saving may still be required
+   before **Preview** or **View Map** shows members.
 
 **Tag note:** AWS tag `Application=payments` is **cloud metadata**. It is **not** automatically a
 filter field named `Application` on `cmdb_ci_vm_instance`. The wizard **Tags** population method
 requires **Service Mapping** — **not** this minimum path.
 
-**Expected:** The VM CI is selected for manual population; saving may still be required before the
-graph is visible.
+**Expected:** Manual selection plus CI pick — **not** proof of a complete service map, **Service Mapping**
+run, or a production **Payments** workload.
 
 ### Step 4 — Preview
 {: #hands-on-step-4}
