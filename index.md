@@ -75,7 +75,7 @@ Two pages exist so you never have to guess:
   <a class="card" href="{{ '/labs/01-aws-inventory/' | relative_url }}"><b>1 · Real AWS inventory</b><span>Tagged EC2 + VPC via CloudFormation — 20 min</span></a>
   <a class="card" href="{{ '/labs/02-sgc-install/' | relative_url }}"><b>2 · Install the connector</b><span>Service Graph Connector for AWS — 20 min</span></a>
   <a class="card" href="{{ '/labs/03-iam-connection/' | relative_url }}"><b>3 · Read-only IAM + connection</b><span>Access key, credentials record, test — 20 min</span></a>
-  <a class="card" href="{{ '/labs/04-run-import/' | relative_url }}"><b>4 · Run the import</b><span>Schedules, first CIs, verify with numbers — 20 min</span></a>
+  <a class="card" href="{{ '/labs/04-run-import/' | relative_url }}"><b>4 · Run the import</b><span>Schedules, VPC evidence + basic PoC map — 45 min</span></a>
   <a class="card" href="{{ '/labs/05-ire/' | relative_url }}"><b>5 · IRE results</b><span>Identification rules, duplicates, outcomes — 30 min</span></a>
   <a class="card" href="{{ '/labs/06-etl-mappings/' | relative_url }}"><b>6 · ETL mappings</b><span>Change a mapping, add a field, re-import — 30 min</span></a>
   <a class="card" href="{{ '/labs/07-csdm-graph/' | relative_url }}"><b>7 · CSDM + service graph</b><span>Application service over real CIs — 30 min</span></a>
@@ -87,9 +87,8 @@ Two pages exist so you never have to guess:
 
 ## What you end up with
 
-- `cmdb_ci_ec2_instance` records created by the **Service Graph Connector** — each identified by
-  its real AWS instance ID (`i-…`), not typed in by hand
-- A `cmdb_ci_cloud_service_account` for your AWS account, plus VPC records the connector found
+- `cmdb_ci_vm_instance` for your lab EC2 (AWS connector path) — `object_id` is the real `i-…` id
+- Account, datacenter, **cloud network** (VPC), subnet, and security-group CIs from scheduled imports
 - Relationships between the instance, the VPC and your application service
 - An IRE result set you can read and explain: inserted vs updated vs skipped, and why
 - A reconciliation precedence rule that decides which source wins when AWS and Azure disagree

@@ -19,6 +19,9 @@ Take control of what AWS data becomes. Inspect the connector's IntegrationHub ET
 (Extract, Transform, Load) mapping,
 add one field end to end, and see it land on the CI.
 
+**Prerequisite:** Lab 4 basic PoC VM in **`cmdb_ci_vm_instance`**. This lab is **mapping surgery**,
+not proving the connector runs.
+
 ## 1. Open the mapping
 
 **Process Automation → Flow Designer → IntegrationHub → ETL** (older releases:
@@ -35,7 +38,7 @@ Select the AWS hardware/EC2 definition. You will see a three-stage pipeline:
 
 ## 2. Read one field end to end
 
-Pick `name` on `cmdb_ci_ec2_instance` and follow it backwards:
+Pick `name` on **`cmdb_ci_vm_instance`** (AWS EC2 path) and follow it backwards:
 
 1. Find the target field in the Transform stage.
 2. Note the **source path** (something under `Reservations[].Instances[]`, e.g. `InstanceId`

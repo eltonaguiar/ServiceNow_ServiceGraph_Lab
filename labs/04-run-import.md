@@ -13,20 +13,20 @@ permalink: /labs/04-run-import/
 <p>Run the connector's jobs <em>one at a time</em>, in the order the app expects — like building with blocks: account, then region, then networks. "Processed" only means the engine looked at a row; you still have to open the lists and count real Configuration Items (CIs).</p>
 </div>
 
-## What this lab has verified (and what it has not)
+## Two bars: minimum evidence vs basic PoC
 
-| Verified through this walkthrough | Not verified yet |
-|---|---|
-| `SG-AWS-Service-Account` → one local service-account CI (synthetic; no AWS API for that row) | `SG-AWS-Subnets` (130) and below |
-| `SG-AWS-Datacenters` → `cmdb_ci_aws_datacenter` for `us-east-2` | EC2 instance import |
-| `SG-AWS-VPC` (after datacenter) → **two** rows in **`cmdb_ci_network`** (Cloud Networks), state Available | Full organization parent import |
-| Dependency partial payloads (`MISSING_MATCHING_ATTRIBUTES`) when VPC ran too early | Claiming "15 inserts = 15 VPCs" |
+| Bar | What it proves | Labs that assume it |
+|---|---|---|
+| **Minimum evidence** (orders **100–120** + screenshots below) | Account, datacenter, two VPC **network** CIs | You can start [Lab 5]({{ '/labs/05-ire/' | relative_url }}) IRE reading with real partials |
+| **Basic PoC import** (orders **130–180**, counters/text only) | Subnet, security group, one **VM** from EC2 — graph **not** clean | [Labs 6–9]({{ '/labs/06-etl-mappings/' | relative_url }}) are **curriculum**, not repetition of the PoC |
 
-Do **not** run the parent schedule **`SG-AWS-Organization`**. On a verified instance it is **inactive** for good reason: activating it cascades **36** child schedules (including SSM and EKS paths this lab does not need).
+**Basic PoC done ≠ whole lab done.** Labs 5 onward teach IRE depth, ETL edits, CSDM, multisource, and drift — even when your VM row already exists.
+
+Do **not** run **`SG-AWS-Organization`** (cascades 36 children including SSM/EKS).
 
 ## Objective
 
-Execute the minimal Service Graph Connector for AWS schedule chain for a **standalone** account, inspect **Executions** (not only top-level state), and prove AWS VPCs landed as **Cloud Network** CIs.
+Run standalone AWS schedules **one at a time**, read **Executions** counters and the **correct CI table**, and meet the minimum evidence bar (through VPC). Continue through EC2 only when you are ready for the basic PoC chain in §9.
 
 ## 1. Schedules and order (use these names)
 
@@ -38,8 +38,8 @@ Run **Execute Now** on **one** schedule at a time, in this order:
 |---|---|---|
 | **100** | `SG-AWS-Service-Account` | Seeds the cloud service account CI locally |
 | **110** | `SG-AWS-Datacenters` | Region/datacenter CIs VPC import expects |
-| **120** | `SG-AWS-VPC` | VPC payloads (maps to **`cmdb_ci_network`**, not `cmdb_ci_vpc`) |
-| 130+ | `SG-AWS-Subnets`, `SG-AWS-NetworkInterface`, `SG-AWS-SecurityGroup`, `SG-AWS-EC2`, … | **Proposed** next steps — run one at a time, inspect before continuing; **not** verified in this lab |
+| **120** | `SG-AWS-VPC` | Lands in **`cmdb_ci_network`** (not `cmdb_ci_vpc`) |
+| 130+ | See §9 compact map | Basic PoC — verified counters; no new screenshots in this repo yet |
 
 ## 2. Where to watch (read the plumbing)
 
@@ -172,45 +172,35 @@ On your instance, **Name** / **Object ID** include AWS VPC ids — compare to th
 <ul class="check">
 <li>Exactly <b>two</b> cloud network rows matching your two AWS VPCs (CIDR + state Available)</li>
 <li>Latest VPC transform shows non-zero <b>Inserts</b> and lists are populated</li>
-<li>You have <b>not</b> claimed EC2/subnet success — only VPC/network through order <b>120</b></li>
 </ul>
 
-## 7. Optional verifier script
+**Minimum evidence checkpoint (screenshots above):** orders **100 → 110 → 120** only. Stop here if you are tracing dependency partials before touching subnets.
 
-From the cloned repo ([Lab 0 §4]({{ '/labs/00-prerequisites/' | relative_url }})):
+## 7. Verifier script
 
 ```bash
-export SN_INSTANCE="dev123456"
-export SN_USER="admin"
-export SN_PASS="your-pdi-password"
-# After order 120 only (before EC2 schedules):
-python3 scripts/verify_cmdb.py --vpc-checkpoint
-# Full lab (still requires cmdb_ci_ec2_instance after you run SG-AWS-EC2):
-python3 scripts/verify_cmdb.py
+python3 scripts/verify_cmdb.py --vpc-checkpoint   # after order 120
+python3 scripts/verify_cmdb.py                    # after SG-AWS-EC2 (needs cmdb_ci_vm_instance)
 ```
 
-Expected output shape after the **VPC checkpoint** (`--vpc-checkpoint`; your IDs differ):
+(`SN_INSTANCE`, `SN_USER`, `SN_PASS` — [Lab 0 §4]({{ '/labs/00-prerequisites/' | relative_url }}).)
 
-```
-Mode: Lab 4 VPC checkpoint (before EC2)
+## 8. Basic PoC chain (130–180) — verified counters, validate in lists
 
-table                            count
-cmdb_ci_cloud_service_account        1
-cmdb_ci_aws_datacenter               1
-cmdb_ci_network                      2
-cmdb_ci_ec2_instance                 0
-cmdb_ci_vpc                          0
-```
+Open **Scheduled Imports** under the **Service Graph Connector for AWS** application (not Azure). The list may show only the first rows — **search Name** for `EC2`, `Subnet`, or `Security`.
 
-Default mode (no flag) is the **full lab** goal and exits non-zero until `cmdb_ci_ec2_instance` is populated. `cmdb_ci_vpc` may stay **0** even when VPCs succeeded — VPCs on this path live in **`cmdb_ci_network`**.
+| Order | Schedule (exact name) | Validate in | Verified shape (your ids differ) |
+|---|---|---|---|
+| **130** | `SG-AWS-Subnets` | `cmdb_ci_cloud_subnet.list` | **4** processed, **33** inserts, **6** updates, **0** errors |
+| **140** | `SG-AWS-Network-Interface` | *(staging may be empty)* | **0** rows OK: Config records only Instance/VPC/Subnet/SG — **skip** for basic PoC |
+| **150** | `SG-AWS-Security-Group` | `cmdb_ci_compute_security_group.list` | **3** processed, **22** inserts; **3** CIs incl. `labgroup` |
+| **180** | `SG-AWS-EC2` | **`cmdb_ci_vm_instance.list`** | Row comment **inserted 1 / updated 1**; VM **`sgclab-app-01`**, state **Off**, AWS id matches; tags `Environment`/`Application`/`Owner` visible |
 
-## 8. What to run next (parent lab direction — unverified here)
+**EC2 is not `cmdb_ci_ec2_instance` on this connector path** — always open **Virtual Machine Instance** / `cmdb_ci_vm_instance`.
 
-When you continue, keep the **one schedule at a time** rule:
+**Rerun check:** second **Execute Now** on `SG-AWS-EC2` → list still **1** row, same id (duplicate identification **pass**). **`discovery_source`** on the form was **not** verified in the walkthrough.
 
-`SG-AWS-Subnets` (130) → `SG-AWS-NetworkInterface` (140) → `SG-AWS-SecurityGroup` (150) → … → `SG-AWS-EC2` (180).
-
-Inspect Executions and the target CI table **before** the next **Execute Now**. This lab does **not** assert full EC2 success until someone verifies it the same way as VPC.
+**Not a clean graph:** EC2 row comments still report partial/warning counts (`storage_volume` 1/1; `nic` 2/2; `relations` 3/3 unresolved) while **`os_template`**, **`compute_template`**, **`endpoint_block`**, **`endpoint_vnic`**, **`storage_mapping`** were created. Subnet import **corroborates** EC2 unchanged (no duplicate VM).
 
 ## Troubleshooting pointers
 
@@ -218,13 +208,20 @@ Inspect Executions and the target CI table **before** the next **Execute Now**. 
 - Full ladder: [Lab 10 — Troubleshooting]({{ '/labs/10-troubleshooting/' | relative_url }}).
 - IRE vocabulary: [Lab 5]({{ '/labs/05-ire/' | relative_url }}).
 
-## Checkpoint (current verified scope)
+## Checkpoint
+
+**Minimum (Lab 4 evidence):**
 
 <ul class="check">
-<li>Schedules <code>100 → 110 → 120</code> run individually; Organization parent left inactive</li>
-<li>Datacenter CI exists for your region before VPC rerun</li>
-<li><code>cmdb_ci_network</code> shows two Available VPC CIDRs matching AWS</li>
-<li>You can explain why <b>Processed</b> with <b>0 inserts</b> happened once, and why <b>15 inserts</b> is not "15 VPCs"</li>
+<li>Orders <code>100 → 110 → 120</code>; <code>cmdb_ci_network</code> = two Available CIDRs</li>
+<li>Can explain Processed vs Inserts and datacenter-before-VPC partials</li>
+</ul>
+
+**Basic PoC (optional continuation in §8):**
+
+<ul class="check">
+<li>One <code>cmdb_ci_vm_instance</code> for <code>sgclab-app-01</code>; rerun still count 1</li>
+<li>Subnets + security groups in the tables above; you accept NIC partials on EC2</li>
 </ul>
 
 Next: [Lab 5 — read the IRE results]({{ '/labs/05-ire/' | relative_url }})

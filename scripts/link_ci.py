@@ -4,7 +4,7 @@
     export SN_INSTANCE=dev123456 SN_USER=admin SN_PASS=...
     python3 scripts/link_ci.py --list-types
     python3 scripts/link_ci.py --parent "payments-prod-01" --child i-0abc123 \
-        --type "Hosted on::cmdb_ci_ec2_instance"
+        --child-table cmdb_ci_vm_instance
 """
 from __future__ import annotations
 
@@ -60,7 +60,8 @@ def main() -> int:
     ap.add_argument("--parent", help="parent CI name (e.g. the service instance name)")
     ap.add_argument("--parent-table", default="cmdb_ci_service_instance")
     ap.add_argument("--child", help="child CI name or identifier (e.g. i-0abc123)")
-    ap.add_argument("--child-table", default="cmdb_ci_ec2_instance")
+    ap.add_argument("--child-table", default="cmdb_ci_vm_instance",
+                    help="AWS Service Graph EC2 uses cmdb_ci_vm_instance")
     ap.add_argument("--type", default="Hosted on::cmdb_ci_vm_instance",
                     help="relationship type as 'label::table'")
     ap.add_argument("--list-types", action="store_true", help="show a few relationship types")

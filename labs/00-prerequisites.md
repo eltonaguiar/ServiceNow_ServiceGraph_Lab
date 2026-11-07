@@ -255,8 +255,8 @@ given because every PDI has its own hostname — use the menu path in your own i
 Keep this bar in mind, because it is easy to spend six hours polishing:
 
 <ul class="check">
-<li>At least one <code>cmdb_ci_ec2_instance</code> whose <code>object_id</code> is a real AWS
-<code>i-…</code> id and whose <code>discovery_source</code> is the AWS connector</li>
+<li>At least one <code>cmdb_ci_vm_instance</code> whose <code>object_id</code> is a real AWS
+<code>i-…</code> id (Service Graph EC2 schedule — not <code>cmdb_ci_ec2_instance</code>)</li>
 <li>One IRE output row you can explain: inserted, updated, or skipped, and why</li>
 <li>One CI linked to a service you created, not one the lab created for you</li>
 <li>Nothing running in AWS at the end</li>

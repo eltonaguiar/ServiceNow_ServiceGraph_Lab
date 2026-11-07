@@ -18,6 +18,8 @@ permalink: /labs/08-multisource-azure/
 Add a second cloud source describing the same class of CI (Configuration Item), then decide — explicitly — which
 source's data wins. This is the difference between a CMDB and a spreadsheet.
 
+Assumes AWS already in **`cmdb_ci_vm_instance`** ([Lab 4]({{ '/labs/04-run-import/' | relative_url }})); Azure VMs also use that class.
+
 <div class="note">
 <span class="label">Read this before you start</span>
 <p>This lab is <strong>optional and deliberately lighter than the AWS track</strong>. Labs 1–7

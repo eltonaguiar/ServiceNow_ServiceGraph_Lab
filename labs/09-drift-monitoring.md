@@ -18,6 +18,8 @@ permalink: /labs/09-drift-monitoring/
 Make the cloud change and watch the CMDB (Configuration Management Database) react. A CMDB that only ever grows is a liability;
 the value is in drift.
 
+Track drift on **`cmdb_ci_vm_instance`** (your lab EC2), not `cmdb_ci_ec2_instance`.
+
 ## 1. Drift on purpose
 
 1. In AWS, **change** the instance: retag it (`Environment: prod`), or better, **terminate** it

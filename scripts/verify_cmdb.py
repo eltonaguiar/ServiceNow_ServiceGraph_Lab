@@ -25,19 +25,25 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+# AWS Service Graph Connector path: EC2 lands in cmdb_ci_vm_instance (not cmdb_ci_ec2_instance).
 FULL_LAB_REQUIRED = [
     "cmdb_ci_cloud_service_account",
     "cmdb_ci_aws_datacenter",
     "cmdb_ci_network",
-    "cmdb_ci_ec2_instance",
+    "cmdb_ci_vm_instance",
 ]
 VPC_CHECKPOINT_REQUIRED = [
     "cmdb_ci_cloud_service_account",
     "cmdb_ci_aws_datacenter",
     "cmdb_ci_network",
 ]
+BASIC_POC_INFO = [
+    "cmdb_ci_cloud_subnet",
+    "cmdb_ci_compute_security_group",
+]
 ALWAYS_OPTIONAL = [
-    "cmdb_ci_vpc",  # often empty when VPCs map to cmdb_ci_network
+    "cmdb_ci_vpc",
+    "cmdb_ci_ec2_instance",  # legacy / other sources; often empty for this connector
 ]
 
 
@@ -93,10 +99,10 @@ def cmd_counts(base: str, token: str, *, vpc_checkpoint: bool) -> int:
 
     if vpc_checkpoint:
         required = VPC_CHECKPOINT_REQUIRED
-        also_show = ["cmdb_ci_ec2_instance"]
+        also_show = ["cmdb_ci_vm_instance", *BASIC_POC_INFO]
     else:
         required = FULL_LAB_REQUIRED
-        also_show = []
+        also_show = BASIC_POC_INFO
 
     empty_required: list[str] = []
     seen: set[str] = set()
@@ -156,11 +162,11 @@ def cmd_ire(base: str, token: str) -> int:
 
 def cmd_stale(base: str, token: str, days: int) -> int:
     cutoff = (dt.datetime.utcnow() - dt.timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
-    total = count(base, token, "cmdb_ci_ec2_instance")
-    stale = count(base, token, "cmdb_ci_ec2_instance", f"last_discovered<{cutoff}")
-    print(f"cmdb_ci_ec2_instance: {total} total, {stale} not rediscovered in {days}d")
+    total = count(base, token, "cmdb_ci_vm_instance")
+    stale = count(base, token, "cmdb_ci_vm_instance", f"last_discovered<{cutoff}")
+    print(f"cmdb_ci_vm_instance: {total} total, {stale} not rediscovered in {days}d")
     if total and stale == total:
-        print("Every EC2 CI is stale — the connector is probably not running.")
+        print("Every VM CI is stale — the connector is probably not running.")
         return 1
     return 0
 

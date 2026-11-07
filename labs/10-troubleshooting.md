@@ -44,7 +44,7 @@ twice.
 | 5 | Did rows arrive? | Import Sets (`sys_import_set_row_list.do`) | The REST call returned data |
 | 6 | Did rows transform? | Import set → errors per row | Mapping works |
 | 7 | Did IRE accept them? | `cmdb_ire_output_item` | Records inserted/updated |
-| 8 | Do the CIs look right? | `cmdb_ci_ec2_instance` | Field mappings correct |
+| 8 | Do the CIs look right? | `cmdb_ci_vm_instance` (AWS EC2) | Field mappings correct |
 
 ## Common failures, in the order you will hit them
 
@@ -130,8 +130,10 @@ in the Filter Navigator instead — tables are far more stable than menus:
 | Cloud Networks (VPC on verified path) | `cmdb_ci_network_list.do` |
 | AWS Datacenters | `cmdb_ci_aws_datacenter_list.do` |
 | IRE rule hits | `cmdb_ire_output_rule_list.do` |
-| EC2 CIs | `cmdb_ci_ec2_instance_list.do` |
-| VM CIs (Azure) | `cmdb_ci_vm_instance_list.do` |
+| AWS EC2 via SGC | `cmdb_ci_vm_instance_list.do` |
+| `cmdb_ci_ec2_instance` | Other sources; often empty on this connector path |
+| Subnets (verified path) | `cmdb_ci_cloud_subnet_list.do` |
+| Compute security groups | `cmdb_ci_compute_security_group_list.do` |
 | Store apps / plugins | `sys_store_app_list.do` / `v_plugin_list.do` |
 | Scheduled jobs | `sysauto_script_list.do` (or `sys_trigger_list.do` for triggers) |
 | Multisource CI view | `cmdb_ci_list.do`, then open a record's **CMDB 360** tab |
@@ -143,7 +145,9 @@ in the Filter Navigator instead — tables are far more stable than menus:
 cmdb_ire_output_item.list  (filter: sys_created_on > yesterday)
 
 -- connector-created CIs
-cmdb_ci_ec2_instance.list  (filter: discovery_source contains AWS)
+cmdb_ci_vm_instance.list   (filter: name or object_id contains i-)
+cmdb_ci_cloud_subnet.list
+cmdb_ci_compute_security_group.list
 
 -- failed import rows
 sys_import_set_row_list.do  (filter: error is not empty)

@@ -13,6 +13,13 @@ permalink: /labs/05-ire/
 <p>IRE is the bouncer at the CMDB door: for every record it asks "have I seen this before?" and then creates, updates, or skips. Reading its answers is the single most useful CMDB skill.</p>
 </div>
 
+## Before you start
+
+If [Lab 4]({{ '/labs/04-run-import/' | relative_url }}) §8 already gave you a **VM in
+`cmdb_ci_vm_instance`**, that is **import evidence**, not this lab finished. Here you learn to read
+IRE and partial **row Comments** (EC2 can show **inserted 1 / updated 1** while `storage_volume`,
+`nic`, and `relations` partials remain).
+
 ## Objective
 
 Explain, per record, why IRE inserted, updated or skipped it — and fix one identification
@@ -86,18 +93,14 @@ most common real-world failure.
 **Configuration → Identification and Reconciliation → Identification Rules** (also reachable
 from **CI Class Manager** → your class → Identification).
 
-For `cmdb_ci_ec2_instance` you will typically find a rule keyed on the AWS instance
-identifier — the record's `object_id` or a source-specific correlation attribute — with the
-class's name as a search attribute, depending on the release.
+For AWS EC2 on the Service Graph Connector, open identification on **`cmdb_ci_vm_instance`**
+(not `cmdb_ci_ec2_instance`). Rules typically key on the AWS instance id in `object_id`.
 
-Exercises:
+Exercises (on your lab VM, e.g. `sgclab-app-01`):
 
-1. Note the **search attributes**, the **identifier entry**, and whether the rule is
-   **independent** or **dependent** on a parent CI.
-2. Run the import a second time and confirm the outcome flips to "no change".
-3. Deliberately break it: change the CI's identifier attribute by hand, re-run the import, and
-   observe a duplicate appear. Then delete the duplicate and re-run to confirm the original is
-   matched again.
+1. Note search attributes, identifier entry, and whether the rule is independent or dependent.
+2. Re-run **`SG-AWS-EC2`** — verified basic PoC stays at **one** row (identification pass).
+3. Optional deep dive: break an identifier by hand, re-import, observe duplicate, clean up.
 
 > Doing (3) once is worth an hour of reading. It is exactly what happens in production when
 > someone "cleans up" a CI by hand.
@@ -123,7 +126,8 @@ insert/update/no-change split without opening the UI.
 <li>You opened <code>cmdb_ire_partial_payloads</code> or row Comments and can explain a <code>MISSING_MATCHING_ATTRIBUTES</code> partial</li>
 <li>You know VPC maps to <code>cmdb_ci_network</code> on the verified connector path</li>
 <li>You can state the difference between Inserted, Updated, Rejected, and Partial in one sentence each</li>
-<li>Optional (when EC2 is verified on your instance): identification rule for EC2, second run "no change", deliberate duplicate exercise</li>
+<li>You used <code>cmdb_ci_vm_instance</code> for AWS EC2 identification, not <code>cmdb_ci_ec2_instance</code></li>
+<li>You can name at least one EC2 row-comment partial still open (e.g. <code>nic</code> / <code>relations</code>) without calling the graph “done”</li>
 </ul>
 
 Next: [Lab 6 — change an ETL mapping]({{ '/labs/06-etl-mappings/' | relative_url }})

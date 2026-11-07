@@ -25,7 +25,7 @@ Business Service (optional)
   └─ Application Service            cmdb_ci_service_auto
        └─ Service Instance          cmdb_ci_service_instance
             └─ Application / Runtime
-                 └─ Hosted on → EC2 instance   cmdb_ci_ec2_instance
+                 └─ Hosted on → VM (AWS EC2)   cmdb_ci_vm_instance
 ```
 
 The exact class names vary slightly by CSDM version, but the chain
@@ -50,13 +50,13 @@ Create the relationship rather than filling a "runs on" text field:
 
 1. On the service instance, open **Related Items → CI relations** (or use
    **CI Relationship Builder**).
-2. Add: **Service Instance** `payments-prod-01` — `Hosted on` / `Runs on` → **EC2 instance**
-   from Lab 4.
+2. Add: **Service Instance** `payments-prod-01` — `Hosted on` / `Runs on` → **`cmdb_ci_vm_instance`**
+   from Lab 4 (`sgclab-app-01`).
 
 If you prefer the API:
 
 ```bash
-python3 scripts/link_ci.py --citype "Hosted on::cmdb_ci_ec2_instance" --parent payments-prod-01
+python3 scripts/link_ci.py --child-table cmdb_ci_vm_instance --parent payments-prod-01
 ```
 
 ## 4. Look at the graph
@@ -72,7 +72,7 @@ That view is the product of three labs: connector → IRE → relationship.
 ## 5. Tag-driven alternative
 
 Because Lab 1 tagged the instance with `Application = payments`, you can also attach CIs by
-query: build a filter on `cmdb_ci_ec2_instance` where `Application` contains `payments`, and
+query: build a filter on `cmdb_ci_vm_instance` where `Application` contains `payments`, and
 use it as a **dynamic CI group** attached to the service. Then a new EC2 instance with that tag
 joins the service on the next import — no manual step. Try it: launch a second tagged instance,
 re-run the import, and watch the group grow.
