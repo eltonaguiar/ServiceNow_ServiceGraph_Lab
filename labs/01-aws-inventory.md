@@ -40,8 +40,12 @@ aws cloudformation deploy \
 
 Open the [CloudFormation console](https://us-east-2.console.aws.amazon.com/cloudformation/home?region=us-east-2)
 (or replace `us-east-2` with whatever region you chose in Lab 0). The link opens in the AWS
-account you are signed in to. Check the region in the top-right menu before you start, because
-the stack, the instance and the later import all have to be in the same region.
+account you are signed in to.
+
+**Confirm the region in the console itself, not just the URL.** At the top right, next to your
+account menu, is the region selector. Click it and choose **US East (Ohio) `us-east-2`**, or your
+Lab 0 region. Check it again before each step below. The stack, the instance and the later import
+all have to be in the same region.
 
 1. **Create stack → With new resources (standard)**.
 2. **Prepare template:** *Choose an existing template*. **Template source:** *Upload a template file* →
@@ -93,11 +97,31 @@ means the stack did not build. Don't go on to Lab 2. In **Events**, find the fir
 
 Delete the failed stack, fix the cause, then create it again with the same name.
 
+### Record the IDs from the Resources tab
+
+Open the `sgclab` stack → **Resources** tab. Each row has a **Logical ID**, the name from the
+template, and a **Physical ID**, the real AWS ID:
+
+| Logical ID | Physical ID looks like | Record as |
+|---|---|---|
+| `LabInstance` | `i-…` | Instance ID |
+| `LabVpc` | `vpc-…` | VPC ID |
+
+You can also open the **Outputs** tab, which lists `InstanceId`, `VpcId` and `Region` from the
+template.
+
 ### Then stop (don't terminate) the instance
 
-Go to **EC2 → Instances**, in the **same region**. Select `sgclab-app-01` →
-**Instance state → Stop instance**. Do **not** choose *Terminate*: the connector needs the
-instance to exist.
+In the Resources tab, click the **Physical ID** link on the `LabInstance` row (`i-…`). That opens the
+instance in the EC2 console, in the same region. Or go to **EC2 → Instances** and pick
+`sgclab-app-01`. Then choose **Instance state → Stop instance**. Do **not** choose *Terminate*.
+
+**Why stop it?**
+- A stopped instance has no compute (per-hour instance) charge.
+- The Service Graph Connector for AWS discovers resources through AWS APIs, not by logging in to
+  the OS. A **stopped** instance and its tags still show up in the inventory.
+- A **terminated** instance is deleted, so there is nothing to discover. That is why you stop it
+  rather than terminate it.
 
 - A stopped instance has no compute charge, but its EBS volume is still billed. Any public IPv4
   address or other attached resource may also cost money.
@@ -133,9 +157,9 @@ AWS and not from you typing it.
 
 | Value | Where |
 |---|---|
-| Instance ID (`i-…`) | EC2 → Instances |
-| VPC ID (`vpc-…`) | VPC console |
-| Region | Console URL |
+| Instance ID (`i-…`) | CloudFormation → `sgclab` → Resources → `LabInstance` Physical ID (or Outputs → `InstanceId`) |
+| VPC ID (`vpc-…`) | CloudFormation → `sgclab` → Resources → `LabVpc` Physical ID (or Outputs → `VpcId`) |
+| Region | Region selector at the top right of the console (e.g. US East (Ohio) `us-east-2`), or Outputs → `Region` |
 | Account ID | Account menu |
 
 ## Checkpoint
