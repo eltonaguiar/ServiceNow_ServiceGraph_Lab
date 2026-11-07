@@ -164,8 +164,9 @@ AWS and not from you typing it.
 
 Only the Instance ID and VPC ID are on the **Resources** tab. As a shortcut, the stack's **Outputs**
 tab lists `InstanceId`, `VpcId` and `Region` in one place. The Account ID is in the account menu.
-If your account uses the project-based [AWS Settings](https://settings.aws.com/) page, open your
-own project. Its **Additional info** section shows the Account ID, the account ARN and the Region
+If your account uses the project-based [AWS Settings](https://settings.aws.com/) experience, open
+it from the console: click your username or account menu at the top right and choose **Profile**.
+Open your project if needed. Its **Additional info** section shows the Account ID, the account ARN and the Region
 together. That Region is the project's region, so make sure the region selector in the console
 matches it before you deploy. The examples above are placeholders. Use your own values, and keep your Account ID out of
 public posts and screenshots.
