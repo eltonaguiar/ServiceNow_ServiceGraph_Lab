@@ -184,16 +184,35 @@ an account ID. This repo provides
 *Example: `sg-aws-snow-role` is CREATE_COMPLETE, alongside `sg-aws-config` (UPDATE_COMPLETE after
 narrowing) and `sgclab`.*
 
-**Next: let the user assume the role.**
+**Next: let the user assume the role (inline policy).**
 1. IAM → **Users** → `servicenow-sgc-lab` → **Permissions** → **Add permissions** → **Create inline
    policy** → **JSON**.
-2. Paste
-   [`aws/sgc-lab-assume-role-policy.json`](https://github.com/eltonaguiar/ServiceNow_ServiceGraph_Lab/blob/main/aws/sgc-lab-assume-role-policy.json)
-   and replace `ACCOUNT_ID` with your own 12-digit ID.
-3. Save the policy.
+2. Click inside the editor, press **Ctrl+A** so that only the editor text is selected, and replace
+   *all* the starter text with:
 
-This lab hasn't yet confirmed that this step, the saved STS settings, the connection test or an
-import works.
+   ```json
+   {
+     "Version": "2012-10-17",
+     "Statement": [
+       {
+         "Sid": "AllowAssumeSnowRoleSameAccount",
+         "Effect": "Allow",
+         "Action": "sts:AssumeRole",
+         "Resource": "arn:aws:iam::ACCOUNT_ID:role/SnowOrganizationAccountAccessRole"
+       }
+     ]
+   }
+   ```
+
+   Replace `ACCOUNT_ID` with your own 12-digit ID. The same JSON is in
+   [`aws/sgc-lab-assume-role-policy.json`](https://github.com/eltonaguiar/ServiceNow_ServiceGraph_Lab/blob/main/aws/sgc-lab-assume-role-policy.json).
+3. **Next** → **Policy name:** `SnowAssumeRole` → **Create policy**, and wait for the success banner.
+4. Keep `ServiceNowSGCLabReadOnly` attached. The user's **Permissions** tab should now list both
+   `ServiceNowSGCLabReadOnly` and `SnowAssumeRole`.
+
+<ul class="check">
+<li>The user has both policies, and the role stack is CREATE_COMPLETE</li>
+</ul>
 
 ## 0c. ServiceNow Guided Setup, in order
 
@@ -207,14 +226,29 @@ import works.
      never in chat or a file.
    - Leave GovCloud off.
    - Save, then mark the credentials task complete.
-4. **Configure the instance before testing:**
-   - Choose the credential alias.
-   - **Regions** = `us-east-2`.
-   - **Standalone Account ID** = your own ID.
-   - Leave the management account, aggregator and S3 fields blank. Leave key rotation and
-     government off.
-   - **STS Role** = `SnowOrganizationAccountAccessRole`.
-   - Any Organization name or ID values shown are placeholders, not validated results.
+4. **Configure the instance before testing.** This is a tentative checkpoint the lab hasn't verified yet:
+
+   | Field | Value |
+   |---|---|
+   | Credential alias | `SG-AWS-CredentialAlias-Org` |
+   | STS Role | `SnowOrganizationAccountAccessRole`. Enter the role **name** only, not the ARN. |
+   | Regions | `us-east-2` |
+   | Standalone Account ID | your own 12-digit ID (required) |
+   | Management account, Aggregator, S3 bucket | blank |
+   | Key rotation, GovCloud | unchecked |
+   | SSM documents | leave unchanged |
+   | Organization Account / Name | if the form shows literal placeholders such as `<ORG_ID>` or `<ORG_NAME>`, clear them and leave the fields blank |
+
+   - **Account ID may be hidden.** A filled-in account ID can appear masked or blank in the form or
+     in a screenshot, so don't assume it's missing. Check the field itself.
+   - **Save once,** after the Standalone Account ID is entered. If ServiceNow rejects blank
+     Organization fields, note the error and stop. Don't invent values. It is unconfirmed whether
+     blank Organization fields are accepted.
+   - **Only after Save succeeds,** click **Test Connection**. The lab hasn't recorded a test result
+     yet.
+
+   So far, the credential record and the assume-role setup are confirmed. Saving the instance,
+   the connection test and imports are not yet confirmed.
 5. **Diagnostic Tool:** skip SSM setup, SSM Deep Discovery and EKS. A green connection test on
    its own doesn't show that imports will work, so run the diagnostics before any import (Lab 4).
 
