@@ -13,6 +13,13 @@ permalink: /labs/05-ire/
 <p>IRE is the bouncer at the CMDB door: for every record it asks "have I seen this before?" and then creates, updates, or skips. Reading its answers is the single most useful CMDB skill.</p>
 </div>
 
+## Before you start
+
+If [Lab 4]({{ '/labs/04-run-import/' | relative_url }}) §8 already gave you a **VM in
+`cmdb_ci_vm_instance`**, that is **import evidence**, not this lab finished. Here you learn to read
+IRE and partial **row Comments** (EC2 can show **inserted 1 / updated 1** while `storage_volume`,
+`nic`, and `relations` partials remain).
+
 ## Objective
 
 Explain, per record, why IRE inserted, updated or skipped it — and fix one identification
@@ -30,6 +37,9 @@ Two useful surfaces (menu paths move between releases — the direct URLs do not
 
 - **IRE result tables**: `cmdb_ire_output_item` (one row per processed payload) and
   `cmdb_ire_output_rule` / `cmdb_ire_output_rule_item` (which rule matched).
+- **`cmdb_ire_partial_payloads`** — payloads parked when a **dependency** could not be resolved
+  (verified example: VPC before datacenter, reason `MISSING_MATCHING_ATTRIBUTES`, lookup key
+  `<connection>|<account>|<region>`).
 - The human view: **Configuration → Identification and Reconciliation → IRE Results**, or the
   "IRE results" link from the import set.
 
@@ -40,10 +50,23 @@ If the menu path above does not exist on your release, go straight to the table:
 ```text
 https://<your-instance>.service-now.com/cmdb_ire_output_item_list.do
 https://<your-instance>.service-now.com/cmdb_ire_output_rule_list.do
+https://<your-instance>.service-now.com/cmdb_ire_partial_payloads_list.do
 ```
 
 Also useful: the import set's own record has an **IRE output** related list — that is the only
 path that shows you *one run* without timestamp guessing.
+
+### When transforms look "fine" but lists are empty
+
+On the verified VPC-before-datacenter run:
+
+- Transform Histories showed **Processed = 2**, **Errors = 0**, **Inserts = 0**.
+- **`cmdb_ci_network`** and **`cmdb_ci_vpc`** were both empty.
+- Import Set row **Comments** carried partial/warning text (not a green success story).
+- **Import Log** was empty; syslog export had no helpful warning — **`cmdb_ire_partial_payloads`**
+  export had the exact JSON reason.
+
+That combination means **dependency partial**, not "IRE is broken" and not "credentials are wrong."
 
 ## 2. Read the outcome
 
@@ -53,6 +76,13 @@ path that shows you *one run* without timestamp guessing.
 | **Updated** | Matched an existing CI; attributes were merged |
 | **Skipped / No change** | Matched, and nothing differed — the healthy steady state |
 | **Rejected / Error** | Payload violated a rule (missing identifier, bad reference, duplicate items in one payload) |
+| **Partial / parked** (`cmdb_ire_partial_payloads`) | Waiting on another CI (e.g. datacenter for region) — fix order, rerun the **same** schedule |
+
+### One source row ≠ one CI
+
+A single import row can create **many** inserts (tags, relations, supporting records). That is why
+a VPC rerun can show **15 inserts** and **2 processed** source rows — not fifteen VPCs. Always open
+the **target class** you care about (`cmdb_ci_network` for VPC in Lab 4).
 
 A second import with no changes in AWS should produce **mostly "no change"**. If it produces
 another insert, your identification is broken and you now have duplicates. That is the single
@@ -63,21 +93,31 @@ most common real-world failure.
 **Configuration → Identification and Reconciliation → Identification Rules** (also reachable
 from **CI Class Manager** → your class → Identification).
 
-For `cmdb_ci_ec2_instance` you will typically find a rule keyed on the AWS instance
-identifier — the record's `object_id` or a source-specific correlation attribute — with the
-class's name as a search attribute, depending on the release.
+For AWS EC2 on the Service Graph Connector, open identification on **`cmdb_ci_vm_instance`**
+(not `cmdb_ci_ec2_instance`). Rules typically key on the AWS instance id in `object_id`.
 
-Exercises:
+### Default (observational — enough for basic PoC)
 
-1. Note the **search attributes**, the **identifier entry**, and whether the rule is
-   **independent** or **dependent** on a parent CI.
-2. Run the import a second time and confirm the outcome flips to "no change".
-3. Deliberately break it: change the CI's identifier attribute by hand, re-run the import, and
-   observe a duplicate appear. Then delete the duplicate and re-run to confirm the original is
-   matched again.
+On **`cmdb_ci_vm_instance`** (your lab VM, e.g. `sgclab-app-01`):
 
-> Doing (3) once is worth an hour of reading. It is exactly what happens in production when
-> someone "cleans up" a CI by hand.
+1. Read the identification rule: search attributes, identifier, dependent vs independent.
+2. Open **IRE output** or import row **Comments** from the last `SG-AWS-EC2` run (insert vs partial).
+3. Re-run **`SG-AWS-EC2`** and confirm the list stays at **one** row with the **same** `object_id`.
+
+You do **not** need step 4 below to complete the basic PoC.
+
+### Optional exercise 4 — duplicate on purpose (throwaway PDI only)
+
+**Only** on your **own** lab PDI, on the **single throwaway VM** this lab created — **never** on a
+shared, production, or non-lab CMDB.
+
+1. **Before editing:** copy the VM's **`object_id`** and any identification fields to your notes.
+2. Change **only** that identifier on the **one** lab record (simulate a bad manual edit).
+3. Re-run **`SG-AWS-EC2`**: expect a **second** row (duplicate).
+4. **Clean up:** delete **only** the duplicate **you** caused; restore the **original**
+   `object_id` on the surviving record; re-import once; verify **one** row again.
+
+Skip this entirely if you are not on a private throwaway instance.
 
 ## 4. Reconcile duplicates
 
@@ -97,10 +137,11 @@ insert/update/no-change split without opening the UI.
 ## Checkpoint
 
 <ul class="check">
-<li>You can name the identification rule that matched your EC2 CI</li>
-<li>A second import produced "no change", not a second insert</li>
-<li>You created a duplicate on purpose and cleaned it up</li>
-<li>You can state the difference between Inserted, Updated and Rejected in one sentence each</li>
+<li>You opened <code>cmdb_ire_partial_payloads</code> or row Comments and can explain a <code>MISSING_MATCHING_ATTRIBUTES</code> partial</li>
+<li>You know VPC maps to <code>cmdb_ci_network</code> on the verified connector path</li>
+<li>You can state the difference between Inserted, Updated, Rejected, and Partial in one sentence each</li>
+<li>You used <code>cmdb_ci_vm_instance</code> for AWS EC2 identification, not <code>cmdb_ci_ec2_instance</code></li>
+<li>You can name at least one EC2 row-comment partial still open (e.g. <code>nic</code> / <code>relations</code>) without calling the graph “done”</li>
 </ul>
 
 Next: [Lab 6 — change an ETL mapping]({{ '/labs/06-etl-mappings/' | relative_url }})

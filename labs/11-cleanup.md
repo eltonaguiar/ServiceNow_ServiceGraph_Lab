@@ -10,12 +10,14 @@ permalink: /labs/11-cleanup/
 
 <div class="eli5">
 <span class="label">ELI5</span>
-<p>Leave with no live keys and a $0 bill. Kill the credentials <em>first</em>, so nothing keeps calling AWS after you delete the resources.</p>
+<p>Leave with no live keys and no surprise bill. Kill the credentials <em>first</em>, so nothing keeps calling AWS after you delete resources — then verify billing yourself.</p>
 </div>
 
 ## Objective
 
-Leave with a $0 bill, no live keys, and a repeatable lab you can run again next week.
+Leave with no live keys, cloud resources torn down **where you can verify**, and billing checked in
+the console. This lab does **not** guarantee a zero balance — especially if **AWS Config** or a
+**retained S3 bucket** from `sg-aws-config` still exists ([Lab 3]({{ '/labs/03-iam-connection/' | relative_url }})).
 
 ## 1. Revoke the credentials first
 
@@ -51,11 +53,13 @@ keeps calling a deleted account generates nothing but errors.
 ## 4. Confirm the bill
 
 - AWS **Billing → Cost Explorer**, group by service, last 7 days
-- **Budgets** — the alarm should be untouched (it is free)
-- Azure **Cost Management → Cost analysis**
+- **Budgets** — confirm the alarm still exists (the alarm itself is not a spend cap)
+- If you ran **AWS Config** (Lab 3): open **AWS Config → Settings** and **S3** — empty and delete
+  any delivery bucket CloudFormation **retained** after stack delete
+- Azure **Cost Management → Cost analysis** (if you ran Lab 8)
 
-Expected total for the lab: **$0.00**, assuming a single small instance stopped or deleted
-within the free-tier allowance and no Elastic IP left allocated.
+**Stopped EC2 is not free** (EBS and related charges can continue). Do not treat “instance stopped”
+as “lab paid for.” Read what Cost Explorer shows for your account; credits may mask small amounts.
 
 ## 5. What to keep
 

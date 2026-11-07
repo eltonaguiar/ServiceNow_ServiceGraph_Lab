@@ -83,8 +83,8 @@ dashboards, service maps, approvals) is subtly wrong.
 
 | CI class (table) | What it represents | Typical real-world use |
 |---|---|---|
-| `cmdb_ci_ec2_instance` | An Amazon EC2 virtual server | Cost allocation, patching scope, "which servers run this app?" |
-| `cmdb_ci_vm_instance` | A generic virtual machine (AWS, Azure, VMware) | The most common class cloud connectors populate; good for cross-cloud comparisons |
+| `cmdb_ci_vm_instance` | Virtual machine (AWS EC2 on Service Graph, Azure, VMware) | **AWS Service Graph EC2 lands here** — open this list after `SG-AWS-EC2` |
+| `cmdb_ci_ec2_instance` | EC2-specific class (older or alternate mappings) | Often **empty** when the AWS connector uses `cmdb_ci_vm_instance` |
 | `cmdb_ci_server` / `cmdb_ci_linux_server` | A physical or logical server | OS patching, vulnerability management |
 | `cmdb_ci_cloud_service_account` | A cloud account/subscription itself | "Which accounts do we own?" — the root of cloud governance |
 | `cmdb_ci_vpc` | A virtual private network | Network impact analysis, segmentation checks |
@@ -227,8 +227,8 @@ Every abbreviation used on this site, expanded once, alphabetically.
 
 ## What you need before starting
 
-Only three things: a browser, a free ServiceNow developer instance, and a free AWS account.
-[Lab 0]({{ '/labs/00-prerequisites/' | relative_url }}) walks through both, including the budget
-alarm that keeps the lab at zero cost.
+Only three things: a browser, a ServiceNow developer instance (PDI), and an AWS account.
+[Lab 0]({{ '/labs/00-prerequisites/' | relative_url }}) walks through setup and a **budget alarm**
+that emails on spend — it does **not** cap billing. Cleanup and bucket checks are in Lab 11.
 
 Then: [Lab 1 — build a real AWS inventory]({{ '/labs/01-aws-inventory/' | relative_url }})

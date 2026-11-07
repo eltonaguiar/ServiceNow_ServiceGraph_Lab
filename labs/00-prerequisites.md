@@ -10,7 +10,7 @@ permalink: /labs/00-prerequisites/
 
 <div class="eli5">
 <span class="label">ELI5</span>
-<p>You need two free accounts (ServiceNow and AWS) and a way to notice if the lab starts costing money. The budget alarm is not optional — it is the whole reason the lab stays free.</p>
+<p>You need a ServiceNow PDI, an AWS account, and a budget alarm so spend shows up in email — the alarm warns; it does not stop charges.</p>
 </div>
 
 <div style="border: 2px solid #d73a49; border-radius: 6px; padding: 12px 16px; margin: 16px 0; background: #fff5f5; color: #24292e;">
@@ -255,8 +255,8 @@ given because every PDI has its own hostname — use the menu path in your own i
 Keep this bar in mind, because it is easy to spend six hours polishing:
 
 <ul class="check">
-<li>At least one <code>cmdb_ci_ec2_instance</code> whose <code>object_id</code> is a real AWS
-<code>i-…</code> id and whose <code>discovery_source</code> is the AWS connector</li>
+<li>At least one <code>cmdb_ci_vm_instance</code> whose <code>object_id</code> is a real AWS
+<code>i-…</code> id (Service Graph EC2 schedule — not <code>cmdb_ci_ec2_instance</code>)</li>
 <li>One IRE output row you can explain: inserted, updated, or skipped, and why</li>
 <li>One CI linked to a service you created, not one the lab created for you</li>
 <li>Nothing running in AWS at the end</li>
