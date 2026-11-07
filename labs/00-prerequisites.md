@@ -54,26 +54,34 @@ the app.
 
 ## 2. Free AWS account (Amazon Web Services)
 
-1. Create the account at [aws.amazon.com/free](https://aws.amazon.com/free). A card is
-   required for identity verification.
-2. **Immediately** set a budget alarm: **Billing and Cost Management → Budgets → Create budget
-   → Zero-spend budget** or a fixed **$1–5** monthly budget with an email alert at 50 %.
-3. Choose one region and stick to it for the whole lab (for example `ca-central-1`).
-   Multi-region imports multiply the data and the surprises.
-4. Note your **12-digit account ID** (top-right account menu).
+### Create the account
 
-### What "free tier" actually means in 2026
+1. Go to [aws.amazon.com/free](https://aws.amazon.com/free) and create an account.
+2. A credit card is required for identity verification. AWS will not charge it while you stay on the Free plan and have credits remaining, but the card is still required.
+3. After signup you will see a welcome / getting-started screen. You can skip the agent-toolkit prompts for this lab — they are not required.
+4. Confirm your plan in the account menu (top right). A typical new Free plan looks like this:
+   - **Current plan:** Free
+   - **Credits remaining:** $100.00 (you can sometimes earn up to $100 more by completing onboarding activities)
+   - **Days remaining:** ~180 days (about six months)
+5. **Immediately** set a budget alarm: **Billing and Cost Management → Budgets → Create budget** → Zero-spend budget or a fixed **$1–5** monthly budget with an email alert at 50 %.
+6. Choose one region and stick to it for the whole lab (for example `ca-central-1` or `us-east-1`). Multi-region imports multiply the data and the surprises.
+7. Note your **12-digit account ID** (top-right account menu).
 
-Accounts created after mid-2025 are on a **credit-based Free plan**, not the old twelve-month
-allowance. The practical consequences:
+### What the Free plan actually means in 2026
 
-- You start with a credit balance. The plan **ends when the credits run out or after about six
-  months**, whichever comes first. After that, resources are stopped/billed depending on your
-  choice at signup.
-- A public **IPv4 address is billed per hour** on most account types. Networking is where the
-  surprise charges come from, not the instance.
-- `t3.micro`/`t2.micro` is only "free" inside a monthly hour allowance and only in a new
-  account. An instance left running past the allowance bills normally.
+New accounts are on a **credit-based Free plan**, not the old “750 free hours per month for 12 months” model.
+
+<div style="border: 2px solid #d73a49; border-radius: 6px; padding: 12px 16px; margin: 16px 0; background: #fff5f5;">
+<p style="margin: 0; font-weight: bold; color: #cb2431;">⚠️ Free-ish, not free — still be cautious</p>
+<p style="margin: 8px 0 0 0;">You start with <strong>$100 in credits</strong> and roughly <strong>six months</strong> on the Free plan. Charges for this lab are usually only cents to a dollar and come out of those credits instead of your card. The plan ends when the credits run out or the six months are up, whichever comes first. After that, resources are stopped or you are asked to upgrade. A public IPv4 address and a running (or stopped-but-not-deleted) instance still consume credits. Treat the budget alarm and same-day cleanup as mandatory.</p>
+</div>
+
+Practical consequences:
+
+- Credits cover eligible services, including the small EC2 instance and public IP used in this lab.
+- A public **IPv4 address is billed per hour** (even if the instance is stopped). This is the most common surprise.
+- Leaving an instance running for weeks will quietly use up credits. The lab is designed for hours, not days.
+- Upgrading to a Paid plan removes the safety net — do not do it for this lab.
 
 <details>
 <summary><strong>How much does it actually cost? (AWS vs Azure)</strong></summary>
