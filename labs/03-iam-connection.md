@@ -37,7 +37,18 @@ the connection works.
    data, all S3 object listings and every secret-adjacent describe call. For a throwaway lab
    account that is tolerable; it is not a pattern to carry into work, and the shadow it casts
    is exactly why least privilege exists.
-4. Create the user, then **Security credentials → Create access key → Application running
+   **Finish creating the policy.** *Create policy* usually opens in a new browser tab:
+   1. After pasting the JSON, click **Next** at the bottom right of *Specify permissions*. Seeing
+      no errors in the policy editor only means the JSON is valid. It is not a full security review.
+   2. On **Review and create**, set **Policy name** to `servicenow-sgc-lab-readonly`. A description
+      is optional.
+   3. Review the permissions summary. It should list read-only actions (Describe/List/Get) for
+      EC2, S3, SSM, Organizations, IAM and Tagging only. Then click **Create policy** and wait for
+      the success banner.
+   4. Go back to the *Create user* tab. Click the refresh button on the policy list, search for
+      `servicenow-sgc-lab-readonly`, tick its checkbox, and attach only that policy. Do not add
+      `AdministratorAccess` or other managed policies. Click **Next**, review, then **Create user**.
+4. Open the user, go to **Security credentials → Create access key → Application running
    outside AWS**.
 5. Copy the **Access key ID** and **Secret access key** now. The secret is shown once.
 
