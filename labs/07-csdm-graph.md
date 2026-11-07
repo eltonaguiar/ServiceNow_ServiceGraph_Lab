@@ -42,8 +42,9 @@ permalink: /labs/07-csdm-graph/
     <ul class="toc-list">
       <li><a href="#hands-on-lab">Wizard overview</a></li>
       <li><a href="#hands-on-wizard-vs-classic">Wizard vs classic form</a></li>
-      <li><a href="#hands-on-step-1">Step 1 — Open the wizard</a></li>
-      <li><a href="#hands-on-step-2">Step 2 — Basic details</a></li>
+      <li><a href="#hands-on-step-1">Step 1 — List and New</a></li>
+      <li><a href="#hands-on-wizard-basics">Wizard Basic Details</a></li>
+      <li><a href="#hands-on-step-2">Step 2 — Classic form labels</a></li>
       <li><a href="#hands-on-step-3">Step 3 — Manual populate</a></li>
       <li><a href="#hands-on-step-4">Step 4 — Preview</a></li>
       <li><a href="#hands-on-optional">Optional — script link</a></li>
@@ -249,59 +250,73 @@ labels differ between them.
 
 | You are in the **wizard** if… | You are in the **classic form** if… |
 |---|---|
-| You see the three stage names as tabs or steps | You see one scrolling form (often **Service Instance** header) |
-| Basic Details includes **Environment** per product docs | You see **Used for**, **Comments**, **Business criticality**, **Service classification** |
-| **Next** moves toward **Choose a Method** / population | **Submit** / **Save** creates a list row without a population stage |
+| Title such as **Create an Application Service** / **New Application Service** | One scrolling form (often **Service Instance** header) |
+| Stages **Provide Basic Details** → **Populate the Application Service** → **Preview the Service** | No population stage — **Submit** / **Save** on one form |
+| Basic Details field label **Environment** (distinct from **Used for**) | **Used for**, **Comments**, **Business criticality**, **Service classification** |
+| **Next** moves toward population / **Choose a Method** | List **New** may be a single button with **no** dropdown (observed on one classic path) |
 
-**Why “New” might differ:** The official procedure is **Navigator module first**, then **New** on the
-**Service Instances** list that module opens — not a Filter Navigator jump straight to
-`cmdb_ci_service_auto.list`. Typing the list URL and clicking **New** can open the **classic** form
-on some instances. Role **`app_service_admin`** is required for manual population ([manual populate doc](https://www.servicenow.com/docs/r/zurich/servicenow-platform/configuration-management-database-cmdb/populate-app-service-manual.html)); without it you may see a reduced UI.
+**Do not conflate labels:** On the wizard, **Environment** is its own field (one PDI showed default
+**None**). On the classic form, **Used for** = `Development` is a **different** label — do **not** type
+`Development` into **Environment** on the wizard unless that field’s choice list offers it, and do
+**not** rename wizard **Environment** to **Used for** in your notes.
 
-This lab does **not** invent alternate URLs or deep links. Use the module path below.
+**Navigator search:** Typing **service instance** can show **more than one** module, for example:
 
-### Step 1 — Open the wizard (preferred entry)
+- **Configuration** → **Service Instances** → **Service Instances**
+- **CSDM** → **Manage Technology Manage…** (label may truncate in search) → **Service Instance**
+
+This lab does **not** assert which of those entries opened the wizard vs the classic form until **you**
+confirm which path you used. The official written procedure uses the **CSDM** branch ([Create a Service instance](https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/create-it-services.html)); your instance may also expose **Configuration** lists. Filter Navigator jumps straight to `cmdb_ci_service_auto.list` can still open the **classic** form on some PDIs.
+
+Role **`app_service_admin`** is required for manual population ([manual populate doc](https://www.servicenow.com/docs/r/zurich/servicenow-platform/configuration-management-database-cmdb/populate-app-service-manual.html)); without it you may see a reduced UI. This lab does **not** invent direct URLs or deep links.
+
+### Step 1 — Open the wizard or classic list
 {: #hands-on-step-1}
 
-1. **Navigator:** **All** → **CSDM** → **Manage Technology Management Services** →
-   **Service Instance** (open the module — let it land on the **Service Instances** list).
-2. On that list, click **New** (toolbar button on the list — not a different “Create application”
-   menu item unless your instance labels match the official doc).
-3. **Expected when the wizard opens:** Stages **Provide Basic Details** → **Populate the Application
-   Service** → **Preview the Service**.
+1. Use **Navigator search** or menus to open a **Service Instances** list (see dual entries above).
+   Note which path you chose so you can compare wizard vs classic behavior.
+2. On the list, click **New** (on one classic path this was a **lone** button with **no** menu dropdown).
+3. **If the Application Service wizard opens**, you should see:
+   - Title **Create an Application Service** or **New Application Service** (wording varies by release)
+   - Stages **Provide Basic Details** → **Populate the Application Service** → **Preview the Service**
 
-**If you still get the classic form instead of the wizard:**
+**If you get the classic form instead:**
 
-1. **Do not Submit** yet if you are only exploring — note which fields you see.
-2. Go back and repeat step 1 using the **module**, without pasting `cmdb_ci_service_auto.list` into
-   Filter Navigator first.
-3. Confirm **`app_service_admin`** (or delegations your admin assigned). Entitlements change which
-   **New** actions appear.
-4. If the list **New** button still opens classic only, you may be on a release or configuration
-   where population steps differ; use the **classic field table** in Step 2 and consult your instance
-   docs for **Populate** / **Manual** on an existing service record — this lab has **not** re-verified
-   that classic-only path on every Personal Developer Instance (PDI).
+1. **Do not Submit** yet — note field labels (**Used for**, not **Environment**).
+2. Try the **other** Service Instances module from Navigator search, then **New** again.
+3. Confirm **`app_service_admin`**. Entitlements change available **New** actions.
 
-**For troubleshooting with an instructor or screenshot review:** capture the **full Service Instances
-list** including the **New** control and list title (no payment or account data). That shows which
-entry path was used — we do **not** embed screenshots in this doc.
+**Neither route submitted yet?** That is fine for learning — this lab does not require a saved record to
+read the pre-lab material. For instructor review, capture the **full list** (title + **New** control) and
+note which navigator entry you used. We do **not** embed screenshots on the site.
 
-### Step 2 — Basic details (wizard **or** classic labels)
+### Step 1b — When you have the wizard (Basic Details)
+{: #hands-on-wizard-basics}
+
+On **Provide Basic Details**, match **wizard** labels only (verified on one PDI — defaults may differ):
+
+| Wizard field (on screen) | What to enter for this lab |
+|---|---|
+| **Number** | Leave auto-generated |
+| **Name** | `Payments (lab)` |
+| **Environment** | Choose **Development** **if** it appears in the list (default observed: **None** — change only when offered) |
+| **Operational status** | Keep **Non-Operational** for a learning record |
+| Other fields on the same tab | Scroll and review; fill only what your instance marks required |
+
+Then select **Next** toward **Populate the Application Service**. Do **not** claim **Done** or a saved
+graph until you finish population and save.
+
+### Step 2 — Classic form only (if you are not in the wizard)
 {: #hands-on-step-2}
 
 Learning example only — **not** production Payments. **Do not** claim the record is submitted or the
 graph complete until you save and can verify relationships yourself.
 
-**Application Service wizard** — field names per [Create a Service instance](https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/create-it-services.html) (your wizard may show a subset):
+**Wizard** — use Step 1b when you are on **Create an Application Service**; the on-screen label is
+**Environment**, not **Used for** ([Create a Service instance](https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/create-it-services.html)).
 
-| Wizard field (docs) | Example for this lab |
-|---|---|
-| **Name** | `Payments (lab)` |
-| **Environment** | `Development` or `Test` (doc examples — not the word `lab` unless your choices include it) |
-| **Operational status** | **Non-Operational** (or equivalent learning status) |
-
-**Classic Service Instance form** — labels observed on one PDI when **New** opened the classic UI
-(textual evidence only; your form may differ):
+**Classic Service Instance form** — separate route; labels observed when **New** opened the classic UI
+(textual evidence only; not submitted on that path in this investigation):
 
 | Classic field label | Example for this lab |
 |---|---|
@@ -312,9 +327,8 @@ graph complete until you save and can verify relationships yourself.
 | **Service classification** | `Application Service` |
 | **Comments** | `learning example` |
 
-ServiceNow’s wizard docs use **Environment**; some classic forms still show **Used for** (legacy on
-service CIs — community guidance treats **Environment** as the forward-looking attribute). Match the
-**labels on your screen**, not this table, if they conflict.
+**Environment** (wizard) and **Used for** (classic) are **different fields on different screens** — not
+two names for the same wizard control. Match the **labels on your current screen**.
 
 Set **relationships** only as your release requires. CSDM relationship names are **typed** — e.g.
 **Depends on** / **Used by** in manual population docs. Do **not** treat **Hosted on** and **Runs
