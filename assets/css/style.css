@@ -74,5 +74,7 @@ details.glossary[open] summary { margin-bottom:.4rem; }
 .toc a { color:var(--ink); text-decoration:none; }
 .toc a:hover { color:var(--accent); text-decoration:underline; }
 .toc-wide { grid-column:1 / -1; border-top:1px solid var(--line); padding-top:.9rem; }
-.toc-labs { columns:9rem; column-gap:1.6rem; }
+.toc-labs { columns:1; column-gap:1.6rem; }
+@media (min-width:34rem) { .toc-labs { columns:2; } }
+@media (min-width:52rem) { .toc-labs { columns:3; } }
 .toc-labs b { display:inline-block; min-width:1.5rem; color:var(--muted); font-weight:600; font-variant-numeric:tabular-nums; }
