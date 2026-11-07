@@ -160,11 +160,14 @@ AWS and not from you typing it.
 | Instance ID | `i-0abc…1234` | CloudFormation → `sgclab` → **Resources** → `LabInstance` → **Physical ID** |
 | VPC ID | `vpc-0abc…5678` | CloudFormation → `sgclab` → **Resources** → `LabVpc` → **Physical ID** |
 | Region | `us-east-2` — US East (Ohio) | Region selector at the top right of the AWS console, next to the account menu. Use whatever region you chose. |
-| Account ID | `1234…9012` (12 digits) | AWS account menu (top right) |
+| Account ID | `1234…9012` (12 digits) | AWS account menu (top right), or [AWS Settings](https://settings.aws.com/) → your project → **Additional info** |
 
 Only the Instance ID and VPC ID are on the **Resources** tab. As a shortcut, the stack's **Outputs**
-tab lists `InstanceId`, `VpcId` and `Region` in one place. The Account ID is only in the account
-menu. The examples above are placeholders. Use your own values, and keep your Account ID out of
+tab lists `InstanceId`, `VpcId` and `Region` in one place. The Account ID is in the account menu.
+If your account uses the project-based [AWS Settings](https://settings.aws.com/) page, open your
+own project. Its **Additional info** section shows the Account ID, the account ARN and the Region
+together. That Region is the project's region, so make sure the region selector in the console
+matches it before you deploy. The examples above are placeholders. Use your own values, and keep your Account ID out of
 public posts and screenshots.
 
 ## Checkpoint
