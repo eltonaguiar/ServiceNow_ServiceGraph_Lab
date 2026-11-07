@@ -41,6 +41,7 @@ permalink: /labs/07-csdm-graph/
     <p class="toc-title">Hands-On Lab</p>
     <ul class="toc-list">
       <li><a href="#hands-on-lab">Wizard overview</a></li>
+      <li><a href="#hands-on-wizard-vs-classic">Wizard vs classic form</a></li>
       <li><a href="#hands-on-step-1">Step 1 — Open the wizard</a></li>
       <li><a href="#hands-on-step-2">Step 2 — Basic details</a></li>
       <li><a href="#hands-on-step-3">Step 3 — Manual populate</a></li>
@@ -231,36 +232,97 @@ entitlements vary by instance.
 - [Manual population method](https://www.servicenow.com/docs/r/zurich/servicenow-platform/configuration-management-database-cmdb/populate-app-service-manual.html)
 - [Amazon VPC overview](https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html) (AWS)
 
-Use ServiceNow’s documented wizard — do **not** invent a second “service instance” child record
+Use ServiceNow’s documented flow — do **not** invent a second “service instance” child record
 under the application service. The application service on table **`cmdb_ci_service_auto`** **is** the
-service instance record for this workflow.
+service instance record for this workflow. Manual population stores the record under a subclass such
+as **`cmdb_ci_service_discovered`** on many releases — that is **not** proof that **Service Mapping**
+ran or that dependencies are complete.
 
-### Step 1 — Open the Application Service wizard
+### Wizard vs classic form (read first)
+{: #hands-on-wizard-vs-classic}
+
+ServiceNow documents an **Application Service wizard** with three stages —
+**Provide Basic Details** → **Populate the Application Service** → **Preview the Service** ([Create a Service instance](https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/create-it-services.html)).
+Community guidance describes that wizard as a separate UI (often referenced in URLs containing
+`csdm_app_service`) from the **classic Service Instance form** on `cmdb_ci_service_auto` — field
+labels differ between them.
+
+| You are in the **wizard** if… | You are in the **classic form** if… |
+|---|---|
+| You see the three stage names as tabs or steps | You see one scrolling form (often **Service Instance** header) |
+| Basic Details includes **Environment** per product docs | You see **Used for**, **Comments**, **Business criticality**, **Service classification** |
+| **Next** moves toward **Choose a Method** / population | **Submit** / **Save** creates a list row without a population stage |
+
+**Why “New” might differ:** The official procedure is **Navigator module first**, then **New** on the
+**Service Instances** list that module opens — not a Filter Navigator jump straight to
+`cmdb_ci_service_auto.list`. Typing the list URL and clicking **New** can open the **classic** form
+on some instances. Role **`app_service_admin`** is required for manual population ([manual populate doc](https://www.servicenow.com/docs/r/zurich/servicenow-platform/configuration-management-database-cmdb/populate-app-service-manual.html)); without it you may see a reduced UI.
+
+This lab does **not** invent alternate URLs or deep links. Use the module path below.
+
+### Step 1 — Open the wizard (preferred entry)
 {: #hands-on-step-1}
 
-1. In the **Navigator**, go **All** → **CSDM** → **Manage Technology Management Services** →
-   **Service Instance** → **New**.  
-   **Or** filter to list `cmdb_ci_service_auto.list` (title often **Service Instances**).
-2. **Expected:** The **Application Service wizard** opens with stages such as **Provide Basic
-   Details** → **Populate the Application Service** → **Preview the Service**.
+1. **Navigator:** **All** → **CSDM** → **Manage Technology Management Services** →
+   **Service Instance** (open the module — let it land on the **Service Instances** list).
+2. On that list, click **New** (toolbar button on the list — not a different “Create application”
+   menu item unless your instance labels match the official doc).
+3. **Expected when the wizard opens:** Stages **Provide Basic Details** → **Populate the Application
+   Service** → **Preview the Service**.
 
-### Step 2 — Provide Basic Details
+**If you still get the classic form instead of the wizard:**
+
+1. **Do not Submit** yet if you are only exploring — note which fields you see.
+2. Go back and repeat step 1 using the **module**, without pasting `cmdb_ci_service_auto.list` into
+   Filter Navigator first.
+3. Confirm **`app_service_admin`** (or delegations your admin assigned). Entitlements change which
+   **New** actions appear.
+4. If the list **New** button still opens classic only, you may be on a release or configuration
+   where population steps differ; use the **classic field table** in Step 2 and consult your instance
+   docs for **Populate** / **Manual** on an existing service record — this lab has **not** re-verified
+   that classic-only path on every Personal Developer Instance (PDI).
+
+**For troubleshooting with an instructor or screenshot review:** capture the **full Service Instances
+list** including the **New** control and list title (no payment or account data). That shows which
+entry path was used — we do **not** embed screenshots in this doc.
+
+### Step 2 — Basic details (wizard **or** classic labels)
 {: #hands-on-step-2}
 
-Walkthrough example (learning only — **not** production Payments):
+Learning example only — **not** production Payments. **Do not** claim the record is submitted or the
+graph complete until you save and can verify relationships yourself.
 
-| Field | Example | Note |
-|---|---|---|
-| **Name** | `Payments (lab)` | Unique application service name |
-| **Environment** | `lab` | |
-| **Operational status** | e.g. **Non-Operational** | Learning record |
-| **Description** | State it is a **learning example** | |
+**Application Service wizard** — field names per [Create a Service instance](https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/create-it-services.html) (your wizard may show a subset):
+
+| Wizard field (docs) | Example for this lab |
+|---|---|
+| **Name** | `Payments (lab)` |
+| **Environment** | `Development` or `Test` (doc examples — not the word `lab` unless your choices include it) |
+| **Operational status** | **Non-Operational** (or equivalent learning status) |
+
+**Classic Service Instance form** — labels observed on one PDI when **New** opened the classic UI
+(textual evidence only; your form may differ):
+
+| Classic field label | Example for this lab |
+|---|---|
+| **Name** | `Payments (lab)` |
+| **Used for** | `Development` |
+| **Business criticality** | `4 - not critical` (or your instance’s wording) |
+| **Operational status** | `Non-Operational` |
+| **Service classification** | `Application Service` |
+| **Comments** | `learning example` |
+
+ServiceNow’s wizard docs use **Environment**; some classic forms still show **Used for** (legacy on
+service CIs — community guidance treats **Environment** as the forward-looking attribute). Match the
+**labels on your screen**, not this table, if they conflict.
 
 Set **relationships** only as your release requires. CSDM relationship names are **typed** — e.g.
 **Depends on** / **Used by** in manual population docs. Do **not** treat **Hosted on** and **Runs
-on** as interchangeable without checking **CI Relationship Types** on your instance.
+on** as interchangeable without checking **CI Relationship Types**. Creating relationships on the
+form does **not** by itself prove **Service Mapping** or full service-map population.
 
-**Expected:** You can advance to **Populate** with the learning values above (or your own equivalent).
+**Expected:** You can advance to **Populate** (wizard) or save a draft classic record without
+claiming the lab checkpoint is done.
 
 ### Step 3 — Populate with the Manual method
 {: #hands-on-step-3}
@@ -324,7 +386,8 @@ partial storage edges from Labs 4–5 can still leave the picture messier than p
 <ul class="check">
 <li>You can explain <b>VPC</b> vs subnet vs security group without calling the VPC “physical private cabling”</li>
 <li>You know our VM is <b>Amazon Linux 2023</b>, <b>stopped</b>, and the template does <b>not</b> promise <b>SSH</b></li>
-<li>You opened the <b>Application Service wizard</b> and started <code>Payments (lab)</code> with learning intent</li>
+<li>You opened the <b>wizard or classic Service Instance form</b> via the documented module path and entered <code>Payments (lab)</code> with learning intent (classic: <b>Used for</b> = Development, <b>Comments</b> = learning example — wizard: <b>Environment</b> per docs)</li>
+<li>You have <b>not</b> claimed the record is saved, submitted, or fully populated</li>
 <li>You used <b>Manual</b> population toward <code>cmdb_ci_vm_instance</code> / <code>sgclab-app-01</code></li>
 <li>You do <b>not</b> claim a finished production Payments stack or complete dependency graph</li>
 </ul>
