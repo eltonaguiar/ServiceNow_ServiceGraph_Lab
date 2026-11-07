@@ -63,7 +63,12 @@ the app.
    - **Current plan:** Free
    - **Credits remaining:** $100.00 (you can sometimes earn up to $100 more by completing onboarding activities)
    - **Days remaining:** ~180 days (about six months)
-5. **Immediately** set a budget alarm: **Billing and Cost Management → Budgets → Create budget** → Zero-spend budget or a fixed **$1–5** monthly budget with an email alert at 50 %.
+5. **Immediately** set a budget alarm. The **Settings → Billing** page (where you see credits and days remaining) does **not** have budgets. Open the **Billing and Cost Management** console instead:
+   - Direct link: [https://us-east-1.console.aws.amazon.com/cost-management](https://us-east-1.console.aws.amazon.com/cost-management) (or search for **Budgets** in the top search bar).
+   - In the navigation pane choose **Budgets** → **Create budget**.
+   - Choose **Use a template (simplified)**.
+   - Pick **Zero spend budget** (alerts on any spend) or **Monthly cost budget** set to **$1–5** with alerts at 50%.
+   - Enter your email and create the budget, then **verify the email** (check for the AWS confirmation message and click the link) or alerts will not send.
 6. Choose one region and stick to it for the whole lab (for example `ca-central-1` or `us-east-1`). Multi-region imports multiply the data and the surprises.
 7. Note your **12-digit account ID** (top-right account menu).
 
