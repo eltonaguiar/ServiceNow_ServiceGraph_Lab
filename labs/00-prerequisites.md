@@ -98,6 +98,53 @@ cd ServiceNow_ServiceGraph_Lab
 python3 -m pip install boto3 requests   # only needed for Labs 4 and 12
 ```
 
+<details>
+<summary><strong>Debugging: <code>error: externally-managed-environment</code> (PEP 668)</strong></summary>
+
+On Ubuntu 23.04+, Debian 12+, and many other modern Linux distributions (including Ubuntu 24.04 on the ASUS GX10), the system Python is **externally managed**. Running `python3 -m pip install ...` fails with:
+
+```
+error: externally-managed-environment
+× This environment is externally managed
+```
+
+This is intentional (PEP 668). Do **not** use `--break-system-packages` unless you know the risks.
+
+**Recommended fix — use a virtual environment:**
+
+```bash
+# One-time: install venv support
+sudo apt update
+sudo apt install -y python3-venv python3-full
+
+# Create and activate a virtual environment in the lab folder
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Now the install works
+pip install boto3 requests
+```
+
+Your prompt should show `(.venv)`. While activated, `python3` and `pip` use the isolated environment.
+
+**To use the scripts later** (new terminal):
+
+```bash
+cd ~/mylabclone/ServiceNow_ServiceGraph_Lab   # or wherever you cloned it
+source .venv/bin/activate
+python3 scripts/verify_cmdb.py
+```
+
+Leave the environment with `deactivate`.
+
+**Other options:**
+- `pipx` (for standalone tools): `sudo apt install -y pipx && pipx ensurepath`
+- Force system install (not recommended): `python3 -m pip install --break-system-packages boto3 requests`
+
+Prefer the `.venv` approach. It keeps the lab isolated and is the officially recommended method on Ubuntu/Debian.
+
+</details>
+
 Or download individual files from
 [github.com/eltonaguiar/ServiceNow_ServiceGraph_Lab](https://github.com/eltonaguiar/ServiceNow_ServiceGraph_Lab)
 (`aws/lab-stack.yaml`, `scripts/verify_cmdb.py`, `scripts/fallback_ire_import.py`).
