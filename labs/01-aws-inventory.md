@@ -155,12 +155,17 @@ AWS and not from you typing it.
 
 ## Record these values
 
-| Value | Where |
-|---|---|
-| Instance ID (`i-…`) | CloudFormation → `sgclab` → Resources → `LabInstance` Physical ID (or Outputs → `InstanceId`) |
-| VPC ID (`vpc-…`) | CloudFormation → `sgclab` → Resources → `LabVpc` Physical ID (or Outputs → `VpcId`) |
-| Region | Region selector at the top right of the console (e.g. US East (Ohio) `us-east-2`), or Outputs → `Region` |
-| Account ID | Account menu |
+| Value | Example (masked) | Where to find it |
+|---|---|---|
+| Instance ID | `i-0abc…1234` | CloudFormation → `sgclab` → **Resources** → `LabInstance` → **Physical ID** |
+| VPC ID | `vpc-0abc…5678` | CloudFormation → `sgclab` → **Resources** → `LabVpc` → **Physical ID** |
+| Region | `us-east-2` — US East (Ohio) | Region selector at the top right of the AWS console, next to the account menu. Use whatever region you chose. |
+| Account ID | `1234…9012` (12 digits) | AWS account menu (top right) |
+
+Only the Instance ID and VPC ID are on the **Resources** tab. As a shortcut, the stack's **Outputs**
+tab lists `InstanceId`, `VpcId` and `Region` in one place. The Account ID is only in the account
+menu. The examples above are placeholders. Use your own values, and keep your Account ID out of
+public posts and screenshots.
 
 ## Checkpoint
 
