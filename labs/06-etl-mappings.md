@@ -27,25 +27,35 @@ permalink: /labs/06-etl-mappings/
 
 Part A does not assume classic EC2 **`DescribeInstances`** JSON (`Reservations[].Instances[]`). This connector path is tied to **AWS Config** / Service Graph payloads — **your** import set row payload is the source of truth for JSON paths.
 
-## Part A — First safe navigation (confirm on your UI)
+## Part A — Verified navigation (read-only)
 
-Menu names move between releases. Use **Filter Navigator** and search; do not trust a single path from this doc until you see it:
+Walkthrough-confirmed path (yours should match before you trust it):
 
-1. Open **IntegrationHub**, **Flow Designer**, or the **Service Graph Connector for AWS** app — whichever exists.
-2. Search for **ETL**, **transform**, or **mapping** definitions tied to **EC2**, **VM**, or **hardware** (exact title varies).
-3. Open the definition used by **`SG-AWS-EC2`** (match name or schedule link on your release).
-4. In **Transform**, locate mappings targeting **`cmdb_ci_vm_instance`** (not `cmdb_ci_ec2_instance`).
+1. **All** → search **IntegrationHub ETL**.
+2. **Configuration → IntegrationHub ETL**.
+3. Expand **CMDB Application: SG-AWS** (count varies, e.g. **33**).
+4. Open **Name** **`SG-AWS-EC2-Instance`** — this is the **ETL definition**, not the scheduled import label **`SG-AWS-EC2`** and not the data source alone.
 
-**Learner confirmation:** write down the **exact definition name** and **three target fields** you see (`name`, `object_id`, and one tag). If you cannot find a mapping editor, stop at Part A — note “mapping UI not exposed on this PDI” and continue to Lab 7.
+**Transform Map Assistant** banner (verbatim meaning): no import set associated → maps are **read-only** until you pick a sample import set under **Specify Basic Details**. For this lab: **stay read-only** — do **not** select a sample, **do not** deactivate assistant controls to “unlock” edit.
 
-## Part A — Read one field (no edits)
+**Step 3 — Map Data to CMDB and Add Relationships** → **Select CMDB Classes to Map Source Data**. Observed cards on one instance:
 
-1. On the VM from Lab 5, note **`name`**, **`object_id`**, and one tag value on the form.
-2. In Transform, find the **target** field(s) for those attributes.
-3. Note the **source** expression or path shown in the UI (do not assume `Reservations[].Instances[]`).
-4. Open the latest **`SG-AWS-EC2`** import set row and view **payload** / staging data if the UI offers it — compare structure to the mapping path.
+| Card | Count | Notes |
+|---|---|---|
+| **Virtual Machine Instance** | 1 | Table **`cmdb_ci_vm_instance`**; dependent on `cmdb_ci_logical_datacenter`, `cmdb_ci_rubrik_cluster`, `cmdb_ci_kubernetes_cluster`, `cmdb_ci_virtualization_server`, `cmdb_ci_computer`; condition `object.isDeletedResource=false` |
+| Availability Zone | 1 | (shown; details not expanded in walkthrough) |
+| Cloud Network | 1 | |
+| Cloud Subnet | 1 | |
 
-**Screenshot slot (pending):** `assets/img/lab06/etl-vm-transform-readonly.png` — Transform stage with mappings visible; redact credentials.
+Next learner step: **View Mapping** on the **Virtual Machine Instance** card only (field-level mappings not yet captured in this doc — describe what you see in notes).
+
+**Do not** toggle controls, select sample import sets, or edit mappings for Part A minimum.
+
+## Part A — After View Mapping (no edits)
+
+1. On the VM from Lab 5, note display **`name`**, tags, and list columns you can see **without** pasting ids into git.
+2. In **View Mapping** for **Virtual Machine Instance**, record **target fields** and **source paths** exactly as labeled in the UI (do not assume `Reservations[].Instances[]`).
+3. Optional cross-check: latest **`SG-AWS-EC2`** import set row **payload** in ServiceNow — compare shape to source paths (keep payload private).
 
 ## Part B — Optional edit (own PDI only)
 
@@ -65,7 +75,7 @@ After an optional edit: **Execute Now** on **`SG-AWS-EC2`** only, confirm the VM
 **Minimum (Part A only):**
 
 <ul class="check">
-<li>You found the EC2/VM mapping surface on <b>your</b> instance (name recorded in notes)</li>
+<li>You opened <code>SG-AWS-EC2-Instance</code> under IntegrationHub ETL and saw <b>Virtual Machine Instance</b> card (read-only)</li>
 <li>You linked one VM field to a transform target <b>without</b> assuming REST EC2 JSON shape</li>
 <li>You know where import row <b>payload</b> lives for path verification</li>
 </ul>
