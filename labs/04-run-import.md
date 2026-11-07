@@ -39,7 +39,7 @@ Run **Execute Now** on **one** schedule at a time, in this order:
 | **100** | `SG-AWS-Service-Account` | Seeds the cloud service account CI locally |
 | **110** | `SG-AWS-Datacenters` | Region/datacenter CIs VPC import expects |
 | **120** | `SG-AWS-VPC` | Lands in **`cmdb_ci_network`** (not `cmdb_ci_vpc`) |
-| 130+ | See §9 compact map | Basic PoC — verified counters; no new screenshots in this repo yet |
+| 130+ | See §8 | Basic PoC — verified counters (Lab 5 adds VM IRE screenshots when published) |
 
 ## 2. Where to watch (read the plumbing)
 
@@ -198,7 +198,7 @@ Open **Scheduled Imports** under the **Service Graph Connector for AWS** applica
 
 **EC2 is not `cmdb_ci_ec2_instance` on this connector path** — always open **Virtual Machine Instance** / `cmdb_ci_vm_instance`.
 
-**Rerun check:** second **Execute Now** on `SG-AWS-EC2` → list still **1** row, same id (duplicate identification **pass**). **`discovery_source`** on the form was **not** verified in the walkthrough.
+**Rerun check:** second **Execute Now** on `SG-AWS-EC2` → list still **1** row, same `object_id` (duplicate identification **pass**); transform **processed** count can be **>1** without creating a second VM. **`discovery_source`:** verified **`SG-AWS`** on the walkthrough VM ([Lab 5]({{ '/labs/05-ire/' | relative_url }})).
 
 **Not a clean graph:** EC2 row comments still report partial/warning counts (`storage_volume` 1/1; `nic` 2/2; `relations` 3/3 unresolved) while **`os_template`**, **`compute_template`**, **`endpoint_block`**, **`endpoint_vnic`**, **`storage_mapping`** were created. Subnet import **corroborates** EC2 unchanged (no duplicate VM).
 

@@ -76,8 +76,8 @@ Two pages exist so you never have to guess:
   <a class="card" href="{{ '/labs/02-sgc-install/' | relative_url }}"><b>2 · Install the connector</b><span>Service Graph Connector for AWS — 20 min</span></a>
   <a class="card" href="{{ '/labs/03-iam-connection/' | relative_url }}"><b>3 · Read-only IAM + connection</b><span>Access key, credentials record, test — 20 min</span></a>
   <a class="card" href="{{ '/labs/04-run-import/' | relative_url }}"><b>4 · Run the import</b><span>Schedules, VPC evidence + basic PoC map — 45 min</span></a>
-  <a class="card" href="{{ '/labs/05-ire/' | relative_url }}"><b>5 · IRE results</b><span>Identification rules, duplicates, outcomes — 30 min</span></a>
-  <a class="card" href="{{ '/labs/06-etl-mappings/' | relative_url }}"><b>6 · ETL mappings</b><span>Change a mapping, add a field, re-import — 30 min</span></a>
+  <a class="card" href="{{ '/labs/05-ire/' | relative_url }}"><b>5 · IRE results</b><span>Observational minimum — one VM, partials — 25 min</span></a>
+  <a class="card" href="{{ '/labs/06-etl-mappings/' | relative_url }}"><b>6 · ETL mappings</b><span>Read mappings first; optional edit — 30 min</span></a>
   <a class="card" href="{{ '/labs/07-csdm-graph/' | relative_url }}"><b>7 · CSDM + service graph</b><span>Application service over real CIs — 30 min</span></a>
   <a class="card" href="{{ '/labs/08-multisource-azure/' | relative_url }}"><b>8 · Multisource CMDB</b><span>Add Azure, force a reconciliation decision — 40 min</span></a>
   <a class="card" href="{{ '/labs/09-drift-monitoring/' | relative_url }}"><b>9 · Drift + monitoring</b><span>Terminate an instance, watch the CMDB react — 25 min</span></a>

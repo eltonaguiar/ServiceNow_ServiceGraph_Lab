@@ -10,73 +10,70 @@ permalink: /labs/06-etl-mappings/
 
 <div class="eli5">
 <span class="label">ELI5</span>
-<p>ETL is a translation table: AWS says <code>InstanceId</code>, ServiceNow wants <code>object_id</code>. This lab lets you edit the translation and watch the result.</p>
+<p>ETL is the translator between cloud JSON and CMDB fields. <strong>First</strong> find how your connector already maps your lab VM — only then, optionally, change something on a throwaway PDI.</p>
 </div>
 
-## Objective
+## Prerequisites
 
-Take control of what AWS data becomes. Inspect the connector's IntegrationHub ETL
-(Extract, Transform, Load) mapping,
-add one field end to end, and see it land on the CI.
+- Lab 5 **minimum** complete: one **`cmdb_ci_vm_instance`**, same identity on EC2 rerun.
+- **Own PDI** — not a shared instance.
 
-**Prerequisite:** Lab 4 basic PoC VM in **`cmdb_ci_vm_instance`**. This lab is **mapping surgery**,
-not proving the connector runs.
+## Two parts
 
-## 1. Open the mapping
+| Part | Required? | What you do |
+|---|---|---|
+| **A — Observational** | **Yes** | Locate the EC2/VM mapping definition; trace how **`name`**, **`object_id`**, and tag fields are filled **today** |
+| **B — Optional edit** | No | Add **one** string field on a **clone/sandbox** mapping, verify, **rollback** |
 
-**Process Automation → Flow Designer → IntegrationHub → ETL** (older releases:
-**IntegrationHub → ETL Definitions**), or from the connector's Guided Setup there is usually a
-**Configure ETL mappings** link.
+Part A does not assume classic EC2 **`DescribeInstances`** JSON (`Reservations[].Instances[]`). This connector path is tied to **AWS Config** / Service Graph payloads — **your** import set row payload is the source of truth for JSON paths.
 
-Select the AWS hardware/EC2 definition. You will see a three-stage pipeline:
+## Part A — First safe navigation (confirm on your UI)
 
-| Stage | What it does |
+Menu names move between releases. Use **Filter Navigator** and search; do not trust a single path from this doc until you see it:
+
+1. Open **IntegrationHub**, **Flow Designer**, or the **Service Graph Connector for AWS** app — whichever exists.
+2. Search for **ETL**, **transform**, or **mapping** definitions tied to **EC2**, **VM**, or **hardware** (exact title varies).
+3. Open the definition used by **`SG-AWS-EC2`** (match name or schedule link on your release).
+4. In **Transform**, locate mappings targeting **`cmdb_ci_vm_instance`** (not `cmdb_ci_ec2_instance`).
+
+**Learner confirmation:** write down the **exact definition name** and **three target fields** you see (`name`, `object_id`, and one tag). If you cannot find a mapping editor, stop at Part A — note “mapping UI not exposed on this PDI” and continue to Lab 7.
+
+## Part A — Read one field (no edits)
+
+1. On the VM from Lab 5, note **`name`**, **`object_id`**, and one tag value on the form.
+2. In Transform, find the **target** field(s) for those attributes.
+3. Note the **source** expression or path shown in the UI (do not assume `Reservations[].Instances[]`).
+4. Open the latest **`SG-AWS-EC2`** import set row and view **payload** / staging data if the UI offers it — compare structure to the mapping path.
+
+**Screenshot slot (pending):** `assets/img/lab06/etl-vm-transform-readonly.png` — Transform stage with mappings visible; redact credentials.
+
+## Part B — Optional edit (own PDI only)
+
+Skip Part B unless you have a **supported** way to duplicate or customize mappings without breaking the store connector, and you can **revert**.
+
+| Do | Don't (unsafe defaults) |
 |---|---|
-| **Extract / Data source** | The REST step that calls AWS and returns JSON |
-| **Transform** | Field-level mappings: AWS JSON path → ServiceNow CI field, with transforms |
-| **Load** | The IRE call that submits the transformed records |
+| Map a plain **string** to an existing string or `u_*` attribute | Point **`model_id`** at raw **`InstanceType`** without a reference/catalog transform |
+| Clone/customize only if your release documents it | Edit **stock** connector mappings in production scope |
+| Revert mapping, re-import, confirm VM unchanged | Deliberately break **`name`** mapping to “learn” — use payload inspection instead |
+| One field, one re-import, rollback | Leave broken mappings on a shared instance |
 
-## 2. Read one field end to end
-
-Pick `name` on **`cmdb_ci_vm_instance`** (AWS EC2 path) and follow it backwards:
-
-1. Find the target field in the Transform stage.
-2. Note the **source path** (something under `Reservations[].Instances[]`, e.g. `InstanceId`
-   or a `Tags` entry).
-3. Note any transform applied (concatenation, lookup, script).
-
-Then do the same for a tag-derived field. Tags are the usual source of `Environment` and
-`Owner`, and they are why Lab 1 insisted on them.
-
-## 3. Add a field
-
-Goal: surface the AWS **instance type** (`t3.micro`) on the CI, using a field your class
-already has (or a string attribute you add in CI Class Manager).
-
-1. In the Transform stage, add a mapping: source `InstanceType` → target field (for example
-   `model_id` or a custom `u_instance_type` string).
-2. Save, then **Execute Now** the hardware schedule again.
-3. Confirm on the CI record that the value appears.
-
-If nothing lands, the transform referenced a path that the payload does not contain. Check the
-**import set row → payload** to see the JSON the REST step actually returned; paths in
-documentation are often one array level off from reality.
-
-## 4. Break it on purpose
-
-1. Point the `name` mapping at a field that does not exist (e.g. `DoesNotExist`).
-2. Re-run. Rows still import, but the CI's name falls back to the identifier.
-3. Revert the mapping and re-run to restore.
-
-This is the fastest way to learn the difference between "the connector failed" (no rows) and
-"the mapping is wrong" (rows with empty fields).
+After an optional edit: **Execute Now** on **`SG-AWS-EC2`** only, confirm the VM count still **1**, then **undo** the mapping change.
 
 ## Checkpoint
 
+**Minimum (Part A only):**
+
 <ul class="check">
-<li>You can point at the exact JSON path that fills the CI name</li>
-<li>You added and verified one new mapped field</li>
-<li>You know where to look up the raw payload for a failed mapping</li>
+<li>You found the EC2/VM mapping surface on <b>your</b> instance (name recorded in notes)</li>
+<li>You linked one VM field to a transform target <b>without</b> assuming REST EC2 JSON shape</li>
+<li>You know where import row <b>payload</b> lives for path verification</li>
+</ul>
+
+**Optional (Part B):**
+
+<ul class="check">
+<li>One string mapping added, verified, and <b>reverted</b></li>
 </ul>
 
 Next: [Lab 7 — CSDM and the service graph]({{ '/labs/07-csdm-graph/' | relative_url }})
