@@ -13,9 +13,9 @@ permalink: /labs/00-prerequisites/
 <p>You need two free accounts (ServiceNow and AWS) and a way to notice if the lab starts costing money. The budget alarm is not optional — it is the whole reason the lab stays free.</p>
 </div>
 
-<div style="border: 2px solid #d73a49; border-radius: 6px; padding: 12px 16px; margin: 16px 0; background: #fff5f5;">
+<div style="border: 2px solid #d73a49; border-radius: 6px; padding: 12px 16px; margin: 16px 0; background: #fff5f5; color: #24292e;">
 <p style="margin: 0; font-weight: bold; color: #cb2431;">⚠️ Cost warning — this lab may not be completely free</p>
-<p style="margin: 8px 0 0 0;">AWS and Azure can charge by the hour for a running VM, a public IP, and a disk. On a new account these amounts are usually only cents to a dollar for a short lab, and are often covered by free-tier credits — but they are not guaranteed to be zero. <strong>Your credit card is on file, so if you go over budget or leave resources running after credits expire, you can be charged.</strong> Set the budget alarm immediately, stop or deallocate resources the same day, and delete the stack when you finish. See the collapsible cost breakdown below for real numbers.</p>
+<p style="margin: 8px 0 0 0; color: #24292e;">AWS and Azure can charge by the hour for a running VM, a public IP, and a disk. On a new account these amounts are usually only cents to a dollar for a short lab, and are often covered by free-tier credits — but they are not guaranteed to be zero. <strong>Your credit card is on file, so if you go over budget or leave resources running after credits expire, you can be charged.</strong> Set the budget alarm immediately, stop or deallocate resources the same day, and delete the stack when you finish. See the collapsible cost breakdown below for real numbers.</p>
 </div>
 
 ## Objective
@@ -76,9 +76,9 @@ the app.
 
 New accounts are on a **credit-based Free plan**, not the old “750 free hours per month for 12 months” model.
 
-<div style="border: 2px solid #d73a49; border-radius: 6px; padding: 12px 16px; margin: 16px 0; background: #fff5f5;">
+<div style="border: 2px solid #d73a49; border-radius: 6px; padding: 12px 16px; margin: 16px 0; background: #fff5f5; color: #24292e;">
 <p style="margin: 0; font-weight: bold; color: #cb2431;">⚠️ Free-ish, not free — your credit card is on file</p>
-<p style="margin: 8px 0 0 0;">You start with <strong>$100 in credits</strong> and roughly <strong>six months</strong> on the Free plan. Charges for this lab are usually only cents to a dollar and come out of those credits instead of your card. <strong>Be cautious: your credit card is on file.</strong> If you go over budget, exhaust the credits, or the plan ends and resources are still running, AWS can charge the card. Set the budget alarm immediately and delete the stack the same day. A public IPv4 address and a running (or stopped-but-not-deleted) instance still consume credits.</p>
+<p style="margin: 8px 0 0 0; color: #24292e;">You start with <strong>$100 in credits</strong> and roughly <strong>six months</strong> on the Free plan. Charges for this lab are usually only cents to a dollar and come out of those credits instead of your card. <strong>Be cautious: your credit card is on file.</strong> If you go over budget, exhaust the credits, or the plan ends and resources are still running, AWS can charge the card. Set the budget alarm immediately and delete the stack the same day. A public IPv4 address and a running (or stopped-but-not-deleted) instance still consume credits.</p>
 </div>
 
 Practical consequences:
