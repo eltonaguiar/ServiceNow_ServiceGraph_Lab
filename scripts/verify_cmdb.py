@@ -3,12 +3,15 @@
 
 Usage:
     export SN_INSTANCE=dev123456 SN_USER=admin SN_PASS=...
-    python3 scripts/verify_cmdb.py                 # count the lab's CI tables
+    python3 scripts/verify_cmdb.py                 # full lab goal (includes EC2)
+    python3 scripts/verify_cmdb.py --vpc-checkpoint  # Lab 4 partial: account + datacenter + network
     python3 scripts/verify_cmdb.py --ire           # IRE outcomes, last 24h
     python3 scripts/verify_cmdb.py --stale-days 7  # CIs not rediscovered recently
 
-Exits non-zero when the core tables are empty or (with --stale-days) stale, so it can be
-dropped into cron as a crude freshness monitor.
+Default mode matches the **full lab** (through EC2). Use ``--vpc-checkpoint`` only after the
+verified VPC/network import (order 120), before EC2 schedules have run.
+
+Exits non-zero when required tables for the selected mode are empty (or with --stale-days stale).
 """
 from __future__ import annotations
 
@@ -22,14 +25,18 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-# Lab 4 verified checkpoint tables (EC2 optional until that schedule is run).
-REQUIRED_TABLES = [
+FULL_LAB_REQUIRED = [
+    "cmdb_ci_cloud_service_account",
+    "cmdb_ci_aws_datacenter",
+    "cmdb_ci_network",
+    "cmdb_ci_ec2_instance",
+]
+VPC_CHECKPOINT_REQUIRED = [
     "cmdb_ci_cloud_service_account",
     "cmdb_ci_aws_datacenter",
     "cmdb_ci_network",
 ]
-OPTIONAL_TABLES = [
-    "cmdb_ci_ec2_instance",
+ALWAYS_OPTIONAL = [
     "cmdb_ci_vpc",  # often empty when VPCs map to cmdb_ci_network
 ]
 
@@ -79,29 +86,49 @@ def count(base: str, token: str, table: str, query: str | None = None) -> int:
     return int(data.get("result", {}).get("stats", {}).get("count", 0))
 
 
-def cmd_counts(base: str, token: str) -> int:
+def cmd_counts(base: str, token: str, *, vpc_checkpoint: bool) -> int:
+    mode = "Lab 4 VPC checkpoint (before EC2)" if vpc_checkpoint else "Full lab (through EC2)"
+    print(f"Mode: {mode}\n")
     print(f"{'table':<34}{'count':>8}")
-    empty_required = []
-    for table in REQUIRED_TABLES:
+
+    if vpc_checkpoint:
+        required = VPC_CHECKPOINT_REQUIRED
+        also_show = ["cmdb_ci_ec2_instance"]
+    else:
+        required = FULL_LAB_REQUIRED
+        also_show = []
+
+    empty_required: list[str] = []
+    seen: set[str] = set()
+
+    def tally(table: str, *, required_row: bool) -> None:
+        seen.add(table)
         try:
             n = count(base, token, table)
         except SystemExit:
             print(f"{table:<34}{'missing':>8}")
-            empty_required.append(table)
-            continue
+            if required_row:
+                empty_required.append(table)
+            return
         print(f"{table:<34}{n:>8}")
-        if n == 0:
+        if required_row and n == 0:
             empty_required.append(table)
-    for table in OPTIONAL_TABLES:
-        try:
-            n = count(base, token, table)
-        except SystemExit:
-            print(f"{table:<34}{'missing':>8}")
-            continue
-        print(f"{table:<34}{n:>8}")
+
+    for table in required:
+        tally(table, required_row=True)
+    for table in also_show:
+        tally(table, required_row=False)
+    for table in ALWAYS_OPTIONAL:
+        if table not in seen:
+            tally(table, required_row=False)
+
     if empty_required:
-        print("\nEMPTY (required for Lab 4 VPC checkpoint):", ", ".join(empty_required))
-        print("Rows may be parked in IRE partials or dropped — see Labs 4, 5, and 10.")
+        label = "VPC checkpoint" if vpc_checkpoint else "full lab"
+        print(f"\nEMPTY (required for {label}):", ", ".join(empty_required))
+        if vpc_checkpoint:
+            print("Rows may be parked in IRE partials — see Labs 4, 5, and 10.")
+        else:
+            print("Finish Lab 4 schedules through EC2, or use --vpc-checkpoint after VPC only.")
         return 1
     return 0
 
@@ -141,6 +168,8 @@ def cmd_stale(base: str, token: str, days: int) -> int:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--ire", action="store_true", help="show IRE outcomes for the last 24h")
+    ap.add_argument("--vpc-checkpoint", action="store_true",
+                    help="require only account + datacenter + network (Lab 4 partial)")
     ap.add_argument("--stale-days", type=int, metavar="N",
                     help="fail if all EC2 CIs are older than N days")
     args = ap.parse_args()
@@ -149,7 +178,7 @@ def main() -> int:
         return cmd_ire(base, token)
     if args.stale_days:
         return cmd_stale(base, token, args.stale_days)
-    return cmd_counts(base, token)
+    return cmd_counts(base, token, vpc_checkpoint=args.vpc_checkpoint)
 
 
 if __name__ == "__main__":

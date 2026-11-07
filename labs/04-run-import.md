@@ -43,7 +43,7 @@ Run **Execute Now** on **one** schedule at a time, in this order:
 
 ## 2. Where to watch (read the plumbing)
 
-Figures in this lab are **redacted checkpoint diagrams** (verified counters/rows; no instance hostname or account id). Swap in your own UI crops before sharing outside the lab.
+Walkthrough screenshots below are **real UI captures**, cropped and redacted (VPC IDs, DHCP option IDs, instance hostnames, account identifiers). Match **CIDR**, **state**, and **transform counters** on your instance — not every internal record number.
 
 After each **Execute Now**, open the run from **Executions** (or **Concurrent Import Sets** → `sys_import_set_run_list.do`) and drill into **all** of these tabs — the summary line on the schedule record is not enough:
 
@@ -57,8 +57,8 @@ After each **Execute Now**, open the run from **Executions** (or **Concurrent Im
 
 If a concurrent job shows **`Pending`**, the platform has queued work. **Refresh** the list or open the job again after a short wait. Do **not** hammer **Execute Now** on the same schedule while jobs are still pending — you only duplicate runs.
 
-![Concurrent import set job in Pending state]({{ '/assets/img/lab04/concurrent-job-pending.png' | relative_url }})
-*Redacted checkpoint figure (counters/states match a verified walkthrough). Replace with your own crop before sharing publicly.*
+![Concurrent import set job in Pending state]({{ '/assets/img/lab04/pending.png' | relative_url }})
+*Concurrent Import Set Jobs tab: **Pending** while datacenter work finishes — refresh, do not re-execute.*
 
 ### RTE counters — how to read them without fooling yourself
 
@@ -95,8 +95,8 @@ Verified first-run shape:
 2. After completion, transform history showed **Processed** with a row **Comment** indicating **inserted 1** (exact wording varies by release).
 3. List view **`cmdb_ci_aws_datacenter.list`** showed **one** row: region **`us-east-2`**.
 
-![AWS Datacenter list with us-east-2]({{ '/assets/img/lab04/datacenter-list.png' | relative_url }})
-*Checkpoint after order **110** — datacenter CI for the lab region.*
+![AWS Datacenter list with us-east-2]({{ '/assets/img/lab04/datacenter.png' | relative_url }})
+*After order **110**: one **AWS Datacenter** row for region `us-east-2`.*
 
 <ul class="check">
 <li><code>cmdb_ci_aws_datacenter</code> contains your lab region (verified: <code>us-east-2</code>)</li>
@@ -116,7 +116,8 @@ In the AWS console → **VPC → Your VPCs**, a verified lab account showed **tw
 | `sgclab-vpc` | `10.42.0.0/16` | Named lab VPC |
 | *(empty)* | `172.31.0.0/16` | Default VPC pattern |
 
-![Two Available VPCs in AWS]({{ '/assets/img/lab04/aws-vpcs-available.png' | relative_url }})
+![Two Available VPCs in AWS]({{ '/assets/img/lab04/aws-vpcs.png' | relative_url }})
+*AWS console **Your VPCs** — two **Available** CIDRs (`sgclab-vpc` vs default-style `172.31.0.0/16`). Resource IDs redacted in the published image.*
 
 ### ServiceNow side (why zero CIs)
 
@@ -126,7 +127,8 @@ Transform history for the **first** VPC run (datacenter missing):
 |---|---|---|---|---|
 | 2 | 2 | **0** | **0** | 0 |
 
-![First VPC transform — zero inserts]({{ '/assets/img/lab04/vpc-transform-before-datacenter.png' | relative_url }})
+![First VPC transform — zero inserts]({{ '/assets/img/lab04/vpc-transform.png' | relative_url }})
+*Transform Histories on the **first** VPC run: **2** processed, **0** inserts/updates (datacenter still missing).*
 
 Both **`cmdb_ci_network.list`** and **`cmdb_ci_vpc.list`** were **empty** — even though AWS had two VPCs.
 
@@ -150,8 +152,8 @@ Verified transform history shape on the rerun:
 |---|---|---|---|---|---|
 | 2 | 2 | **15** | **2** | 0 | 0 |
 
-![VPC rerun transform counters]({{ '/assets/img/lab04/vpc-transform-after-datacenter.png' | relative_url }})
-*Inserts **15** span related records — **not** fifteen VPCs.*
+![VPC rerun transform counters]({{ '/assets/img/lab04/vpc-rerun.png' | relative_url }})
+*After datacenter exists: **2** processed, **15** inserts, **2** updates — related records, not fifteen VPCs.*
 
 ### End checkpoint — Cloud Networks (verified)
 
@@ -162,9 +164,10 @@ Refresh **`cmdb_ci_network.list`** (title **Cloud Networks**). Verified list:
 | `10.42.0.0/16` | Available |
 | `172.31.0.0/16` | Available |
 
-Each row's **Name** / **Object ID** carries the AWS VPC id (`vpc-…`) for your account — compare to the AWS console; **do not** paste account IDs into screenshots or commits.
+On your instance, **Name** / **Object ID** include AWS VPC ids — compare to the AWS console. Do not commit unredacted ids into public repos.
 
-![Cloud Networks list — two VPC CIs]({{ '/assets/img/lab04/cloud-network-list.png' | relative_url }})
+![Cloud Networks list — two VPC CIs]({{ '/assets/img/lab04/vpc-success.png' | relative_url }})
+*Verified end checkpoint: **Cloud Networks** — two rows, **Available**, CIDRs `10.42.0.0/16` and `172.31.0.0/16` (VPC ids redacted here).*
 
 <ul class="check">
 <li>Exactly <b>two</b> cloud network rows matching your two AWS VPCs (CIDR + state Available)</li>
@@ -180,20 +183,26 @@ From the cloned repo ([Lab 0 §4]({{ '/labs/00-prerequisites/' | relative_url }}
 export SN_INSTANCE="dev123456"
 export SN_USER="admin"
 export SN_PASS="your-pdi-password"
+# After order 120 only (before EC2 schedules):
+python3 scripts/verify_cmdb.py --vpc-checkpoint
+# Full lab (still requires cmdb_ci_ec2_instance after you run SG-AWS-EC2):
 python3 scripts/verify_cmdb.py
 ```
 
-Expected **shape** after the verified VPC checkpoint (your IDs differ):
+Expected output shape after the **VPC checkpoint** (`--vpc-checkpoint`; your IDs differ):
 
 ```
+Mode: Lab 4 VPC checkpoint (before EC2)
+
 table                            count
 cmdb_ci_cloud_service_account        1
 cmdb_ci_aws_datacenter               1
 cmdb_ci_network                      2
-cmdb_ci_ec2_instance                 0   # not run yet
+cmdb_ci_ec2_instance                 0
+cmdb_ci_vpc                          0
 ```
 
-`cmdb_ci_vpc` may stay **0** even when VPCs succeeded — that is normal for this mapping path.
+Default mode (no flag) is the **full lab** goal and exits non-zero until `cmdb_ci_ec2_instance` is populated. `cmdb_ci_vpc` may stay **0** even when VPCs succeeded — VPCs on this path live in **`cmdb_ci_network`**.
 
 ## 8. What to run next (parent lab direction — unverified here)
 
