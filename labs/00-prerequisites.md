@@ -229,11 +229,16 @@ You do not need any of these for Labs 2–3 or 5–11 — those are pure UI work
 
 | Tab | Why |
 |---|---|
-| PDI **Filter Navigator** | Fast path to any table or module |
-| AWS **CloudFormation** console | Lab 1 stack status |
-| AWS **IAM** console | Lab 3 access key |
-| PDI **All → System Applications → All Available Applications** | Lab 2 app search |
-| AWS **Billing → Budgets** | Confirm your alarm exists |
+| PDI **Filter Navigator** | Fast path to any table or module — in your own PDI, type in the filter box at the top of the **All** menu |
+| AWS [**CloudFormation** console (Ohio, `us-east-2`)](https://us-east-2.console.aws.amazon.com/cloudformation/home?region=us-east-2) | Lab 1 stack status (or replace `us-east-2` with whatever region you chose in Lab 0) |
+| AWS [**IAM** console → Users](https://console.aws.amazon.com/iam/home#/users) | Lab 3 access key (open the user → **Security credentials**) |
+| PDI **All → System Applications → All Available Applications** | Lab 2 app search — open from your own PDI's **All** menu |
+| AWS [**Billing → Budgets**](https://us-east-1.console.aws.amazon.com/billing/home#/budgets) | Confirm your alarm exists |
+
+The AWS links are generic: they open in whichever AWS account you are signed in to, with no
+account-specific values. The CloudFormation link uses Ohio (`us-east-2`) (or replace `us-east-2`
+with whatever region you chose in Lab 0). IAM and Budgets are global. PDI links are not
+given because every PDI has its own hostname — use the menu path in your own instance.
 
 ## Checkpoint
 
