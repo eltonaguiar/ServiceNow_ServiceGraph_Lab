@@ -153,6 +153,162 @@ cmdb_ci_compute_security_group.list
 sys_import_set_row_list.do  (filter: error is not empty)
 ```
 
+## Case study — "2 NIC, 1 volume, 3 relationships, all `MISSING_DEPENDENCY`"
+{: #lab10-missing-dependency}
+
+A real investigation on `dev296154` (Australia, Oct–Nov 2026). EC2 imports kept finishing
+**complete** with 0 errors, yet every run produced the same 6 partial entries: `cmdb_ci_nic` (2),
+`cmdb_ci_storage_volume` (1), `cmdb_rel_ci` (3) — while the VM itself updated fine, tags included.
+Nothing was broken in the mapping. Read the blocks below in order: what happened, the fast
+path, the queries, and what the platform's AI can (and cannot) do here.
+
+<details markdown="1">
+<summary><strong>Case study — why the warnings were correct, and what actually caused them</strong></summary>
+
+**Symptoms.** `SG-AWS-EC2` updated VM `sgclab-app-01` (`i-0c9860cc1569c41a4`) every run —
+`Environment` tag cycled `lab → drift-test → lab` in `cmdb_key_value` — but the run always left
+6 partials. `cmdb_ci_nic` was empty. `cmdb_ci_storage_volume` held 7 records, all
+`discovery_source = ServiceNow` (drive letters, `/dev/nvme0n1p1`), all with blank **Object ID** —
+Mid Server disk discovery, nothing from AWS.
+
+**The trap.** The EC2 mapping's `Cloud Mgmt Network Interface 1/2` and `Storage Volume 1` have
+blank **Object ID** and **Public IP** mappings. That looks exactly like a half-filled ETL mapping.
+It is not. Those entities are **reference stubs**, by design:
+
+| Entity in `SG-AWS-EC2-Instance` (def `64c89952…`) | Fields it maps |
+|---|---|
+| `Cloud Mgmt Network Interface 1` | `source_native_key`, `cmdb_ci` |
+| `Cloud Mgmt Network Interface 2` | `source_native_key` |
+| `Storage Volume 1` | `source_native_key` |
+
+The authoritative attributes live in the **prerequisite** feeds, not in EC2:
+
+| Prerequisite mapping | Fields on the same class |
+|---|---|
+| `SG-AWS-Network-Interface` (def `57a39282…`) | `object_id`, `name`, `private_ip`, `public_ip`, `private_dns`, `public_dns`, `ip_address`, `state`, … |
+| `SG-AWS-Storage-Volume` (def `9936cf02…`) | `object_id`, `volume_id`, `size`, `storage_type`, `name`, `state`, … |
+
+Both CI classes use a **dependent** identifier (`cmdb_identifier.independent = false`), so a stub
+carrying only `discovery_source` + a source key cannot mint a CI. It can only *link* to one that
+already exists.
+
+**Why the dependents could not resolve.** The prerequisites were configured and active, but
+non-productive:
+
+| Import | `run_type` | order | Execution history | Rows loaded |
+|---|---|---|---|---|
+| `SG-AWS-Network-Interface` | parent | 140 | 1 run, `CEX0001013` (07:00:31) | **0** |
+| `SG-AWS-Storage-Volume` | parent | 160 | **none, ever** | **0** |
+| `SG-AWS-EC2` | parent | 180 | 5 runs, all `complete` | 5 pages |
+
+All three are children of `SG-AWS-Organization`, which is **inactive** — so they never run on a
+schedule, and a manual *Execute Now* on EC2 runs **only EC2**. The 140 → 160 → 180 ordering exists
+precisely so EC2 finds its prerequisites already populated.
+
+**Proof that the resources were seen.** The EC2 staging table had 5 rows and every one contained
+`eni-04843cac6d5784192` and `vol-0d78f1f1bebee052f`, so AWS data was reaching the instance. The
+NIC feed's table had **0 rows**. `sys_object_source` held keys only for the CIs that *were* created
+— `…|VNICEndpoint|…`, `…|StorageMapping|…`, `…|BlockEndpoint|…` — and no plain
+`…|639051062568|us-east-2|eni-04843…` key, i.e. no NIC ever came into existence.
+
+**Verdict.** Not a mapping defect. A missing dependency in the literal sense: the prerequisite
+feeds never produced the CIs the EC2 stubs point at. Fix the prerequisites, not the mapping.
+
+</details>
+
+<details markdown="1">
+<summary><strong>Fast path — the 20-minute version of this investigation</strong></summary>
+
+Work in this order. Stop at the first rung that fails; you will usually finish at step 3.
+
+1. **List every import with the same parent.** Filter Navigator → `scheduled_import_set_list.do`,
+   group by **Parent**. You are looking for ordered siblings (140, 160, 180) — the lower order
+   numbers are prerequisites by design, not coincidence.
+2. **Read the execution history, not the schedule.** `sn_cmdb_int_util_cmdb_integration_execution_list.do`
+   (`CEX…`). `state = complete` with **rows = 0** is the single most decisive signal on this
+   connector: the job ran and AWS returned nothing. Zero execution records means it never ran.
+3. **Confirm the staging tables.** `sn_aws_integ_sg_aws_network_interface_list.do`,
+   `sn_aws_integ_sg_aws_storage_volume_list.do`, `sn_aws_integ_sg_aws_ec2_list.do`. If EC2's table
+   contains the resource and the prerequisite's table is empty, the cause is upstream of mapping.
+4. **Confirm the target CIs.** `cmdb_ci_nic_list.do`, `cmdb_ci_storage_volume_list.do` — and read
+   `discovery_source` and `object_id`, never just the row count. Seven volumes that are all
+   `ServiceNow` + blank `object_id` are *not* your AWS volume.
+5. **Check `sys_object_source` for the exact key** you expect (`…|<account>|<region>|<resource-id>`).
+   Present = the CI exists. Absent = it was never created, whatever the logs say.
+6. **Only now open the partial payload** — `cmdb_ire_partial_payloads_list.do`. It tells you the
+   *shape* of the failure (`MISSING_DEPENDENCY`, values stripped to `discovery_source`) but it will
+   not tell you *which* prerequisite is missing. Steps 1–3 answer that.
+
+**Rules that save the most time**
+
+- A blank **Object ID** in a reference-only entity is not a bug. Check whether the entity maps
+  attributes *at all* before calling it a defect.
+- Never create a duplicate scheduled import because a name "looks missing". Confirm against
+  `scheduled_import_set` by name **and** by `sys_id` first.
+- Do not reprocess partials or manually create CIs to "unblock" a run. Both destroy the evidence
+  and neither fixes the cause.
+- Run the chain in order (140 → 160 → 180) and re-check `ire_partial` on the next EC2 execution.
+  That number going 6 → 0 is the acceptance test.
+- Verify what actually ran: `process`/`complete` is not the same as `rows > 0`, and
+  **Processed** with zero inserts is not success.
+
+</details>
+
+<details markdown="1">
+<summary><strong>Copy-paste table reference for this failure class</strong></summary>
+
+| Question | Table / list | Notes |
+|---|---|---|
+| Which imports exist, in what order, under which parent? | `scheduled_import_set_list.do` | `active`, `run_type = parent`, `order` |
+| Did it run, and did it fetch anything? | `sn_cmdb_int_util_cmdb_integration_execution_list.do` | `CEX…`; watch `rows`, `ire_partial`, `errors` |
+| What landed in staging? | `sn_aws_integ_sg_aws_*_list.do` | one row = one JSON page, not one CI |
+| Transform history | `sys_import_set_run_list.do` | `TH…`; on this connector `sys_transform_map` is blank and `sys_robust_transformer` is set |
+| The mapping itself | `sys_robust_import_set_transformer` → `robust_transform_engine` → `sys_rte_definition` → `sys_rte_eb_entity` / `sys_rte_eb_field` | classic `sys_transform_entry` does **not** apply |
+| Where the warning is stored | `cmdb_ire_partial_payloads_list.do` | field `payload_item` holds the JSON |
+| Does the CI actually exist for a key? | `sys_object_source_list.do` | field `id` = `source_native_key` |
+| Can this class be created by a stub? | `cmdb_identifier_list.do` | `independent = false` → dependent |
+| Does the data source exist under another name? | `sys_data_source_list.do`, filter `name LIKE SG-AWS` | compare `import_set_table_name` |
+
+**Reading the payload.** `values` containing only `discovery_source`, plus
+`"reason": "MISSING_DEPENDENCY"`, plus a `referenceItems` entry pointing at an id that appears in
+no `items[]` list — that combination means "this item was emitted as a link target and could not
+be matched". The dangling id is a **symptom**: it changes on every run, and in runs where it *did*
+point at the VM's own `internal_id` the NIC still failed. Do not chase it.
+
+</details>
+
+<details markdown="1">
+<summary><strong>What ServiceNow's own AI and diagnostics can — and cannot — do here</strong></summary>
+
+Be realistic about the split. On this failure the decisive evidence was **four counts across four
+tables**; no product feature performs that comparison for you. What the platform does give you:
+
+| Capability | What it is good for | Not good for |
+|---|---|---|
+| **Now Assist for CMDB** (generative AI, licence-dependent) | Summarising a CI and its relationships in plain language, suggesting a class when classification is ambiguous, drafting a description | Telling you *why* an item was partial — it reads the CI, not the import chain |
+| **CMDB Health / CMDB Workspace dashboards** (rule-based, not AI) | Fast triage of which classes are under-populated, duplicate/stale signals | Root-causing a single run; no notion of import order |
+| **IRE processing reports + “Reprocess partial payloads”** | Inspecting what IRE did with a specific item | Choosing the right fix; reprocessing before the prerequisite exists just reproduces the same partial |
+| **Execution diagnosis** (`sn_cmdb_int_util_execution_diagnosis`) | Per-execution detail behind a `CEX…` record | Cross-import reasoning |
+| **Service Graph Connector connection test / Guided Setup** | Proving credentials, alias and egress | Proving a feed returned data — that is the `rows` column |
+| **Now Assist in platform search / docs Q&A** | Finding the documented prerequisite order for the connector version you have installed | Verifying it against your instance — always check §Fast path steps 1–3 |
+
+How to use AI well on this class of problem:
+
+1. **Feed it counts, not prose.** "NIC import: 1 execution, rows=0. Volume import: 0 executions.
+   EC2: 5 runs, ire_partial=6." An assistant can rank hypotheses from that in one pass; it cannot
+   derive it from "imports are failing".
+2. **Ask for the discriminator, not the answer.** "Which single field separates 'mapping is broken'
+   from 'prerequisite never ran'?" — here: whether the entity maps attributes at all, and whether
+   the prerequisite's staging table has rows.
+3. **Make it state the check that would falsify its theory**, then run that check yourself. Two
+   parallel agents on this case concluded "the scheduled imports are not configured"; both were
+   wrong, because neither queried `scheduled_import_set` by name. `active = true`, two records,
+   both children of an inactive parent.
+4. **Never let an assistant create, activate or reprocess anything on the strength of a summary.**
+   Diagnosis is read-only; the change is a separate, reviewed step.
+
+</details>
+
 ## Checkpoint
 
 <ul class="check">
