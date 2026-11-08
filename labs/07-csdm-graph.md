@@ -15,7 +15,8 @@ permalink: /labs/07-csdm-graph/
 (CSDM)</strong> is the agreed way to add <em>what it is for</em> — for example “Payments (lab)”
 — and link that story to real <strong>configuration items (CIs)</strong> in the
 <strong>Configuration Management Database (CMDB)</strong>. ServiceNow stores
-<strong>descriptions and relationships</strong>; it does not host your app or your data.</p>
+<strong>descriptions and relationships</strong> — from cloud gear through services to business
+capabilities — it does not host your app, run payment software, or prove live discovery.</p>
 </div>
 
 <nav class="toc" aria-label="Lab 7 contents">
@@ -70,9 +71,11 @@ permalink: /labs/07-csdm-graph/
       <li><a href="#hands-on-how-populated">How relationships get here</a></li>
       <li><a href="#hands-on-records-eli5">Records + navigation</a></li>
       <li><a href="#hands-on-step-6">Steps 6–11 (business stack)</a></li>
-      <li><a href="#hands-on-step-12">Step 11 — Capabilities (pending)</a></li>
+      <li><a href="#hands-on-step-12">Step 11 — Business capability</a></li>
+      <li><a href="#hands-on-step-11-observed">Step 11 observed (t574–580)</a></li>
       <li><a href="#hands-on-views">View Map vs Dependency Views</a></li>
       <li><a href="#hands-on-checkpoint-b">Checkpoint B</a></li>
+      <li><a href="#hands-on-checkpoint-d">Checkpoint D — capability</a></li>
     </ul>
   </div>
   <div>
@@ -94,6 +97,7 @@ permalink: /labs/07-csdm-graph/
     <p class="toc-title">Lab status and audit</p>
     <ul class="toc-list">
       <li><a href="#lab7-overall-status">Lab 7 overall status</a></li>
+      <li><a href="#lab7-completion-criteria">Completion criteria (audit)</a></li>
       <li><a href="#lab7-requirements-audit">Requirements audit matrix</a></li>
     </ul>
   </div>
@@ -259,7 +263,7 @@ truncate or differ by release ([Exploring CSDM](https://www.servicenow.com/docs/
 |---|---|---|---|
 | **Foundation** | Address book of the enterprise — company, location, groups, contracts. | Admin, HR-adjacent | Imported AWS **datacenter/region** CIs indirectly |
 | **Ideation & Strategy** | Ideas and investments before build — goals, demand, portfolio choices. | Portfolio manager, SPM | **Not filled** — optional in real firms |
-| **Design & Planning** | **Blueprint** — what we *plan* to own (apps, capabilities, information). | Enterprise architect, app owner | **`Payments`** business application; **capability** pending |
+| **Design & Planning** | **Blueprint** — what we *plan* to own (apps, capabilities, information). | Enterprise architect, app owner | **`Payments`** app; **`Accept Customer Payments`** capability |
 | **Build & Integration** | How software is built, pipelines, integration endpoints. | DevOps, integration | **Out of scope** — no real CI/CD in lab |
 | **Service Delivery** | **Running** technology that delivers value — infrastructure, **service instances**, integrations. | Ops, cloud, CMDB | **Connector** imports; **`Payments (lab)`** service instance; **`sgclab-app-01`** |
 | **Service Consumption** | **Business-facing** services customers or internal users experience. | Service owner, SPM | **`Payment Processing`** + **Dev offering** |
@@ -288,12 +292,12 @@ targets for **Incident**, **Problem**, and **Change** processes the way operatio
 | What software is in the portfolio? | **Design & Planning** | **`cmdb_ci_business_app` Payments** | App owner | EA repository | **Consumes** → service instance | EA review — **not** ops uptime proof |
 | What runs in Dev vs Prod? | **Service Delivery** | **`Payments-Dev`** / **`Payments-Prod`** instances | Ops | Tag/env conventions | **Manual** or mapped CIs | Map vs CMDB Health |
 | Shared platform (DB, network)? | **Service Delivery** | **Technology management service** (not built here) | Platform team | Runbooks | **Depends on** edges | Platform map review |
-| What capability does this enable? | **Design & Planning** | **`cmdb_ci_business_capability`** (pending) | Business architect | Capability map | **Provided by::Provides** → business service | DPM workspace check |
+| What capability does this enable? | **Design & Planning** | **`Accept Customer Payments`** on **`cmdb_ci_business_capability`** | Business architect | Capability map | **Provided by::Provides** → **Payment Processing** | Dependency Views (5-node chain observed) |
 | Where does inventory come from? | **Service Delivery** + **Foundation** | AWS connector, Discovery, manual | Cloud admin | Import job history | **`cmdb_rel_ci`** from imports | Reconcile duplicates via **IRE** |
 | Who answers the incident? | ITSM process + **Foundation** | Assignment group, support group on CI | Service desk lead | Routing table | **Optional** rules on **cmdb_ci** | Tabletop — **no** auto guarantee |
 
 You **do not** need every row populated on a PDI. This lab intentionally stops with a **thin** slice:
-connector inventory + one **service instance** + one **business service** stack + **no** capability.
+connector inventory + one **service instance** + one **business service** stack + one **linked capability** (this curriculum).
 
 </details>
 
@@ -307,7 +311,7 @@ Use questions in order — skip sections your organization has not prioritized.
 3. **Deployment:** “Which *running stack* maps to that offering?” → **service instance** (`cmdb_ci_service_discovered` / **`Payments (lab)`**).
 4. **Gear:** “Which server or cloud object is suspect?” → **configuration item** (`cmdb_ci_*` — e.g. **`sgclab-app-01`**).
 5. **Portfolio software:** “Which product in the catalog is related?” → **business application** — design only; link via **Consumes::Consumed by**, **not** as substitute for **CI**.
-6. **Capability:** “Which business ability does this support?” → **business capability** — relationship **Provided by::Provides** (Step 11 pending).
+6. **Capability:** “Which business ability does this support?” → **`Accept Customer Payments`** — **Provided by::Provides** → **Payment Processing** ([Step 11](#hands-on-step-12)).
 7. **Shared tech:** “Who owns the shared database cluster?” → **technology management service** — documented, **not** created in this lab.
 8. **Proof:** “What import or scan created this CI?” → connector / Discovery evidence + **IRE** — validate before trusting impact.
 9. **Incident drill:** “What would agents type on a **new** incident?” → [Incident walkthrough](#hands-on-incident-unsaved-exercise) — **do not Submit**.
@@ -771,7 +775,7 @@ personalizing the form ([Incident with CSDM 2.1 community PDF](https://www.servi
 | Indirect graph (usually **not** the three reference fields above) | Table (typical) | How analysts might use it |
 |---|---|---|
 | **Business application** | **`cmdb_ci_business_app`** | Portfolio context via **CMDB** / **CSDM** workspace — **not** deployment status. |
-| **Business capability** | **`cmdb_ci_business_capability`** | Strategy map — **we did not create** one in this lab. |
+| **Business capability** | **`cmdb_ci_business_capability`** | Strategy map — **`Accept Customer Payments`**; **indirect** on typical incident forms. |
 | **Technology management service** | **`cmdb_ci_service_technical`** | Shared platform ownership — **not** modeled here. |
 
 **Direct vs indirect:** **`business_service`**, **`service_offering`**, and **`cmdb_ci`** are **direct**
@@ -943,6 +947,7 @@ for that edge ([modify required relationships](https://www.servicenow.com/docs/r
 | **Business service `Payment Processing`** | Customer-facing service name for portfolio/incident language. | **`incident.business_service`** → **`cmdb_ci_service`** (base); pick **`Payment Processing`** when it is the best **semantic** match — not because the field is business-subclass-only. | **All** → **Service Portfolio Management** → **Business Services** → **New** |
 | **Offering `Payment Processing — Development`** | Dev slice customers/operators recognize on tickets. | **Service offering** when your form supports it. | **`Payment Processing`** form → **Offerings** related list → **New** |
 | **VM CI `sgclab-app-01`** | Imported AWS server row — inventory, not app logic. | Optional **Configuration item**; **stopped** ≠ live payments. | **Configuration** → **All** → filter **`cmdb_ci_vm_instance`** / connector import ([Lab 4]({{ '/labs/04-run-import/' | relative_url }})) |
+| **Business capability `Accept Customer Payments`** | Design-time ability the business cares about. | Usually **indirect** on incident — graph context via **Dependency Views**. | **All** → **CSDM** → **Design** → **Business Capability** → **New** |
 
 **Observed field highlights (not universal):** business application **Status** **Implementing**; **Owners**
 tab may require **IT Application owner** (hidden mandatory until expand). Business service **Phase** **Pipeline**,
@@ -969,8 +974,8 @@ fields blank unless required.
 
 *Screenshot: saved **`Payment Processing`** business service (`business-service-payment-processing.png`,
 mirrored from [ServiceNow_ServiceGraph_Demo](https://github.com/eltonaguiar/ServiceNow_ServiceGraph_Demo) /
-commit `ab37d274`); **Business Capabilities** related list has **no** rows — **no capability record was
-created in this lab.* System number and timestamps may differ on your PDI.*
+commit `ab37d274`) — captured at **Step 7** with **Business Capabilities** still **empty** before [Step 11](#hands-on-step-12).
+System number and timestamps may differ on your PDI.*
 
 ### Step 8 — Offering `Payment Processing — Development`
 {: #hands-on-step-8}
@@ -990,43 +995,75 @@ Wizard **Business Service Offering** tab: select the Dev offering → **Update**
 | View | What you see here |
 |---|---|
 | **View Map** (application service) | Still mostly **manual entry point → VM** — expected |
-| **Show dependency views** (business service **Related Items** hierarchy icon) | Broader graph: business service → offering → **`Payments (lab)`** → **`sgclab-app-01`**; **Load more** may add existing cloud CIs; **business application** may appear adjacent — layout ≠ relationship direction |
+| **Show dependency views** (business service **Related Items** hierarchy icon) | After Step 11: **capability** → **business service** → **offering** → **`Payments (lab)`** → **`sgclab-app-01`** (five-node chain observed t580); **Load more** may add cloud CIs; layout ≠ relationship direction |
 
 Hover labels observed: business service → offering **reference**; offering → app service **Depends on::Used
 by**; app service → VM **Depends on::Used by**. **Operational status** on associated lists is **not** live AWS
 run-state proof.
 
-### Step 11 — Business capabilities (**pending — do not submit wrong form**)
+### Step 11 — Business capability (create, then link — not the trap path)
 {: #hands-on-step-12}
 
-On **`Payment Processing`**, tab **Business Capabilities** is **empty**. **New** opened **CI Relationship**
-with **Parent** blank, **Type** **Provided by::Provides**, **Child** **Payment Processing** — **incorrect
-partial state** (unsaved; user correctly backed out).
+**Two phases:** (1) create the **capability record** in **Design**; (2) link it to **`Payment Processing`**
+from **Service Portfolio Management**. **Do not** skip phase 1 or **Submit** with blank **Parent**.
 
-**Correct sequence (per [DPM business capability](https://www.servicenow.com/docs/r/it-service-management/digital-portfolio-management/dpm-business-capability.html)):**
+#### Step 11a — Create capability on `cmdb_ci_business_capability`
 
-1. **All** → **CSDM** → **Design** → **Business Capability** → **New** — create a learning capability on
-   **`cmdb_ci_business_capability`**.
-2. Create **`cmdb_rel_ci`**: **Parent** = that **capability**, **Type** = **Provided by::Provides**, **Child**
-   = **Payment Processing** business service.
-3. Confirm on capability **Related Items** — **never** submit with **Parent** blank.
+**Navigation:** **All** → **CSDM** → **Design** → **Business Capability** (list empty on first visit) → **New**.
 
-![Unsaved CI Relationship trap — blank Parent, Provided by::Provides, Child Payment Processing (do not Submit)]({{ '/assets/img/lab07/business-capability-relationship-unsaved.png' | relative_url }})
+**URL check:** New form targets table **`cmdb_ci_business_capability`** (verify in the address bar).
 
-*Screenshot: **unsaved** **CI Relationship** (**New record** header) (`business-capability-relationship-unsaved.png`,
-mirrored from [ServiceNow_ServiceGraph_Demo](https://github.com/eltonaguiar/ServiceNow_ServiceGraph_Demo) /
-commit `ab37d274`) — illustrates the common trap only. **Do not Submit** this row; **no** business capability
-exists yet.*
+| Field (observed) | Value |
+|---|---|
+| **Name** | **Accept Customer Payments** |
+| **Description** | The company’s ability to accept payments from customers, regardless of which software or computers it uses. **Learning example only.** |
+| **Parent / Business unit / Department / Order** | Left **blank** |
+| **Saved metadata** | **Level** **0**, **Order** **0** (as shown after save) |
+
+#### Common traps (read before clicking **New**)
+
+| Trap | What goes wrong |
+|---|---|
+| **Unsaved CI Relationship** (earlier session) | **Business Capabilities → New** with **Parent** blank, **Child** prefilled **Payment Processing** — **do not Submit** ([historical capture below](#hands-on-step-11-trap-screenshot)). |
+| **Capabilities** related list **on the capability form itself** | **New** there creates a **child capability** record — **not** a link to a **business service**. Return to the **business service** form to link. |
+
+![Unsaved CI Relationship trap — earlier mistake, blank Parent (do not Submit)]({{ '/assets/img/lab07/business-capability-relationship-unsaved.png' | relative_url }})
+{: #hands-on-step-11-trap-screenshot}
+
+*Historical screenshot only (`business-capability-relationship-unsaved.png`, mirrored from Demo `ab37d274`) — taken **before** **`Accept Customer Payments`** existed. **Do not Submit** this pattern.*
 
 <details markdown="1">
-<summary><strong>Why the Business Capabilities New action prefilled Child = Payment Processing</strong></summary>
+<summary><strong>Why Business Capabilities → New opens a CI Relationship</strong></summary>
 
-The related list opens the relationship editor for **capability → service** edges. A **business capability**
-record must exist first and be chosen as **Parent**. The prefilled **Child** is the current business service.
+The business service tab edits **`cmdb_rel_ci`** edges. **Parent** must be an existing **`cmdb_ci_business_capability`**; **Child** is prefilled with the current business service (**Payment Processing**).
 
 </details>
 
-### Checkpoint B — business stack (capability still open)
+#### Step 11b — Link capability to business service (correct breadcrumbs)
+
+**Navigation (verified t574–580):**
+
+**All** → **Service Portfolio Management** → **Business Services** → **Payment Processing** → tab **Business Capabilities** → **New**
+
+| CI Relationship field | Value |
+|---|---|
+| **Parent** | **Accept Customer Payments** |
+| **Type** | **Provided by::Provides** |
+| **Child** | **Payment Processing** |
+| **Port** | Blank → **Submit** |
+
+**After save:** **Business Capabilities (1)** — **Parent** capability, **Type** **Provided by::Provides**, **Child** **Payment Processing**, **Connection strength** **Always**. **Related Items** on the capability record shows the same edge. **No** screenshot published this run — user-verified only ([inventory](#hands-on-part-c-screenshots)).
+
+### Step 11 observed — Dependency Views (t580)
+{: #hands-on-step-11-observed}
+
+On **`Payment Processing`**, **Show dependency views** / hierarchy showed a **five-node** chain (observed):
+
+**Accept Customer Payments** (capability) → **Payment Processing** (business service) → **Payment Processing — Development** (offering) → **`Payments (lab)`** (application service) → **`sgclab-app-01`** (VM).
+
+**Honest limits:** Still **no** running payment software, **no** Service Mapping proof, **no** technical management service, **stopped** lab VM. The graph is **metadata you built**, not production discovery.
+
+### Checkpoint B — business stack (before capability)
 {: #hands-on-checkpoint-b}
 
 <ul class="check">
@@ -1034,8 +1071,18 @@ record must exist first and be chosen as **Parent**. The prefilled **Child** is 
 <li><b>Business service</b> and <b>Dev offering</b> created with learning descriptions</li>
 <li>Offering → app service <b>Depends on::Used by</b> via wizard; app service → VM edge visible in <b>Dependency Views</b></li>
 <li>You distinguish <b>View Map</b> (narrow) vs <b>Dependency Views</b> (portfolio graph)</li>
-<li><b>Business capability</b> relationship — <b>not done</b>; wrong unsaved form was abandoned</li>
 <li>No real Payments app, no discovery proof, no AWS changes</li>
+</ul>
+
+### Checkpoint D — business capability (t574–580 complete)
+{: #hands-on-checkpoint-d}
+
+<ul class="check">
+<li><b>Accept Customer Payments</b> saved on <code>cmdb_ci_business_capability</code> via <b>CSDM → Design</b></li>
+<li><b>Provided by::Provides</b> links capability → <b>Payment Processing</b> from <b>Business Capabilities</b> on the business service</li>
+<li><b>Dependency Views</b> shows the five-node chain capability → service → offering → app service → VM</li>
+<li>You know <b>Capabilities</b> on the capability form is <b>not</b> the link path to a business service</li>
+<li><b>No</b> capability / dependency / incident screenshots in repo this publish — narrative evidence only</li>
 </ul>
 
 ---
@@ -1046,11 +1093,11 @@ record must exist first and be chosen as **Parent**. The prefilled **Child** is 
 **Purpose:** Tie **Incident Management** reference fields on table **`incident`** to the **CSDM records you
 already built** — without pretending this lab caused a real outage. This is **Part C** on the same page.
 **You** perform Submit/Resolve on **your** PDI. One **observed** run is documented below as **INC0010001**
-(t567–571); your number will differ. **No** blanket “all of Lab 7 is done” — **Step 11** capability remains
-**pending**.
+(t567–571); your number will differ.
 
-**Prerequisites:** [Checkpoint A](#hands-on-checkpoint-a) and [Checkpoint B](#hands-on-checkpoint-b) records
-(or equivalent): **`Payment Processing`**, **`Payment Processing — Development`**, **`Payments (lab)`**,
+**Prerequisites:** [Checkpoint A](#hands-on-checkpoint-a), [Checkpoint B](#hands-on-checkpoint-b), and portfolio
+records (capability per [Checkpoint D](#hands-on-checkpoint-d) optional for **Incident** reference fields but
+part of full Lab 7 curriculum): **`Payment Processing`**, **`Payment Processing — Development`**, **`Payments (lab)`**,
 linkage to **`sgclab-app-01`**. Read [Service → `cmdb_ci_service`](#hands-on-incident-service-reference) and
 [`used_for` vs **Environment**](#hands-on-service-field-semantics) first.
 
@@ -1210,23 +1257,32 @@ When finished practicing, move the ticket through **your** instance’s resoluti
 <li><b>Observed PDI (t567–571):</b> <b>INC0010001</b> saved with <code>[LAB TEST]</code> story, scenario <b>A</b> CI <code>Payments (lab)</code>, low impact/urgency, related lists verified as documented</li>
 <li><b>Observed PDI:</b> Resolved with mandatory resolution fields; state <b>Resolved</b> (not Closed); record retained</li>
 <li><b>Your PDI:</b> Match the checkpoints above on <b>your</b> incident number if you have not run Part C yet</li>
-<li><b>Business capability</b> (Step 11) — still <b>not</b> done; Lab 7 overall remains open on capability</li>
+<li><b>Checkpoint D</b> capability — complete on reported PDI (t574–580); independent of Part C</li>
 <li>You understand <b>Manually added</b> and related lists do <b>not</b> prove automatic CSDM impact propagation</li>
 </ul>
 
-### Screenshot inventory (Part C)
+### Screenshot inventory (Lab 7 — published vs missing)
 {: #hands-on-part-c-screenshots}
 
-**Published elsewhere on Lab 7 (keep — do not remove):** `choose-method-dropdown-top.png`,
-`choose-method-dropdown-scrolled.png`, `payments-lab-screenshot.png`, `payments-lab-view-map.png`,
-`business-service-payment-processing.png`, `business-capability-relationship-unsaved.png`.
+**Published (repo — do not remove):**
 
-| Part C capture | Status |
+| File | Used for |
 |---|---|
-| Unsaved / new incident form | **Missing** |
-| Saved incident reference fields | **Missing** |
-| Related lists (Affected / Impacted / Offerings) | **Missing** — verified in UI t567–571; transfer failed |
-| Resolved banner (**INC0010001**) | **Missing** — transfer failed |
+| `choose-method-dropdown-top.png` | Step 3 — **Choose a Method** (top) |
+| `choose-method-dropdown-scrolled.png` | Step 3 — dropdown scrolled |
+| `payments-lab-screenshot.png` | Step 4 — wizard **Preview** |
+| `payments-lab-view-map.png` | Step 5 — **View Map** entry point |
+| `business-service-payment-processing.png` | Step 7 — empty **Business Capabilities** (pre–Step 11) |
+| `business-capability-relationship-unsaved.png` | Step 11 — **historical** unsaved-trap only |
+
+**Missing (verified in UI; transfer failed — no new PNGs promised this workspace):**
+
+| Capture | Session |
+|---|---|
+| Saved capability form **Accept Customer Payments** | t574–580 |
+| **Business Capabilities (1)** saved relationship row | t574–580 |
+| Five-node **Dependency Views** after capability | t580 |
+| Part C incident related lists / resolved banner | t567–571 |
 
 ---
 
@@ -1235,12 +1291,30 @@ When finished practicing, move the ticket through **your** instance’s resoluti
 
 | Milestone | Status |
 |---|---|
-| **Part A** — wizard + Manual + View Map entry | **Done** (minimal checkpoint) |
-| **Part B** — business app, business service, offering, links | **Done** on reported PDI |
+| **Part A** — wizard + Manual + View Map entry | **Done** (Checkpoint A) |
+| **Part B** — business app, business service, offering, links | **Done** (Checkpoint B) |
+| **Step 11 / Checkpoint D** — **`Accept Customer Payments`** + link | **Done** on reported PDI (t574–580) |
 | **Part C** — practice incident | **Done** on reported PDI (**INC0010001**, Resolved, audit retained) |
-| **Step 11** — business capability | **Pending** |
-| **Every CSDM object / technical management service** | **Not** required |
-| **Lab 7 “complete”** | **Not claimed** — capability + any unmatched personal milestones may remain open |
+| **Technical management service** | **Not** in scope (optional future) |
+| **Service Mapping / real discovery / payment software** | **Not** claimed |
+| **Published curriculum (this page)** | **Complete** for required hands-on track; screenshots partial — see [inventory](#hands-on-part-c-screenshots) |
+
+### Lab 7 completion criteria (curriculum audit — t581)
+{: #lab7-completion-criteria}
+
+| Criterion | Required for this lab | Status on reported PDI |
+|---|---|---|
+| Connector-backed inventory + IRE context (Labs 4–6) | Yes (prerequisite) | Assumed |
+| Manual application service + **View Map** | Yes — Part A | Done |
+| Business application / service / offering + wizard links | Yes — Part B | Done |
+| Business capability + **Provided by::Provides** | Yes — Step 11 | Done (**Accept Customer Payments**) |
+| Practice incident with CSDM references | Yes — Part C | Done (**INC0010001** Resolved) |
+| Pre-lab domains, workshop method, enterprise / incident depth | Yes — reading | Published |
+| Technical management service row | No — optional | Not done |
+| Lab 8 multisource Azure | No — optional next lab | Not started |
+| Full screenshot evidence for capability + incident | No — nice-to-have | **Missing** assets (documented) |
+
+**Scope statement:** Finishing this page’s **required** checkpoints is enough to proceed to optional [Lab 8]({{ '/labs/08-multisource-azure/' | relative_url }}). **Demo repo** sync is a **separate** employer deliverable — **not** updated in this commit.
 
 
 ### Lab 7 requirements audit matrix (t557–t561)
@@ -1257,8 +1331,9 @@ When finished practicing, move the ticket through **your** instance’s resoluti
 | Unsaved incident exercise (**no Submit**) | `#hands-on-incident-unsaved-exercise` | Deployed |
 | **Part C** — practice incident + observed **INC0010001** | `#hands-on-part-c`, `#hands-on-part-c-observed` | Deployed (Part C PNGs **missing**) |
 | Part B steps + relationships + checkpoints | Part B sections | Deployed |
-| Business capabilities **not** created | Step 11 + screenshots | PNGs in `assets/img/lab07/` |
-| Incident form screenshot | **Not published** — transfer failed; no fabrication | **Gap** — user to re-attach later |
+| Step 11 capability **Accept Customer Payments** (t574–580) | `#hands-on-step-12`, `#hands-on-checkpoint-d` | Narrative only; PNGs **missing** |
+| Historical unsaved capability trap | `#hands-on-step-11-trap-screenshot` | `business-capability-relationship-unsaved.png` |
+| Part C + capability graph screenshots | Inventory | **Missing** |
 
 ---
 
@@ -1281,6 +1356,7 @@ When finished practicing, move the ticket through **your** instance’s resoluti
 | **ETL** | Extract, Transform, Load | Connector step that maps AWS fields to CMDB columns ([Lab 6]({{ '/labs/06-etl-mappings/' | relative_url }})) |
 | **IAM** | Identity and Access Management | AWS who-is-allowed-to-do-what (APIs and console) |
 | **IP** | Internet Protocol | Numeric addressing for network traffic |
+| **DPM** | Digital Portfolio Management | Product area for **business capability** relationships ([DPM doc](https://www.servicenow.com/docs/r/it-service-management/digital-portfolio-management/dpm-business-capability.html)) |
 | **IRE** | Identification and Reconciliation Engine | ServiceNow engine that matches incoming CIs and avoids duplicates ([Lab 5]({{ '/labs/05-ire/' | relative_url }})) |
 | **PDI** | Personal Developer Instance | Free or personal ServiceNow sandbox for learning |
 | **RDS** | Relational Database Service | AWS managed database service |
@@ -1321,9 +1397,9 @@ from product definitions — expand acronyms in the prose beside them.
 ## What is next
 {: #whats-next}
 
-Complete [Part C](#hands-on-part-c) when ready to **Submit** a **`[LAB TEST]`** incident yourself. Finish **Step 11**
-(business capability) if you want portfolio closure. Read [Enterprise scale (hypothetical)](#pre-lab-enterprise-mapping)
-before assuming this manual lab equals **Service Mapping**. Lab 8 (optional) adds a **second cloud source** —
-only after your service model makes sense on paper.
+**Required track complete** when Checkpoints A, B, D, and C match [completion criteria](#lab7-completion-criteria)
+on your PDI. **Optional:** [Lab 8 — multisource CMDB with Azure]({{ '/labs/08-multisource-azure/' | relative_url }});
+technical management services; Service Mapping on a licensed instance. Read [Enterprise scale (hypothetical)](#pre-lab-enterprise-mapping)
+before equating this manual lab with production discovery.
 
 Next: [Lab 8 — multisource CMDB with Azure]({{ '/labs/08-multisource-azure/' | relative_url }}) (optional track)
