@@ -408,6 +408,10 @@ run, or a production **Payments** workload.
 
 1. Click **Next** to **Preview the Service**.
 
+![Screenshot of ServiceNow wizard for Payments (lab) service preview]({{ '/assets/img/lab07/payments-lab-screenshot.png' | relative_url }})
+
+*Screenshot: wizard progress on **Preview the Service**; the canvas shows the linked CI and properties panel. No account identifiers visible — crop reviewed before commit.*
+
 **Observed on one PDI after Manual save (your preview may differ before save):**
 
 | Preview section | Observed |
@@ -455,12 +459,7 @@ After **Done**, open **View Map** (from the service or wizard result).
   **Operational status** **Non-Operational**, short description noting a learning example with **no
   payment software installed**.
 
-That verifies a **saved manual application service** with an **entry-point CI** on the map — **not** a
-
-![Screenshot of ServiceNow wizard for Payments (lab) service preview]({{ '/assets/img/lab07/payments-lab-screenshot.png' | relative_url }})
-
-*Screenshot: wizard progress on **Preview the Service**; the canvas shows the linked CI and properties panel. No account identifiers visible — crop reviewed before commit.*
-complete dependency graph, **not** production Payments, and **not** automatic proof of outage impact.
+That verifies a **saved manual application service** with an **entry-point CI** on the map — **not** a complete dependency graph, **not** production Payments, and **not** automatic proof of outage impact.
 
 ![View Map for Payments (lab) showing entry point to sgclab-app-01]({{ '/assets/img/lab07/payments-lab-view-map.png' | relative_url }})
 
