@@ -2,7 +2,7 @@
 layout: default
 title: CSDM and the service graph
 lab: 7
-time: 50 min
+time: 65 min
 level: CSDM
 order: 7
 permalink: /labs/07-csdm-graph/
@@ -49,7 +49,20 @@ permalink: /labs/07-csdm-graph/
       <li><a href="#hands-on-step-4">Step 4 — Preview and Done</a></li>
       <li><a href="#hands-on-map">Step 5 — View Map</a></li>
       <li><a href="#hands-on-optional">Optional — script link</a></li>
-      <li><a href="#hands-on-checkpoint">Checkpoint</a></li>
+      <li><a href="#hands-on-checkpoint-a">Checkpoint A (minimal)</a></li>
+    </ul>
+  </div>
+  <div>
+    <p class="toc-title">Hands-On: CSDM continuation (Part B)</p>
+    <ul class="toc-list">
+      <li><a href="#hands-on-part-b">Overview</a></li>
+      <li><a href="#csdm-plain-language">Design vs deploy vs offering</a></li>
+      <li><a href="#hands-on-step-6">Step 6 — Find Business Applications</a></li>
+      <li><a href="#hands-on-step-7">Step 7 — Create business application</a></li>
+      <li><a href="#hands-on-step-8">Step 8 — Link to application service</a></li>
+      <li><a href="#hands-on-step-9">Step 9 — Offerings (optional)</a></li>
+      <li><a href="#hands-on-checkpoint-b">Checkpoint B</a></li>
+      <li><a href="#lab7-overall-status">Lab 7 overall status</a></li>
     </ul>
   </div>
   <div class="toc-wide">
@@ -219,9 +232,15 @@ the VM. **This lab** does not move workloads into ServiceNow.
 ## Hands-On Lab
 {: #hands-on-lab}
 
-**Goal:** Start an **application service** record in ServiceNow’s official wizard and use the
-**Manual** population method toward your lab virtual machine — **without** claiming a finished
-production graph.
+**Part A (minimal):** Create a manual **application service** and **View Map** entry point — Steps 1–5
+and [Checkpoint A](#hands-on-checkpoint-a).
+
+**Part B (broader CSDM):** Add a **business application** design record and supported relationships —
+[continuation](#hands-on-part-b). **Lab 7 is not complete** until you decide how far to take Part B; Part A
+alone is a deliberate **limited** stop.
+
+**Goal (Part A):** Start an **application service** in the official wizard and use **Manual**
+population toward your lab virtual machine — **without** claiming a finished production graph.
 
 **You need:** A **Personal Developer Instance (PDI)** (or similar) with CMDB data from Labs 4–6.
 Confirm role **`app_service_admin`** (application service administrator) per ServiceNow docs —
@@ -477,8 +496,8 @@ timeline dates may differ.*
 
 ---
 
-### Hands-On checkpoint
-{: #hands-on-checkpoint}
+### Checkpoint A — minimal application service (limited stop)
+{: #hands-on-checkpoint-a}
 
 <ul class="check">
 <li>You can explain <b>VPC</b> vs subnet vs security group without calling the VPC “physical private cabling”</li>
@@ -487,6 +506,133 @@ timeline dates may differ.*
 <li>You can explain <b>Preview → Relationships: no records</b> vs <b>View Map</b> still showing an entry-point arrow — observational on one PDI, not a universal guarantee before save</li>
 <li><b>View Map</b> shows <code>sgclab-app-01</code> as an entry point — you still do <b>not</b> claim <b>Depends on</b> / <code>cmdb_rel_ci</code> completeness, <b>Service Mapping</b>, real Payments software, or that <b>Traffic based discovery</b> ran</li>
 </ul>
+
+<p><strong>Checkpoint A is complete</strong> when the bullets above match your work. You may pause here;
+[Part B](#hands-on-part-b) is the fuller CSDM track on the same page.</p>
+
+---
+
+## Hands-On Part B — CSDM continuation (after Checkpoint A)
+{: #hands-on-part-b}
+
+Continue only if you already have **`Payments (lab)`** on table **`cmdb_ci_service_discovered`**
+(extends **`cmdb_ci_service_auto`**), **Environment** **Development**, **Non-Operational**, and **View
+Map** entry point **`sgclab-app-01`**. This part adds **design-time** CSDM objects — not AWS changes and
+**not** proof of production Payments impact.
+
+### Design vs deploy vs offering (everyday words)
+{: #csdm-plain-language}
+
+| Idea | Table / class (typical) | Everyday meaning |
+|---|---|---|
+| **Business application** | **`cmdb_ci_business_app`** | The **catalog name** for what the business calls “Payments” — design and planning, not one stopped VM. |
+| **Application service** (service instance) | **`cmdb_ci_service_discovered`** (manual map) | **One deployed stack instance** you operate — here **`Payments (lab)`** in **Development** pointing at **`sgclab-app-01`**. |
+| **Application** (installed software) | **`cmdb_ci_appl`** and related | **Programs running on a host** — discovery territory; our lab has **no** payment app installed. |
+| **Service offering** | **`service_offering`** | A **packaged slice** of a service (technical or business classification) for request/catalog context — optional until you need catalog or portfolio views. |
+| **Business service** | Conceptual / portfolio layer | What the **business sells or consumes** — often tied to offerings and capabilities; **not** the same row as **`cmdb_ci_business_app`**. |
+
+Official CSDM v5 calls for relating **business applications** to **application services**. Direction on
+many current docs: **Uses** / **Used by** ([CI relationships in the CSDM](https://www.servicenow.com/docs/r/servicenow-platform/common-service-data-model-csdm/ci-relationships.html)) — the business application **uses** the deployed application service; the service **is used by** the business application. Older models and **Enterprise Architecture Workspace** flows may still show **Consumes** / **Consumed by** for lifecycle timelines — pick types your **CI Relationship Types** list allows; do not mix families interchangeably.
+
+You could have linked a business application in the wizard **Set Relationships** tab (you left optional
+panes empty). Part B does the same story **after** the fact, which matches many real PDIs.
+
+**Not claiming:** A business application record proves **no** outage blast radius, **no** Service Mapping
+map, and **no** real Payments deployment in AWS.
+
+### Step 6 — Find **Business Applications** in Navigator (do this next)
+{: #hands-on-step-6}
+
+**Your next action (parent):** In **All**, search **`Business Application`** (singular or plural) and
+**write down every module line** that appears — do **not** create a record until you know which entry
+you used.
+
+Typical patterns ( **your list may differ** — not guaranteed on every PDI):
+
+| If you see something like… | Likely intent |
+|---|---|
+| **Configuration** → **Business Applications** | Classic **business application** list (`cmdb_ci_business_app`) |
+| **CSDM** → **Design** (or **Manage Portfolio**) → **Business Application** | CSDM-aligned design domain |
+| **Enterprise Architecture** / workspace tiles | Portfolio views — may need extra roles (**not** verified here) |
+
+Open the list and confirm the table behind it (list title or form table name). **Screenshot checkpoint:**
+list header + navigator breadcrumb (no tenant secrets). **No** screenshot shipped for this step in the repo
+yet.
+
+### Step 7 — Create a learning **Business Application** record
+{: #hands-on-step-7}
+
+**Suggested learning name:** **`Payments`** on **`cmdb_ci_business_app`** — distinct from application
+service **`Payments (lab)`** so you can explain **design vs deploy**.
+
+| Field | Learning intent |
+|---|---|
+| **Name** | `Payments` (or your org’s naming standard) |
+| **Short description** | State it is a **learning** record; **no** production payment system |
+| Other portfolio fields | Fill only if your instance marks them required |
+
+**Roles:** Enterprise Architecture / portfolio features may need roles beyond **`app_service_admin`** — if
+**New** is missing, note entitlement; do not assume **`admin`** sees every module.
+
+**Expected:** A saved **`cmdb_ci_business_app`** row exists — **you** must confirm; this doc does **not**
+claim you already created it.
+
+### Step 8 — Relate business application ↔ application service
+{: #hands-on-step-8}
+
+Pick **one** supported path (verify on your instance):
+
+**Path 1 — Application service form (observed in product guidance):**
+
+1. Open **`Payments (lab)`** (class **`cmdb_ci_service_discovered`**).
+2. **Related items** → add **CI relationship** (wording varies).
+3. Relationship type: prefer **Used by** (parent/child direction per editor) or the pair your instance
+   labels **Uses** / **Used by** for CSDM v5 ([CI relationships](https://www.servicenow.com/docs/r/servicenow-platform/common-service-data-model-csdm/ci-relationships.html)).
+4. Related CI class **`cmdb_ci_business_app`**, select **`Payments`**.
+
+**Path 2 — Wizard-style link (if you recreate or edit in wizard):** **Basic Details** → **Business
+Application** tab → move **`Payments`** to **Selected** ([Create a service instance](https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/create-it-services.html)).
+
+**Path 3 — Business application form:** Related list pointing at the application service — only if your form
+exposes it (not guaranteed).
+
+**Screenshot checkpoint:** relationship row showing **types + sys_ids/names** (redact if needed).
+
+**Expected:** One supported **business application ↔ application service** relationship — **not** automatic
+proof of impact analysis, **not** **`cmdb_rel_ci` Depends on** completeness for infrastructure.
+
+### Step 9 — Service offerings (optional; do not fill every box)
+{: #hands-on-step-9}
+
+Only if your curriculum needs catalog/portfolio depth:
+
+- **`service_offering`** with **Service classification** = **Technical Service** — technology management
+  delivery ([application services](https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/application-services.html) doc).
+- **`service_offering`** with **Service classification** = **Business Service** — customer-facing packaging.
+
+Link offerings in wizard **Set Relationships** or equivalent relationship editors — same rule: use **typed**
+relationships your instance lists. **Skipping Step 9 is valid** for this AWS connector lab.
+
+### Checkpoint B — broader CSDM (in progress until you verify)
+{: #hands-on-checkpoint-b}
+
+<ul class="check">
+<li>You located <b>Business Applications</b> via Navigator and noted which module path you used</li>
+<li>You can explain <b>business application</b> (<code>cmdb_ci_business_app</code>) vs <b>application service</b> (<code>Payments (lab)</code> / <code>cmdb_ci_service_discovered</code>) in plain language</li>
+<li>You created or intentionally deferred <b>Payments</b> on <code>cmdb_ci_business_app</code> with learning wording</li>
+<li>You added a supported <b>Uses</b>/<b>Used by</b> (or instance-equivalent) link — not <b>Consumes</b> unless EA workspace requires it per docs</li>
+<li>You do <b>not</b> claim business service catalog completeness, real Payments ROI, or AWS workload changes</li>
+</ul>
+
+### Lab 7 overall status
+{: #lab7-overall-status}
+
+| Milestone | Status on this page |
+|---|---|
+| **Part A** — manual application service + View Map | **Minimum** lab checkpoint ([Checkpoint A](#hands-on-checkpoint-a)) |
+| **Part B** — business application + relationship | **Continuation** — execution **pending** until you complete Steps 6–8 |
+| **Step 9** offerings | **Optional** |
+| **Full CSDM “every box”** | **Not** required; arbitrary offering trees discouraged |
 
 ---
 
@@ -503,6 +649,7 @@ timeline dates may differ.*
 | **CIDR** | Classless Inter-Domain Routing | How IP address ranges are written (e.g. `10.42.0.0/16`) |
 | **CMDB** | Configuration Management Database | ServiceNow database of CIs and relationships |
 | **CSDM** | Common Service Data Model | ServiceNow standard for services linked to CIs |
+| **EA** | Enterprise Architecture | Workspace/products that may require **Consumes** relationship naming per docs |
 | **EBS** | Elastic Block Store | Disk volume attached to an EC2 instance |
 | **EC2** | Elastic Compute Cloud | AWS virtual server product |
 | **ETL** | Extract, Transform, Load | Connector step that maps AWS fields to CMDB columns ([Lab 6]({{ '/labs/06-etl-mappings/' | relative_url }})) |
@@ -530,6 +677,9 @@ from product definitions — expand acronyms in the prose beside them.
 |---|---|
 | Create application service / wizard | https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/create-it-services.html |
 | Manual population | https://www.servicenow.com/docs/r/zurich/servicenow-platform/configuration-management-database-cmdb/populate-app-service-manual.html |
+| Application services (types, offerings) | https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/application-services.html |
+| CI relationships in CSDM | https://www.servicenow.com/docs/r/servicenow-platform/common-service-data-model-csdm/ci-relationships.html |
+| Required relationships (wizard settings) | https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/modify-req-fields-appservice.html |
 | Amazon VPC overview | https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html |
 | Lab inventory template | https://github.com/eltonaguiar/ServiceNow_ServiceGraph_Lab/blob/main/aws/lab-stack.yaml |
 
@@ -538,7 +688,8 @@ from product definitions — expand acronyms in the prose beside them.
 ## What is next
 {: #whats-next}
 
-Lab 8 (optional in the full curriculum) adds a **second cloud source** and reconciliation — only
-after one service model makes sense on paper.
+Finish [Part B](#hands-on-part-b) if you want a **business application** linked to **`Payments (lab)`**.
+Lab 8 (optional) adds a **second cloud source** and reconciliation — only after your service model makes
+sense on paper.
 
 Next: [Lab 8 — multisource CMDB with Azure]({{ '/labs/08-multisource-azure/' | relative_url }}) (optional track)
