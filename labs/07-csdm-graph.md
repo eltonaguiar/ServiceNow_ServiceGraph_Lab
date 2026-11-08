@@ -83,6 +83,8 @@ permalink: /labs/07-csdm-graph/
       <li><a href="#hands-on-part-c-scenario">Scenario A / B (CI choice)</a></li>
       <li><a href="#hands-on-part-c-fields">Field-by-field (you create)</a></li>
       <li><a href="#hands-on-part-c-verify">Verify after Submit</a></li>
+      <li><a href="#hands-on-part-c-observed">Observed run INC0010001</a></li>
+      <li><a href="#hands-on-part-c-resolution-troubleshooting">Resolution troubleshooting</a></li>
       <li><a href="#hands-on-part-c-resolve">Resolve / keep for audit</a></li>
       <li><a href="#hands-on-part-c-checkpoint">Checkpoint C</a></li>
       <li><a href="#hands-on-part-c-screenshots">Screenshot inventory</a></li>
@@ -1042,9 +1044,10 @@ record must exist first and be chosen as **Parent**. The prefilled **Child** is 
 {: #hands-on-part-c}
 
 **Purpose:** Tie **Incident Management** reference fields on table **`incident`** to the **CSDM records you
-already built** — without pretending this lab caused a real outage. This is **Part C** on the same page;
-**the course repo does not create incidents for you**, and **no practice incident is marked done** until
-**you** Submit on **your** PDI.
+already built** — without pretending this lab caused a real outage. This is **Part C** on the same page.
+**You** perform Submit/Resolve on **your** PDI. One **observed** run is documented below as **INC0010001**
+(t567–571); your number will differ. **No** blanket “all of Lab 7 is done” — **Step 11** capability remains
+**pending**.
 
 **Prerequisites:** [Checkpoint A](#hands-on-checkpoint-a) and [Checkpoint B](#hands-on-checkpoint-b) records
 (or equivalent): **`Payment Processing`**, **`Payment Processing — Development`**, **`Payments (lab)`**,
@@ -1087,7 +1090,7 @@ Pick **one** CI story and keep **Service** / **offering** aligned with the **cus
 
 | Field (observed label) | Required? | Value / action |
 |---|---|---|
-| **Caller** | Yes (*) | **Lookup** an existing user — typically **yourself** or your designated **lab tester** on the PDI (**do not** invent names or emails in docs). |
+| **Caller** | Yes (*) | **Lookup** an existing **`sys_user`** — yourself or a sample user on the PDI. Observed run used **Abel Tuter** (common demo user when present); use whoever **your** lookup returns. |
 | **Service** | Process-dependent | **`Payment Processing`** — base **`cmdb_ci_service`** reference ([proof](#hands-on-incident-service-reference)). |
 | **Service offering** | Process-dependent | **`Payment Processing — Development`** — must be valid for selected **Service** per **your** qualifier. |
 | **Configuration item** | Optional on many forms | Scenario **A:** **`Payments (lab)`** if eligible; else **B:** **`sgclab-app-01`**. |
@@ -1125,42 +1128,105 @@ record (number/name match).
 business service are **separate** — filling the ticket does **not** prove the graph updated or that Event
 Management will correlate alerts.
 
+### Observed execution — INC0010001 (one PDI; t567–571)
+{: #hands-on-part-c-observed}
+
+**Reported on one instance** (reopened/created, then resolved). **Do not** treat this number as yours.
+
+| Area | Observed value |
+|---|---|
+| **Number** | **INC0010001** |
+| **Caller** | **Abel Tuter** (`sys_user` lookup) |
+| **Service** | **Payment Processing** |
+| **Service offering** | **Payment Processing — Development** |
+| **Configuration item** | **`Payments (lab)`** (scenario **A**) |
+| **Short description / Description** | Prior **`[LAB TEST]`** simulation wording (no real outage) |
+| **Impact / Urgency / Priority** | **3 - Low** / **3 - Low** / **4 - Low** |
+| **Assignment group / Assigned to** | **Blank** |
+| **Final state** | **Resolved** (banner: *INC0010001 has been resolved*) — **not** **Closed**; retained for audit |
+
+**Related lists (verified on form — screenshots not in repo this run):**
+
+| Related list | Count | Observed row (summary) | Interpretation |
+|---|---|---|---|
+| **Affected CIs** | 1 | **`Payments (lab)`** | Tied to **`cmdb_ci`** on the incident — not proof of automatic graph walk. |
+| **Impacted Services / CIs** | 1 | **Payment Processing**, **operational_status** **Operational** | Row showed **`Manually added` = `true`** — a **list flag**, **not** proof you clicked **Add** and **not** proof of dependency-based impact inference. |
+| **Service Offerings** | 1 | **Payment Processing — Development**; **Parent** **Payment Processing**; **Phase** **Pipeline**; **Status** **Requirements** | Portfolio fields on the offering row — **not** EC2 run state and **not** incident priority proof. |
+
+**Knowledge / Related Search:** **Related Search** on the incident **did not** surface linked knowledge articles
+in this run — empty is normal without **Knowledge Management** links, **search** configuration, or published
+articles tied to the service/CI.
+
+**Screenshots:** User verified related lists and resolved banner in the UI, but **file transfer failed** for
+those captures — **no** Part C PNGs were added this publish; see [inventory](#hands-on-part-c-screenshots).
+
+### Resolution mandatory fields (troubleshooting)
+{: #hands-on-part-c-resolution-troubleshooting}
+
+**First Resolve attempt on INC0010001** failed until mandatory **Resolution code** and **resolution notes**
+were filled (exact field labels on **your** form may say **Close code** / **Close notes** in other releases).
+
+**Resolution code** dropdown values **observed** on that PDI (complete list — pick one honestly for a lab):
+
+| Choice |
+|---|
+| Duplicate |
+| Known error |
+| No resolution provided |
+| Resolved by caller |
+| Resolved by change |
+| Resolved by problem |
+| Resolved by request |
+| Solution provided |
+| Workaround provided |
+| User error |
+
+**Observed pick:** **No resolution provided** — appropriate for a simulation with **no** technical repair.
+
+**Resolution notes used (observed):**
+
+> Lab simulation completed. Verified the saved service, offering, configuration item, and related lists. No actual outage occurred and no technical repair was performed.
+
+**If Resolve blocks you:** Read the red banner for missing fields; open **Resolution Information** (or equivalent)
+section; do **not** skip notes when the form marks them mandatory. **Do not** assume **Close** is required — this
+run stopped at **Resolved**.
+
 ### Resolve / keep for audit (do not delete)
 {: #hands-on-part-c-resolve}
 
-When finished practicing, move the ticket through **your** instance’s resolution path (e.g. **Resolve** or
-**Close**). **Required fields on resolve** (**Close code**, **Close notes**, **Resolution notes**, etc.) are
-**instance-dependent** — read the red asterisks on **your** form; **do not** copy fictional close codes from
-this page.
+When finished practicing, move the ticket through **your** instance’s resolution path. See
+[Resolution troubleshooting](#hands-on-part-c-resolution-troubleshooting) for mandatory-field errors.
 
 | Goal | Action |
 |---|---|
-| **Mark simulation complete** | Set state to **Resolved** / **Closed** per your PDI, with close notes stating **lab test only**. |
-| **Preserve audit trail** | **Do not delete** the incident — keep it for learning history and dictionary verification. |
+| **Mark simulation complete** | **Resolved** with honest resolution code + notes (observed: **No resolution provided**). |
+| **Preserve audit trail** | **Do not delete** **INC0010001** (or your ticket) — keep references and related lists for audit. |
 | **Avoid noise** | If notifications fired, acknowledge they were expected on a misconfigured PDI and adjust assignment rules later with an admin. |
 
-### Checkpoint C — practice incident (pending until you Submit)
+### Checkpoint C — practice incident
 {: #hands-on-part-c-checkpoint}
 
 <ul class="check">
-<li>You created **one** saved incident **yourself** with <code>[LAB TEST]</code> short description</li>
-<li><b>Service</b> + <b>offering</b> + <b>CI</b> tell a consistent story (scenario A or B)</li>
-<li>You verified references on the saved form — not only the dependency graph</li>
-<li>You resolved or left open per policy, **without** deleting the record</li>
-<li>You understand <b>no</b> automatic routing/impact from CSDM links alone</li>
+<li><b>Observed PDI (t567–571):</b> <b>INC0010001</b> saved with <code>[LAB TEST]</code> story, scenario <b>A</b> CI <code>Payments (lab)</code>, low impact/urgency, related lists verified as documented</li>
+<li><b>Observed PDI:</b> Resolved with mandatory resolution fields; state <b>Resolved</b> (not Closed); record retained</li>
+<li><b>Your PDI:</b> Match the checkpoints above on <b>your</b> incident number if you have not run Part C yet</li>
+<li><b>Business capability</b> (Step 11) — still <b>not</b> done; Lab 7 overall remains open on capability</li>
+<li>You understand <b>Manually added</b> and related lists do <b>not</b> prove automatic CSDM impact propagation</li>
 </ul>
-
-<p><strong>Repo status:</strong> Part C instructions are published; <strong>no</strong> incident number is
-recorded here — execution is <strong>pending on your PDI</strong>.</p>
 
 ### Screenshot inventory (Part C)
 {: #hands-on-part-c-screenshots}
 
-| Step | Status |
+**Published elsewhere on Lab 7 (keep — do not remove):** `choose-method-dropdown-top.png`,
+`choose-method-dropdown-scrolled.png`, `payments-lab-screenshot.png`, `payments-lab-view-map.png`,
+`business-service-payment-processing.png`, `business-capability-relationship-unsaved.png`.
+
+| Part C capture | Status |
 |---|---|
-| Unsaved incident form (Caller, Service, offering, CI) | **Missing** — user capture; prior transfer failed |
-| Saved incident reference fields | **Pending** after you Submit |
-| Resolve / close notes | **Pending** — instance-specific |
+| Unsaved / new incident form | **Missing** |
+| Saved incident reference fields | **Missing** |
+| Related lists (Affected / Impacted / Offerings) | **Missing** — verified in UI t567–571; transfer failed |
+| Resolved banner (**INC0010001**) | **Missing** — transfer failed |
 
 ---
 
@@ -1171,10 +1237,10 @@ recorded here — execution is <strong>pending on your PDI</strong>.</p>
 |---|---|
 | **Part A** — wizard + Manual + View Map entry | **Done** (minimal checkpoint) |
 | **Part B** — business app, business service, offering, links | **Done** on reported PDI |
-| **Part C** — saved practice incident | **Pending — you create on PDI** |
+| **Part C** — practice incident | **Done** on reported PDI (**INC0010001**, Resolved, audit retained) |
 | **Step 11** — business capability | **Pending** |
 | **Every CSDM object / technical management service** | **Not** required |
-| **Lab 7 “complete”** | **Honest:** connector + portfolio + optional incident practice; capability still open |
+| **Lab 7 “complete”** | **Not claimed** — capability + any unmatched personal milestones may remain open |
 
 
 ### Lab 7 requirements audit matrix (t557–t561)
@@ -1189,7 +1255,7 @@ recorded here — execution is <strong>pending on your PDI</strong>.</p>
 | **`business_service` → base `cmdb_ci_service`** + qualifier caveats | `#hands-on-incident-service-reference` | Deployed (no incident list PNG) |
 | Sanitized **Service** export + **`used_for`** vs **Environment** | `#hands-on-incident-service-reference`, `#hands-on-service-field-semantics` | Deployed (CSV not attached) |
 | Unsaved incident exercise (**no Submit**) | `#hands-on-incident-unsaved-exercise` | Deployed |
-| **Part C** — create practice incident (user performs) | `#hands-on-part-c` | Deployed (execution **pending**) |
+| **Part C** — practice incident + observed **INC0010001** | `#hands-on-part-c`, `#hands-on-part-c-observed` | Deployed (Part C PNGs **missing**) |
 | Part B steps + relationships + checkpoints | Part B sections | Deployed |
 | Business capabilities **not** created | Step 11 + screenshots | PNGs in `assets/img/lab07/` |
 | Incident form screenshot | **Not published** — transfer failed; no fabrication | **Gap** — user to re-attach later |
