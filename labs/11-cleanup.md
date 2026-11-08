@@ -128,11 +128,35 @@ Setup context and narrow resource types: [Lab 3 — AWS Config]({{ '/labs/03-iam
 
 5. **Express mode:** If you use accelerated delete, treat **DELETE_COMPLETE** as a milestone — confirm background cleanup per AWS guidance and stack **Events**.
 
-6. **S3 bucket (required when `Retain`):** Open **S3** → delivery bucket → **Empty** (handle **versioning** if enabled) → **Delete bucket** when you accept **permanent data loss** for Config history objects. **Observed snapshot:** **16** objects emptied, bucket deleted.
+6. **S3 bucket (required when `Retain`):** Open **S3** → delivery bucket → **Empty** (handle **versioning** if enabled) → **Delete bucket** when you accept **permanent data loss** for Config history objects.
 
-7. **Stack `sg-aws-snow-role`:** Delete when no longer needed (after connector identity teardown). **Observed snapshot:** **DELETE_COMPLETE**.
+![S3 empty bucket status — 16 objects deleted, 0 failures]({{ '/assets/img/lab11/config-bucket-emptied.png' | relative_url }})
+*Observed: **Successfully deleted 16 objects** (19.8 KB); **Failed to delete 0**.*
 
-8. **Other Regions / accounts:** Repeat **Config Settings** per Region if recording was enabled elsewhere.
+![S3 bucket not found after delete]({{ '/assets/img/lab11/config-bucket-deleted.png' | relative_url }})
+*Observed: bucket name no longer listed — delete complete.*
+
+7. **Stack `sg-aws-snow-role`:** Delete when no longer needed (after connector identity teardown).
+
+![CloudFormation — three lab stacks DELETE_COMPLETE; snow-role stack Resources show role DELETE_COMPLETE]({{ '/assets/img/lab11/stacks-role-delete-complete.png' | relative_url }})
+*`sgclab`, `sg-aws-config`, `sg-aws-snow-role` **DELETE_COMPLETE**; **`SnowOrganizationAccountAccessRole`** **DELETE_COMPLETE** on observed account.*
+
+8. **Ohio residual checks (observed):** After stacks are gone, spot-check EC2 / EBS / snapshots / Elastic IPs in the lab region.
+
+<details markdown="1">
+<summary><strong>Ohio footprint screenshots (0 volumes, 0 owned snapshots, 0 Elastic IPs, instance Terminated)</strong></summary>
+
+![EC2 Volumes — none in region]({{ '/assets/img/lab11/no-volumes.png' | relative_url }})
+
+![EBS Snapshots — owned by me: 0]({{ '/assets/img/lab11/no-owned-snapshots.png' | relative_url }})
+
+![EC2 Elastic IP addresses — none allocated]({{ '/assets/img/lab11/no-elastic-ips.png' | relative_url }})
+
+![EC2 instance sgclab-app-01 — Terminated]({{ '/assets/img/lab11/instance-terminated.png' | relative_url }})
+
+</details>
+
+9. **Other Regions / accounts:** Repeat **Config Settings** per Region if recording was enabled elsewhere.
 
 **Status:** Observed snapshot shows **three stacks deleted**, **Config off**, **retained bucket removed**, **Ohio lab compute/storage checks clean**, **keys revoked**, and **parent AWS schedule inactive (verified)** — **child schedules may still show Active**; **optional** IAM user delete; **billing** estimate lag. **Do not** mark Lab 11 complete for all learners or claim universal $0 / no future charges.
 
