@@ -90,7 +90,7 @@ capabilities — it does not host your app, run payment software, or prove live 
       <li><a href="#hands-on-part-c-resolution-troubleshooting">Resolution troubleshooting</a></li>
       <li><a href="#hands-on-part-c-resolve">Resolve / keep for audit</a></li>
       <li><a href="#hands-on-part-c-checkpoint">Checkpoint C</a></li>
-      <li><a href="#hands-on-part-c-screenshots">Screenshot inventory</a></li>
+      <li><a href="#hands-on-part-c-screenshots">Screenshots</a></li>
     </ul>
   </div>
   <div>
@@ -695,12 +695,8 @@ timeline dates may differ.*
 | Manual **Save** / green toast / method card | **Missing** this batch — use Step 3b text |
 | **Preview** Relationships vs Population summary | **Missing** this batch — use Step 4 table |
 | **View Map** | Published (`payments-lab-view-map.png`) |
-| **Payment Processing** + empty **Business Capabilities** | Published (`business-service-payment-processing.png`) — on **`main`** and [live Lab 7](https://eltonaguiar.github.io/ServiceNow_ServiceGraph_Lab/labs/07-csdm-graph/#hands-on-step-7) |
-| **Offering `Payment Processing — Development`** (new form / **Offerings** row) | **Missing** — no PNG in repo |
-| **Wizard Step 9** — offering **Depends on::Used by** → **`Payments (lab)`** preview | **Missing** — no PNG in repo |
+| **Payment Processing** business service form | Published (`business-service-payment-processing.png`) |
 | **Unsaved** capability **CI Relationship** trap | Published (`business-capability-relationship-unsaved.png`) |
-
-**Orphan duplicates on `main` (same bytes as embedded files — do not add a second embed):** `payment-processing-empty-business-capabilities.png`, `capability-ci-relationship-trap-unsaved.png`.
 
 ---
 
@@ -987,18 +983,13 @@ System number and timestamps may differ on your PDI.*
 On **`Payment Processing`** → **Offerings** → **New**: parent **Payment Processing**, name **Payment
 Processing — Development**, matching lifecycle/classification.
 
-**Screenshot gap (repo audit):** There is **no** dedicated **service offering** form or **Offerings → New**
-capture in this repository. The [Step 7](#hands-on-step-7) image is the **business service** form (caption
-notes **Offerings** tab with **1** related row when captured after the offering exists). Do not treat unrelated
-lab PNGs as offering evidence.
+*No separate screenshot for the offering form or Step 9 wizard preview is in this repo yet.*
 
 ### Step 9 — Link offering → application service
 {: #hands-on-step-9}
 
 Wizard **Business Service Offering** tab: select the Dev offering → **Update**. **Preview** should show
 **Depends on::Used by** from offering parent to **`Payments (lab)`** child (observed).
-
-**Screenshot gap:** No **wizard preview** PNG for Step 9 is committed (see [screenshot inventory](#hands-on-part-c-screenshots)).
 
 ### Step 10 — View Map vs Dependency Views
 {: #hands-on-views}
@@ -1272,32 +1263,10 @@ When finished practicing, move the ticket through **your** instance’s resoluti
 <li>You understand <b>Manually added</b> and related lists do <b>not</b> prove automatic CSDM impact propagation</li>
 </ul>
 
-### Screenshot inventory (Lab 7 — published vs missing)
+### Screenshots (Lab 7)
 {: #hands-on-part-c-screenshots}
 
-**Published (repo — do not remove):**
-
-| File | Used for |
-|---|---|
-| `choose-method-dropdown-top.png` | Step 3 — **Choose a Method** (top) |
-| `choose-method-dropdown-scrolled.png` | Step 3 — dropdown scrolled |
-| `payments-lab-screenshot.png` | Step 4 — wizard **Preview** |
-| `payments-lab-view-map.png` | Step 5 — **View Map** entry point |
-| `business-service-payment-processing.png` | Step 7 — business service form; **published on main/live** |
-| `business-capability-relationship-unsaved.png` | Step 11 — **historical** unsaved-trap only |
-
-**Not embedded (duplicate bytes — keep off the page):** `payment-processing-empty-business-capabilities.png`, `capability-ci-relationship-trap-unsaved.png`.
-
-**Missing (verified in UI; no suitable repo file — do not substitute unrelated PNGs):**
-
-| Capture | Session / step |
-|---|---|
-| **Offering** create/save — **`Payment Processing — Development`** | Step 8 |
-| Application service wizard — **Business Service Offering** / **Depends on::Used by** preview | Step 9 |
-| Saved capability form **Accept Customer Payments** | t574–580 |
-| **Business Capabilities (1)** saved relationship row | t574–580 |
-| Five-node **Dependency Views** after capability | t580 |
-| Part C incident related lists / resolved banner | t567–571 |
+Published PNGs appear inline in Part A/B (wizard, View Map, business service, capability trap). **Offering details**, **Depends on** wizard preview, saved capability, five-node dependency view, and Part C incident captures are **not** in the repo yet — UI work on the reported PDI can still be **done** without those files.
 
 ---
 
@@ -1312,7 +1281,7 @@ When finished practicing, move the ticket through **your** instance’s resoluti
 | **Part C** — practice incident | **Done** on reported PDI (**INC0010001**, Resolved, audit retained) |
 | **Technical management service** | **Not** in scope (optional future) |
 | **Service Mapping / real discovery / payment software** | **Not** claimed |
-| **Published curriculum (this page)** | **Complete** for required hands-on track; screenshots partial — see [inventory](#hands-on-part-c-screenshots) |
+| **Published curriculum (this page)** | **Complete** for required hands-on track; some steps lack PNGs |
 
 ### Lab 7 completion criteria (curriculum audit — t581)
 {: #lab7-completion-criteria}
