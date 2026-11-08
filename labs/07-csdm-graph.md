@@ -34,6 +34,8 @@ permalink: /labs/07-csdm-graph/
       <li><a href="#pre-lab-storage">Compute, disk, databases</a></li>
       <li><a href="#pre-lab-template">Our lab stack (template)</a></li>
       <li><a href="#pre-lab-csdm">What CSDM adds</a></li>
+      <li><a href="#pre-lab-csdm-domains">CSDM domains (ELI5)</a></li>
+      <li><a href="#pre-lab-workshop-questions">Workshop questions → records</a></li>
       <li><a href="#pre-lab-maturity">What is automatic vs manual</a></li>
       <li><a href="#pre-lab-enterprise-mapping">Enterprise scale (hypothetical)</a></li>
     </ul>
@@ -60,6 +62,9 @@ permalink: /labs/07-csdm-graph/
       <li><a href="#csdm-plain-language">Design vs deploy vs offering</a></li>
       <li><a href="#hands-on-outage-example">Outage story (Incident)</a></li>
       <li><a href="#hands-on-incident-fields">Incident form fields</a></li>
+      <li><a href="#hands-on-incident-service-reference">Service → cmdb_ci_service (base)</a></li>
+      <li><a href="#hands-on-incident-unsaved-exercise">Incident walkthrough (no Submit)</a></li>
+      <li><a href="#lab7-requirements-audit">Requirements audit matrix</a></li>
       <li><a href="#hands-on-relationship-guide">Relationship guide</a></li>
       <li><a href="#hands-on-how-populated">How relationships get here</a></li>
       <li><a href="#hands-on-records-eli5">Records + navigation</a></li>
@@ -220,6 +225,74 @@ linking technical **configuration items (CIs)** to **services** (things the busi
 
 **ServiceNow** holds **metadata**: classes, attributes, relationships, owners. **AWS** still runs
 the VM. **This lab** does not move workloads into ServiceNow.
+
+### CSDM domains — ELI5 (version-aware official names)
+{: #pre-lab-csdm-domains}
+
+**Common Service Data Model (CSDM) 5** groups CMDB data into **seven domains** (plus shared
+**Foundation** data). Names come from ServiceNow’s CSDM framework docs; your Navigator labels may
+truncate or differ by release ([Exploring CSDM](https://www.servicenow.com/docs/r/yokohama/servicenow-platform/common-service-data-model-csdm/csdm-content-frame-exploring.html)).
+
+| Domain (official CSDM 5) | ELI5 purpose | Typical personas | Lab 7 touchpoint |
+|---|---|---|---|
+| **Foundation** | Address book of the enterprise — company, location, groups, contracts. | Admin, HR-adjacent | Imported AWS **datacenter/region** CIs indirectly |
+| **Ideation & Strategy** | Ideas and investments before build — goals, demand, portfolio choices. | Portfolio manager, SPM | **Not filled** — optional in real firms |
+| **Design & Planning** | **Blueprint** — what we *plan* to own (apps, capabilities, information). | Enterprise architect, app owner | **`Payments`** business application; **capability** pending |
+| **Build & Integration** | How software is built, pipelines, integration endpoints. | DevOps, integration | **Out of scope** — no real CI/CD in lab |
+| **Service Delivery** | **Running** technology that delivers value — infrastructure, **service instances**, integrations. | Ops, cloud, CMDB | **Connector** imports; **`Payments (lab)`** service instance; **`sgclab-app-01`** |
+| **Service Consumption** | **Business-facing** services customers or internal users experience. | Service owner, SPM | **`Payment Processing`** + **Dev offering** |
+| **Manage Portfolios** | Cross-domain portfolio governance (spanning products). | Portfolio office | **Mention only** — we use SPM lists, not full governance |
+
+**Release-aware display names (CSDM v5 alignment):** Product documentation re-labels some tables for clarity
+— for example **Application Service** / **`cmdb_ci_service_auto`** often appears as **Service Instance** in
+current docs, and **Technical service** as **Technology management service**
+([Exploring CSDM](https://www.servicenow.com/docs/r/yokohama/servicenow-platform/common-service-data-model-csdm/csdm-content-frame-exploring.html)).
+Your PDI may still show older Navigator text.
+
+**Design vs delivery (critical for Incident):** Official **Design** domain guidance states records such as
+**business application** and **business capability** support planning; they are **not** the usual direct
+targets for **Incident**, **Problem**, and **Change** processes the way operational **service** and
+**CI** references are ([Design domain](https://www.servicenow.com/docs/r/yokohama/servicenow-platform/common-service-data-model-csdm/design-domain.html)).
+**`Payments`** (business application) is **portfolio software design**, not proof a **deployment** is down.
+
+<details markdown="1">
+<summary><strong>Hypothetical enterprise implementation (payments — not mandatory to complete every cell)</strong></summary>
+
+| Real-world question | CSDM / domain lane | Example record (hypothetical) | Owner (typical) | Evidence | Relationship (example) | Validation |
+|---|---|---|---|---|---|---|
+| What customer outcome broke? | **Service Consumption** | Business service **Payment Processing** | Service owner | SLA/CSAT deck | Offering **Depends on** app service | Owner signs dependency view quarterly |
+| Which users / channel? | **Service Consumption** | Offering **Prod** vs **Dev** variants | Product owner | Support matrix | Offering **Parent** → business service | Ticket samples use correct offering |
+| What did we promise in support? | **Service Consumption** + process | Offering description, hours, priority | Support lead | Contract excerpt | Links to knowledge articles | Audit random incidents |
+| What software is in the portfolio? | **Design & Planning** | **`cmdb_ci_business_app` Payments** | App owner | EA repository | **Consumes** → service instance | EA review — **not** ops uptime proof |
+| What runs in Dev vs Prod? | **Service Delivery** | **`Payments-Dev`** / **`Payments-Prod`** instances | Ops | Tag/env conventions | **Manual** or mapped CIs | Map vs CMDB Health |
+| Shared platform (DB, network)? | **Service Delivery** | **Technology management service** (not built here) | Platform team | Runbooks | **Depends on** edges | Platform map review |
+| What capability does this enable? | **Design & Planning** | **`cmdb_ci_business_capability`** (pending) | Business architect | Capability map | **Provided by::Provides** → business service | DPM workspace check |
+| Where does inventory come from? | **Service Delivery** + **Foundation** | AWS connector, Discovery, manual | Cloud admin | Import job history | **`cmdb_rel_ci`** from imports | Reconcile duplicates via **IRE** |
+| Who answers the incident? | ITSM process + **Foundation** | Assignment group, support group on CI | Service desk lead | Routing table | **Optional** rules on **cmdb_ci** | Tabletop — **no** auto guarantee |
+
+You **do not** need every row populated on a PDI. This lab intentionally stops with a **thin** slice:
+connector inventory + one **service instance** + one **business service** stack + **no** capability.
+
+</details>
+
+### Question-led setup (interview / workshop method)
+{: #pre-lab-workshop-questions}
+
+Use questions in order — skip sections your organization has not prioritized.
+
+1. **Customer / outcome:** “If checkout failed, what would executives *name* as broken?” → the **business-facing name** you store for **Service Consumption** (here **`Payment Processing`**). On **Incident**, the **Service** column **`business_service`** references the **base** table **`cmdb_ci_service`**, which can include **multiple service subclasses** depending on **reference qualifiers** — not only **`cmdb_ci_service_business`**.
+2. **Variation:** “Retail vs mobile vs internal Dev?” → **service offerings** (`service_offering`) — our **Payment Processing — Development** is one flavor, not a universal naming scheme.
+3. **Deployment:** “Which *running stack* maps to that offering?” → **service instance** (`cmdb_ci_service_discovered` / **`Payments (lab)`**).
+4. **Gear:** “Which server or cloud object is suspect?” → **configuration item** (`cmdb_ci_*` — e.g. **`sgclab-app-01`**).
+5. **Portfolio software:** “Which product in the catalog is related?” → **business application** — design only; link via **Consumes::Consumed by**, **not** as substitute for **CI**.
+6. **Capability:** “Which business ability does this support?” → **business capability** — relationship **Provided by::Provides** (Step 11 pending).
+7. **Shared tech:** “Who owns the shared database cluster?” → **technology management service** — documented, **not** created in this lab.
+8. **Proof:** “What import or scan created this CI?” → connector / Discovery evidence + **IRE** — validate before trusting impact.
+9. **Incident drill:** “What would agents type on a **new** incident?” → [Incident walkthrough](#hands-on-incident-unsaved-exercise) — **do not Submit**.
+
+**Manual vs automatic (methodology):** Start **manual** on one pilot (this lab), define **owners** and
+**validation**, then layer **connector**, **Discovery**, and **Service Mapping** only where licence,
+credentials, and network path exist ([application services](https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/application-services.html)).
 
 ---
 
@@ -642,7 +715,7 @@ Imagine a caller says: *“Customers cannot pay online.”*
 
 | Layer | Record in this lab | What Incident cares about |
 |---|---|---|
-| **Business service** | **Payment Processing** | **Business name** on the ticket — “what broke for the customer?” |
+| **Business service** | **Payment Processing** | **`incident.business_service`** (→ **`cmdb_ci_service`** base) — best **semantic** “what broke for the customer?” row when qualifiers allow |
 | **Business service offering** | **Payment Processing — Development** | **Which flavor** (here: internal Dev; not production). |
 | **Application service** | **Payments (lab)** | **Technical deployment** operators check — maps to CIs. |
 | **Configuration items** | **`sgclab-app-01`**, AWS datacenter CI, etc. | **Concrete gear** — stopped VM, network, region. |
@@ -657,23 +730,82 @@ automatically compute revenue impact or prove PCI scope.
 #### Incident form fields (typical — verify your PDI)
 {: #hands-on-incident-fields}
 
-On many instances, **Incident Management** exposes reference fields that *can* point at service graph rows
-when analysts or rules populate them. **Nothing in this lab configures automatic field sync** from CI
-outages to tickets.
+**Incident** extends **Task** on table **`incident`**. ServiceNow community CSDM–Incident alignment material
+maps CMDB references on the form to columns below (display labels vary by release and **Form Design**;
+confirm on **Incident → Personalize form** or **sys_dictionary** for table **`incident`**).
 
-| Incident field (common label) | What to set in *this* lab story | ELI5 for the caller desk |
+| UI label often seen (unsaved **New** incident) | Column (typical) | Reference table | Qualifier / caveat |
+|---|---|---|---|
+| **Caller** (mandatory) | **`caller_id`** | **`sys_user`** | Person reporting — required OOB on many forms. |
+| **Short description** (mandatory) | **`short_description`** | (text) | One-line summary — required OOB. |
+| **Service** | **`business_service`** | **Base** **`cmdb_ci_service`** | Column name is historical; UI may still say **Service** or **Business service**. Reference is the **parent service table**, not **`cmdb_ci_business_app`**. See [Service reference proof](#hands-on-incident-service-reference). |
+| **Service offering** | **`service_offering`** | **`service_offering`** | Often filtered to offerings whose **Parent** matches **Service** — admins may add **reference qualifiers** and client scripts ([leading-practice community guide](https://www.servicenow.com/community/s/cgfwn76974/attachments/cgfwn76974/it-service-management-kb/1768/2/How%20to%20configure%20incident%20management%20to%20align%20with%20CSDM%20leading%20practice%20v3.pdf)). |
+| **Configuration item** | **`cmdb_ci`** | **`cmdb_ci`** | May restrict allowed **classes** (server, network gear, **application service** subclasses, etc.) — **your** qualifier decides whether **`Payments (lab)`** or only infrastructure CIs appear. |
+
+**Related lists (not on every form layout):** CSDM incident use cases also mention **`task_ci`** (affected /
+causal CIs) and **`task_cmdb_ci_service`** (impacted services). **Do not assume** your PDI shows them without
+personalizing the form ([Incident with CSDM 2.1 community PDF](https://www.servicenow.com/community/s/cgfwn76974/attachments/cgfwn76974/common-service-data-model-forum/2774/4/Incident%20Use%20Case%20for%20CSDM%202.1%20(002).pdf)).
+
+| Indirect graph (usually **not** the three reference fields above) | Table (typical) | How analysts might use it |
 |---|---|---|
-| **Business service** (or **Service**) | **`Payment Processing`** | “Which customer-facing service name are we talking about?” |
-| **Service offering** (if present) | **`Payment Processing — Development`** | “Which slice — here, internal Dev, not production checkout.” |
-| **Configuration item** | **`sgclab-app-01`** (optional) | “Which piece of gear might be involved?” — **stopped** VM, not live payment code. |
-| **Business application** (if present) | **`Payments`** | Portfolio context — design record, **not** proof the outage is in that codebase. |
-| **Affected application service** / **Service instance** (names vary) | **`Payments (lab)`** when your form has it | Ops view of the deployed stack tied to the map. |
-| **Category / Subcategory** | Your process | Process metadata — **not** set by this lab. |
-| **Assignment group** | Your process | Who fixes it — **not** derived from CSDM links alone without workflow rules. |
+| **Business application** | **`cmdb_ci_business_app`** | Portfolio context via **CMDB** / **CSDM** workspace — **not** deployment status. |
+| **Business capability** | **`cmdb_ci_business_capability`** | Strategy map — **we did not create** one in this lab. |
+| **Technology management service** | **`cmdb_ci_service_technical`** | Shared platform ownership — **not** modeled here. |
 
-**Honest limit:** Filling references helps humans and **may** feed **Event Management** rules **you**
-configure elsewhere. A green connector import or a saved **View Map** does **not** guarantee Incident
-gets the right service field on every alert.
+**Direct vs indirect:** **`business_service`**, **`service_offering`**, and **`cmdb_ci`** are **direct**
+incident references when present on the form. **Business application**, **capability**, and **technical
+management service** are usually **indirect** — reachable through **relationships**, reports, or optional
+custom fields, not a substitute for picking the operational **Service** / **CI** correctly.
+
+**No guaranteed automation:** OOB does **not** promise autofill from **`sgclab-app-01`**, **View Map**, or
+**Dependency Views** into **assignment group**, **priority**, **impact**, or impacted-service related lists.
+Those need **workflow**, **client scripts**, **Event Management**, or manual discipline.
+
+#### Incident `business_service` → base `cmdb_ci_service` (verified lookup pattern)
+{: #hands-on-incident-service-reference}
+
+On an unsaved **Incident**, open the **Service** reference picker (magnifying glass). One verified PDI builds a list URL like:
+
+`/cmdb_ci_service_list.do?sysparm_target=incident.business_service&sysparm_element=business_service&sysparm_reference=cmdb_ci_service&sysparm_view=sys_ref_list&sysparm_additional_qual=`
+
+| URL / metadata clue | What it means | What **not** to conclude |
+|---|---|---|
+| **`sysparm_reference=cmdb_ci_service`** | The field points at the **base** **Service** table, so **any eligible subclass row** may appear (business, application/service instance, technical, legacy rows still on the base class). | **Never** teach that only **Business Service** rows are selectable. |
+| **`sysparm_additional_qual` empty in the URL** | No *extra* qualifier was appended to this lookup request. | **Not** proof that **zero** filtering applies — **dictionary** entries, **dictionary overrides** on table **`incident`**, **dynamic reference qualifiers** (script), and **client scripts** can still limit classes. |
+| Dedicated class **`cmdb_ci_service_business`** (when used) | Narrower than the **base** table — common after business-service table split / migration. | Do not equate “business service” English wording with “only this subclass in the picker.” |
+| **`cmdb_ci_service_discovered`** / **Service Instance** rows | **Service Delivery** deployments such as **`Payments (lab)`**. | May or may not appear in **Service** pickers — depends on **your** qualifiers, not lab prose. |
+
+**Teach two layers:**
+
+1. **Semantic best match (storytelling):** For *“customers cannot pay”* language, prefer the **Service Consumption** name **`Payment Processing`** and matching offering **`Payment Processing — Development`** when those records exist and match the narrative — even if your **`cmdb_ci`** field points at **`sgclab-app-01`** or **`Payments (lab)`** for the technical layer.
+2. **Allowed classes (instance truth):** Only rows that pass **reference qualifiers** on **`incident.business_service`** are selectable. Right-click **Service** → **Configure dictionary** (or **System Definition → Dictionary**, element **`business_service`**, with **incident** override) to see **Reference**, **Reference qualifier**, and **Use reference qualifier** settings. Community examples filter to `sys_class_name=cmdb_ci_service_discovered` on some instances ([ITS forum thread](https://www.servicenow.com/community/itsm-forum/update-service-field-on-incident-form/td-p/672618)); others target **`cmdb_ci_business_service`** after migration ([CMDB blog](https://www.servicenow.com/community/cmdb-blog/migrating-business-services-from-base-cmdb-ci-service-to/ba-p/3266036)).
+
+**Repo honesty:** No incident list screenshot is published yet (transfer failed earlier). Verify pick-list contents on **your** PDI; do not treat this page as a screenshot of allowed rows.
+
+#### Unsaved incident walkthrough (hypothetical — do **not** Submit)
+{: #hands-on-incident-unsaved-exercise}
+
+**Learning exercise only.** Open **Incident Management → Incidents → New**. Fill fields mentally or with test
+values, then **leave the record unsaved** (close without **Submit**).
+
+**No screenshot in this repo for the incident form:** a transfer of that capture failed on the build
+environment; we do **not** publish a fabricated PNG. Use your PDI; field **labels** should resemble **Caller**,
+**Short description**, **Service**, **Service offering**, **Configuration item**.
+
+| Field | Hypothetical value for *this* lab story | When to pick differently |
+|---|---|---|
+| **Caller** | Your learning user | Always required on typical OOB forms. |
+| **Short description** | e.g. “Learning — Dev payment path unavailable (lab)” | Plain language; not proof of production outage. |
+| **Service** | **`Payment Processing`** when that row qualifies in **your** `cmdb_ci_service` picker | **Semantic** customer-facing choice (**Service Consumption**). **`Payments (lab)`** may appear in the same picker on some instances — still valid **only** if qualifiers allow; do not claim it is the only correct row without checking class and process. |
+| **Service offering** | **`Payment Processing — Development`** | Internal Dev slice — not prod checkout. |
+| **Configuration item** | **`sgclab-app-01`** if the story is **host/infrastructure** | Pick **`Payments (lab)`** instead only if **your** `cmdb_ci` qualifier allows the **service instance** class and that matches the suspected layer. |
+
+**Do not** set **Configuration item** to **`Payments`** business application — wrong table/class for
+**`cmdb_ci`**, and business application is **design**, not deployed runtime. **Do not Submit** — avoids
+polluting shared PDIs with practice tickets.
+
+**Honest limit:** This exercise practices **field semantics** only. It does **not** prove routing, priority,
+or impacted-service lists populate from CSDM links without **your** instance configuration.
 
 ### Relationship guide (types, direction, reference vs `cmdb_rel_ci`)
 {: #hands-on-relationship-guide}
@@ -749,7 +881,7 @@ for that edge ([modify required relationships](https://www.servicenow.com/docs/r
 |---|---|---|---|
 | **Business application `Payments`** | Design-time portfolio entry: “we own a Payments application concept.” | Optional **business application** on ticket — portfolio only. | **All** → **CSDM** → **Design** → **Business Application** → **New** |
 | **Application service `Payments (lab)`** | Ops map for one deployed stack in Dev. | **Affected application service** (if field exists). | **All** → **CSDM** → **Manage Technology Management Services** → **Service Instance** → **New** (wizard) |
-| **Business service `Payment Processing`** | Customer-facing service name for portfolio/incident language. | **Business service** on the incident — primary “what broke?” label. | **All** → **Service Portfolio Management** → **Business Services** → **New** |
+| **Business service `Payment Processing`** | Customer-facing service name for portfolio/incident language. | **`incident.business_service`** → **`cmdb_ci_service`** (base); pick **`Payment Processing`** when it is the best **semantic** match — not because the field is business-subclass-only. | **All** → **Service Portfolio Management** → **Business Services** → **New** |
 | **Offering `Payment Processing — Development`** | Dev slice customers/operators recognize on tickets. | **Service offering** when your form supports it. | **`Payment Processing`** form → **Offerings** related list → **New** |
 | **VM CI `sgclab-app-01`** | Imported AWS server row — inventory, not app logic. | Optional **Configuration item**; **stopped** ≠ live payments. | **Configuration** → **All** → filter **`cmdb_ci_vm_instance`** / connector import ([Lab 4]({{ '/labs/04-run-import/' | relative_url }})) |
 
@@ -856,6 +988,21 @@ record must exist first and be chosen as **Parent**. The prefilled **Child** is 
 | **Lab 7 “complete”** | **Honest:** strong connector + portfolio exercise; capability still open |
 
 
+### Lab 7 requirements audit matrix (t557–t561)
+{: #lab7-requirements-audit}
+
+| Requirement | Published on this page | Live evidence |
+|---|---|---|
+| CSDM **domains** ELI5 (CSDM 5 names) | `#pre-lab-csdm-domains` | Deployed with page build |
+| Workshop **questions → table → owner → evidence** | `#pre-lab-workshop-questions` + hypothetical table | Deployed |
+| Manual vs auto / enterprise method | `#pre-lab-maturity`, `#pre-lab-enterprise-mapping`, `#hands-on-how-populated` | Deployed |
+| Incident **columns** + indirect graph | `#hands-on-incident-fields` | Deployed |
+| **`business_service` → base `cmdb_ci_service`** + qualifier caveats | `#hands-on-incident-service-reference` | Deployed (no incident list PNG) |
+| Unsaved incident exercise (**no Submit**) | `#hands-on-incident-unsaved-exercise` | Deployed |
+| Part B steps + relationships + checkpoints | Part B sections | Deployed |
+| Business capabilities **not** created | Step 11 + screenshots | PNGs in `assets/img/lab07/` |
+| Incident form screenshot | **Not published** — transfer failed; no fabrication | **Gap** — user to re-attach later |
+
 ---
 
 ## Glossary (acronyms used on this page)
@@ -904,6 +1051,10 @@ from product definitions — expand acronyms in the prose beside them.
 | Required relationships (wizard settings) | https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/modify-req-fields-appservice.html |
 | DPM business capability relationships | https://www.servicenow.com/docs/r/it-service-management/digital-portfolio-management/dpm-business-capability.html |
 | Incident Management (product) | https://www.servicenow.com/docs/r/it-service-management/incident-management/incident-management.html |
+| Exploring CSDM (domains, Service Instance label) | https://www.servicenow.com/docs/r/yokohama/servicenow-platform/common-service-data-model-csdm/csdm-content-frame-exploring.html |
+| CSDM Design domain (not direct ITSM targets) | https://www.servicenow.com/docs/r/yokohama/servicenow-platform/common-service-data-model-csdm/design-domain.html |
+| Incident Service field qualifier (community) | https://www.servicenow.com/community/itsm-forum/update-service-field-on-incident-form/td-p/672618 |
+| Business service table migration (community) | https://www.servicenow.com/community/cmdb-blog/migrating-business-services-from-base-cmdb-ci-service-to/ba-p/3266036 |
 | Amazon VPC overview | https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html |
 | Lab inventory template | https://github.com/eltonaguiar/ServiceNow_ServiceGraph_Lab/blob/main/aws/lab-stack.yaml |
 
