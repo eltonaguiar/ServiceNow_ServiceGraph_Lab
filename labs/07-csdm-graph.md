@@ -63,6 +63,7 @@ permalink: /labs/07-csdm-graph/
       <li><a href="#hands-on-outage-example">Outage story (Incident)</a></li>
       <li><a href="#hands-on-incident-fields">Incident form fields</a></li>
       <li><a href="#hands-on-incident-service-reference">Service → cmdb_ci_service (base)</a></li>
+      <li><a href="#hands-on-service-field-semantics">used_for vs Environment</a></li>
       <li><a href="#hands-on-incident-unsaved-exercise">Incident walkthrough (no Submit)</a></li>
       <li><a href="#lab7-requirements-audit">Requirements audit matrix</a></li>
       <li><a href="#hands-on-relationship-guide">Relationship guide</a></li>
@@ -782,6 +783,42 @@ On an unsaved **Incident**, open the **Service** reference picker (magnifying gl
 
 **Repo honesty:** No incident list screenshot is published yet (transfer failed earlier). Verify pick-list contents on **your** PDI; do not treat this page as a screenshot of allowed rows.
 
+##### Sanitized Service list export (t562 — lab-relevant rows only)
+
+A **list export** from the **`cmdb_ci_service`** family was reviewed on the author’s PDI (**CSV attachment could not be published** to this repo). Treat it as **most likely** representative of rows that appeared in a **Service** lookup context at export time — **not** proof of an exhaustive incident picker, and **not** every row on the instance (other names were omitted here; many had **blank** **service classification**).
+
+| **name** (sanitized) | **used_for** | **service_classification** | **operational_status** |
+|---|---|---|---|
+| Payment Processing | Production | Business Service | Operational |
+| Payment Processing — Development | Production | Business Service | Operational |
+| Payments (lab) | Production | Application Service | Non-Operational |
+| ServiceNow Event Management | Production | Application Service | Operational |
+
+**How to read this export:**
+
+| Point | Meaning |
+|---|---|
+| **No `sys_class_name` column** in this export | **`service_classification`** (Business / Application / Technical, etc.) is a **field value**, not a guaranteed map to CMDB **class**. Do not treat classification alone as proof of subclass. |
+| **Mixed classifications in one list** | Together with **`sysparm_reference=cmdb_ci_service`**, this supports **broader** incident **Service** candidates than “business services only” — e.g. **`Payments (lab)`** (Application Service) beside **`Payment Processing`** (Business Service). |
+| **`used_for` = Production** on **`Payments (lab)`** | **Distinct** from wizard **Environment** = **Development** on the same record in Lab 7 hands-on. These are **different attributes/labels** on different forms — **do not silently conflate** or “fix” one to match the other without checking **dictionary mapping**, choice lists, and which form you used ([Create a Service instance](https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/create-it-services.html)). |
+| **`operational_status`** on service CIs | CMDB/service lifecycle signal (here **Non-Operational** on **`Payments (lab)`** matches lab intent). **Not** the same as business service **Phase** (**Pipeline**) / **Status** (**Requirements**) on the **Service Portfolio** form, and **not** AWS EC2 **running/stopped** run state. |
+
+**Incident teaching (updated):** Prefer **`Payment Processing`** on **`business_service`** for customer-facing outage language; use **`Payment Processing — Development`** on **Service offering** when that field exists. **`Payments (lab)`** may appear as a **Service** pick-list row when qualifiers allow **Application Service** rows — that is a **process/qualifier** choice, not forbidden by the base table reference. **`Configuration item`** can still target **`sgclab-app-01`** when the failure is framed at the **host** layer.
+
+**Next verify step (your PDI):** Export or open the **Service** reference list on an **unsaved** incident with the same URL pattern, compare **name** + **`service_classification`** + **`used_for`** + **`operational_status`** to your lab records, then read **Dictionary** for **`incident.business_service`** (reference qualifier). Only after that, decide whether your desk standard should filter the picker or allow application services on **Service**.
+
+#### Service field semantics (`used_for` vs **Environment** vs status labels)
+{: #hands-on-service-field-semantics}
+
+| Label you may see | Where (observed) | Lab value | Do not confuse with |
+|---|---|---|---|
+| **Environment** | Application service **wizard** / **`Payments (lab)`** | **Development** (when offered) | **`used_for`** on classic or list export |
+| **Used for** | Classic **Service Instance** form / **`cmdb_ci_service`** lists | **Production** (t562 export on **`Payments (lab)`**) | Wizard **Environment** |
+| **Operational status** | Service CI / application service | **Non-Operational** on **`Payments (lab)`** | EC2 state **stopped**; business service **Phase** / **Status** |
+| **Phase / Status** | **Service Portfolio** business service form | **Pipeline** / **Requirements** | **`operational_status`** on service CIs |
+
+**No automatic alignment:** Product docs use **Environment** on the wizard path; your instance may still populate **`used_for`** differently on save or via transform. **Verify** on the saved record before recommending data fixes or incident defaults.
+
 #### Unsaved incident walkthrough (hypothetical — do **not** Submit)
 {: #hands-on-incident-unsaved-exercise}
 
@@ -880,7 +917,7 @@ for that edge ([modify required relationships](https://www.servicenow.com/docs/r
 | Record | ELI5 “why it exists” | Typical incident tie-in | Verified breadcrumb (one PDI) |
 |---|---|---|---|
 | **Business application `Payments`** | Design-time portfolio entry: “we own a Payments application concept.” | Optional **business application** on ticket — portfolio only. | **All** → **CSDM** → **Design** → **Business Application** → **New** |
-| **Application service `Payments (lab)`** | Ops map for one deployed stack in Dev. | **Affected application service** (if field exists). | **All** → **CSDM** → **Manage Technology Management Services** → **Service Instance** → **New** (wizard) |
+| **Application service `Payments (lab)`** | Ops map for one deployed stack in Dev. | May appear on **`incident.business_service`** when qualifiers allow **Application Service** rows (t562 export); also **`cmdb_ci`** if allowed. Wizard **Environment** **Development** ≠ export **`used_for`** **Production** until you verify mapping. | **All** → **CSDM** → **Manage Technology Management Services** → **Service Instance** → **New** (wizard) |
 | **Business service `Payment Processing`** | Customer-facing service name for portfolio/incident language. | **`incident.business_service`** → **`cmdb_ci_service`** (base); pick **`Payment Processing`** when it is the best **semantic** match — not because the field is business-subclass-only. | **All** → **Service Portfolio Management** → **Business Services** → **New** |
 | **Offering `Payment Processing — Development`** | Dev slice customers/operators recognize on tickets. | **Service offering** when your form supports it. | **`Payment Processing`** form → **Offerings** related list → **New** |
 | **VM CI `sgclab-app-01`** | Imported AWS server row — inventory, not app logic. | Optional **Configuration item**; **stopped** ≠ live payments. | **Configuration** → **All** → filter **`cmdb_ci_vm_instance`** / connector import ([Lab 4]({{ '/labs/04-run-import/' | relative_url }})) |
@@ -998,6 +1035,7 @@ record must exist first and be chosen as **Parent**. The prefilled **Child** is 
 | Manual vs auto / enterprise method | `#pre-lab-maturity`, `#pre-lab-enterprise-mapping`, `#hands-on-how-populated` | Deployed |
 | Incident **columns** + indirect graph | `#hands-on-incident-fields` | Deployed |
 | **`business_service` → base `cmdb_ci_service`** + qualifier caveats | `#hands-on-incident-service-reference` | Deployed (no incident list PNG) |
+| Sanitized **Service** export + **`used_for`** vs **Environment** | `#hands-on-incident-service-reference`, `#hands-on-service-field-semantics` | Deployed (CSV not attached) |
 | Unsaved incident exercise (**no Submit**) | `#hands-on-incident-unsaved-exercise` | Deployed |
 | Part B steps + relationships + checkpoints | Part B sections | Deployed |
 | Business capabilities **not** created | Step 11 + screenshots | PNGs in `assets/img/lab07/` |
