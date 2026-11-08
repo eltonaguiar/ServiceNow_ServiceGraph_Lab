@@ -73,7 +73,26 @@ permalink: /labs/07-csdm-graph/
       <li><a href="#hands-on-step-12">Step 11 — Capabilities (pending)</a></li>
       <li><a href="#hands-on-views">View Map vs Dependency Views</a></li>
       <li><a href="#hands-on-checkpoint-b">Checkpoint B</a></li>
+    </ul>
+  </div>
+  <div>
+    <p class="toc-title">Hands-On: Practice incident (Part C)</p>
+    <ul class="toc-list">
+      <li><a href="#hands-on-part-c">Purpose and warnings</a></li>
+      <li><a href="#hands-on-part-c-nav">Navigation</a></li>
+      <li><a href="#hands-on-part-c-scenario">Scenario A / B (CI choice)</a></li>
+      <li><a href="#hands-on-part-c-fields">Field-by-field (you create)</a></li>
+      <li><a href="#hands-on-part-c-verify">Verify after Submit</a></li>
+      <li><a href="#hands-on-part-c-resolve">Resolve / keep for audit</a></li>
+      <li><a href="#hands-on-part-c-checkpoint">Checkpoint C</a></li>
+      <li><a href="#hands-on-part-c-screenshots">Screenshot inventory</a></li>
+    </ul>
+  </div>
+  <div>
+    <p class="toc-title">Lab status and audit</p>
+    <ul class="toc-list">
       <li><a href="#lab7-overall-status">Lab 7 overall status</a></li>
+      <li><a href="#lab7-requirements-audit">Requirements audit matrix</a></li>
     </ul>
   </div>
   <div class="toc-wide">
@@ -822,8 +841,9 @@ A **list export** from the **`cmdb_ci_service`** family was reviewed on the auth
 #### Unsaved incident walkthrough (hypothetical — do **not** Submit)
 {: #hands-on-incident-unsaved-exercise}
 
-**Learning exercise only.** Open **Incident Management → Incidents → New**. Fill fields mentally or with test
-values, then **leave the record unsaved** (close without **Submit**).
+**Learning exercise only (no Submit).** Open **Incident Management → Incidents → New**. Fill fields mentally or with test
+values, then **leave the record unsaved** — or continue to [Part C](#hands-on-part-c) when you are ready to create a **saved**
+practice ticket **yourself**.
 
 **No screenshot in this repo for the incident form:** a transfer of that capture failed on the build
 environment; we do **not** publish a fabricated PNG. Use your PDI; field **labels** should resemble **Caller**,
@@ -1013,6 +1033,134 @@ record must exist first and be chosen as **Parent**. The prefilled **Child** is 
 <li>No real Payments app, no discovery proof, no AWS changes</li>
 </ul>
 
+---
+
+## Hands-On Part C — Create a practice incident (you perform; not done in repo)
+{: #hands-on-part-c}
+
+**Purpose:** Tie **Incident Management** reference fields on table **`incident`** to the **CSDM records you
+already built** — without pretending this lab caused a real outage. This is **Part C** on the same page;
+**the course repo does not create incidents for you**, and **no practice incident is marked done** until
+**you** Submit on **your** PDI.
+
+**Prerequisites:** [Checkpoint A](#hands-on-checkpoint-a) and [Checkpoint B](#hands-on-checkpoint-b) records
+(or equivalent): **`Payment Processing`**, **`Payment Processing — Development`**, **`Payments (lab)`**,
+linkage to **`sgclab-app-01`**. Read [Service → `cmdb_ci_service`](#hands-on-incident-service-reference) and
+[`used_for` vs **Environment**](#hands-on-service-field-semantics) first.
+
+### Warnings (read before Submit)
+
+| Risk | Guidance |
+|---|---|
+| **Email / notifications / workflows** | Submitting an incident **may** trigger **instance-configured** notifications, assignments, or integrations. Use a **controlled PDI**, **lab caller** (your user), and **avoid** real production assignment groups unless you intend to page people. |
+| **No automation guarantees** | Saved **`business_service`**, **`service_offering`**, and **`cmdb_ci`** values are **task reference fields** — they do **not** auto-sync from **Dependency Views**, prove impact, or route correctly without **your** process and rules. |
+| **Status fields ≠ live outage** | **`Payments (lab)`** **operational_status** **Non-Operational**, **stopped** EC2, and business service **Phase** / **Status** do **not** prove customers cannot pay. |
+| **Test-only wording** | Use the exact **Short description** prefix below so future-you recognizes simulation tickets. |
+
+### Navigation
+{: #hands-on-part-c-nav}
+
+**All** → **Incident Management** → **Incidents** → **New**  
+(Alternate: **Service Desk** → **Incidents** → **New** — label varies by scope.)
+
+### Choose scenario and Configuration item (consistent story)
+{: #hands-on-part-c-scenario}
+
+Pick **one** CI story and keep **Service** / **offering** aligned with the **customer-facing** layer.
+
+| Scenario | Story | **Service** (semantic) | **Service offering** | **Configuration item** (`cmdb_ci`) |
+|---|---|---|---|---|
+| **A — application / deployment** (preferred when picker allows) | “Dev **application service** path unavailable (lab simulation).” | **`Payment Processing`** | **`Payment Processing — Development`** | **`Payments (lab)`** — **only if** your **`cmdb_ci`** reference qualifier lists the **service instance** / application service class |
+| **B — host / infrastructure** (fallback) | “Suspect **VM** layer in lab (still simulation).” | **`Payment Processing`** | **`Payment Processing — Development`** | **`sgclab-app-01`** |
+
+**Do not assume** **`Payments (lab)`** is selectable on **`cmdb_ci`** — open the magnifying glass and use what
+**your** dictionary qualifier allows. If **A** is blocked, use **B** without changing **Service** / **offering**.
+
+### Field-by-field — copy safe test values (adjust only where your form requires)
+{: #hands-on-part-c-fields}
+
+**You** fill the form. Labels below match one observed **New** incident layout; hidden or mandatory fields on
+**your** PDI may differ — **screenshot your form** before changing text.
+
+| Field (observed label) | Required? | Value / action |
+|---|---|---|
+| **Caller** | Yes (*) | **Lookup** an existing user — typically **yourself** or your designated **lab tester** on the PDI (**do not** invent names or emails in docs). |
+| **Service** | Process-dependent | **`Payment Processing`** — base **`cmdb_ci_service`** reference ([proof](#hands-on-incident-service-reference)). |
+| **Service offering** | Process-dependent | **`Payment Processing — Development`** — must be valid for selected **Service** per **your** qualifier. |
+| **Configuration item** | Optional on many forms | Scenario **A:** **`Payments (lab)`** if eligible; else **B:** **`sgclab-app-01`**. |
+| **Channel** | Varies | Pick what the form offers (e.g. **Phone**, **Email**, **Walk-in**) — **no** lab default; match your screenshot. |
+| **State** | System | **New** on create (before resolution). |
+| **Impact** | If shown | **3 - Low** (or lowest meaningful choice for a simulation). |
+| **Urgency** | If shown | **3 - Low** (or lowest meaningful choice). |
+| **Priority** | Often calculated | May show **4 - Low** after impact/urgency — **do not** force a number if read-only. |
+| **Assignment group** / **Assigned to** | Instance-dependent | Leave **empty** or default **only if** the form allows — **avoid** real on-call groups. |
+| **Short description** | Yes (*) | **`[LAB TEST] Simulated payment processing unavailable — no real outage`** (exact prefix). |
+| **Description** | Recommended | State clearly: *learning simulation*; **no** real payment software; **stopped** lab VM; **no** customer impact; links to CSDM records are for practice only. |
+| **Notes** / **Related Records** / **Resolution Information** | Later tabs | Leave empty on **create**; use on **resolve** per [cleanup](#hands-on-part-c-resolve). |
+
+**Do not** populate **business application** or **capability** on the incident unless **your** form exposes
+those fields and your process requires them — they are usually **indirect** to the CMDB graph, not substitutes
+for **Service** / **CI**.
+
+### Verify after Submit (check each saved reference)
+{: #hands-on-part-c-verify}
+
+After **you** click **Submit**, open the saved incident and confirm **each reference** opens the expected
+record (number/name match).
+
+<ul class="check">
+<li><b>Caller</b> is the user you selected — not blank</li>
+<li><b>Service</b> opens <b>Payment Processing</b> (service CI), not <b>Payments</b> business application</li>
+<li><b>Service offering</b> opens <b>Payment Processing — Development</b></li>
+<li><b>Configuration item</b> matches scenario <b>A</b> or <b>B</b> consistently</li>
+<li><b>Short description</b> retains the <code>[LAB TEST]</code> prefix</li>
+<li><b>Impact</b> / <b>Urgency</b> / <b>Priority</b> match your intentional low simulation — not “production down”</li>
+<li><b>Related Lists</b> such as <b>Affected CIs</b> or <b>Impacted Services</b> — <b>only if present</b> on your form; empty is normal without plugins/rules</li>
+</ul>
+
+**Task references vs graph:** The incident stores **pointers** to CMDB rows. **Dependency Views** on the
+business service are **separate** — filling the ticket does **not** prove the graph updated or that Event
+Management will correlate alerts.
+
+### Resolve / keep for audit (do not delete)
+{: #hands-on-part-c-resolve}
+
+When finished practicing, move the ticket through **your** instance’s resolution path (e.g. **Resolve** or
+**Close**). **Required fields on resolve** (**Close code**, **Close notes**, **Resolution notes**, etc.) are
+**instance-dependent** — read the red asterisks on **your** form; **do not** copy fictional close codes from
+this page.
+
+| Goal | Action |
+|---|---|
+| **Mark simulation complete** | Set state to **Resolved** / **Closed** per your PDI, with close notes stating **lab test only**. |
+| **Preserve audit trail** | **Do not delete** the incident — keep it for learning history and dictionary verification. |
+| **Avoid noise** | If notifications fired, acknowledge they were expected on a misconfigured PDI and adjust assignment rules later with an admin. |
+
+### Checkpoint C — practice incident (pending until you Submit)
+{: #hands-on-part-c-checkpoint}
+
+<ul class="check">
+<li>You created **one** saved incident **yourself** with <code>[LAB TEST]</code> short description</li>
+<li><b>Service</b> + <b>offering</b> + <b>CI</b> tell a consistent story (scenario A or B)</li>
+<li>You verified references on the saved form — not only the dependency graph</li>
+<li>You resolved or left open per policy, **without** deleting the record</li>
+<li>You understand <b>no</b> automatic routing/impact from CSDM links alone</li>
+</ul>
+
+<p><strong>Repo status:</strong> Part C instructions are published; <strong>no</strong> incident number is
+recorded here — execution is <strong>pending on your PDI</strong>.</p>
+
+### Screenshot inventory (Part C)
+{: #hands-on-part-c-screenshots}
+
+| Step | Status |
+|---|---|
+| Unsaved incident form (Caller, Service, offering, CI) | **Missing** — user capture; prior transfer failed |
+| Saved incident reference fields | **Pending** after you Submit |
+| Resolve / close notes | **Pending** — instance-specific |
+
+---
+
 ### Lab 7 overall status
 {: #lab7-overall-status}
 
@@ -1020,9 +1168,10 @@ record must exist first and be chosen as **Parent**. The prefilled **Child** is 
 |---|---|
 | **Part A** — wizard + Manual + View Map entry | **Done** (minimal checkpoint) |
 | **Part B** — business app, business service, offering, links | **Done** on reported PDI |
+| **Part C** — saved practice incident | **Pending — you create on PDI** |
 | **Step 11** — business capability | **Pending** |
 | **Every CSDM object / technical management service** | **Not** required |
-| **Lab 7 “complete”** | **Honest:** strong connector + portfolio exercise; capability still open |
+| **Lab 7 “complete”** | **Honest:** connector + portfolio + optional incident practice; capability still open |
 
 
 ### Lab 7 requirements audit matrix (t557–t561)
@@ -1037,6 +1186,7 @@ record must exist first and be chosen as **Parent**. The prefilled **Child** is 
 | **`business_service` → base `cmdb_ci_service`** + qualifier caveats | `#hands-on-incident-service-reference` | Deployed (no incident list PNG) |
 | Sanitized **Service** export + **`used_for`** vs **Environment** | `#hands-on-incident-service-reference`, `#hands-on-service-field-semantics` | Deployed (CSV not attached) |
 | Unsaved incident exercise (**no Submit**) | `#hands-on-incident-unsaved-exercise` | Deployed |
+| **Part C** — create practice incident (user performs) | `#hands-on-part-c` | Deployed (execution **pending**) |
 | Part B steps + relationships + checkpoints | Part B sections | Deployed |
 | Business capabilities **not** created | Step 11 + screenshots | PNGs in `assets/img/lab07/` |
 | Incident form screenshot | **Not published** — transfer failed; no fabrication | **Gap** — user to re-attach later |
@@ -1071,6 +1221,7 @@ record must exist first and be chosen as **Parent**. The prefilled **Child** is 
 | **SSH** | Secure Shell | Encrypted remote command line, common on Linux |
 | **SSM** | AWS Systems Manager | AWS operations suite (here: AMI parameter and optional Session Manager) |
 | **VPC** | Virtual Private Cloud | Logical private network inside your AWS account |
+| **ITSM** | IT Service Management | Product area including **Incident Management** on table **`incident`** |
 
 Literal table names (`cmdb_ci_*`), list names, AWS resource IDs, and shell commands are unchanged
 from product definitions — expand acronyms in the prose beside them.
@@ -1101,7 +1252,8 @@ from product definitions — expand acronyms in the prose beside them.
 ## What is next
 {: #whats-next}
 
-Complete **Step 11** (business capability) if you want portfolio closure. Read [Enterprise scale (hypothetical)](#pre-lab-enterprise-mapping)
+Complete [Part C](#hands-on-part-c) when ready to **Submit** a **`[LAB TEST]`** incident yourself. Finish **Step 11**
+(business capability) if you want portfolio closure. Read [Enterprise scale (hypothetical)](#pre-lab-enterprise-mapping)
 before assuming this manual lab equals **Service Mapping**. Lab 8 (optional) adds a **second cloud source** —
 only after your service model makes sense on paper.
 
