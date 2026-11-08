@@ -19,6 +19,7 @@ Create the least-privilege identity the connector uses, then wire it into Servic
 the connection works.
 
 ## 0. Read first: AWS Config is required, and this lab's policy is not the connector's official setup
+{: #lab3-config}
 
 ServiceNow's public docs say the connector needs **AWS Config with a configuration recorder**
 turned on in every account and region you import from
@@ -277,7 +278,7 @@ narrowing) and `sgclab`.*
   billing. A genuine Free plan expiring does **not** by itself roll into Paid.
 - **After deleting the stack:** the retained bucket is still there. Empty and delete it yourself
   in [Lab 11]({{ '/labs/11-cleanup/' | relative_url }}).
-- **Cleanup:** deleting the `sg-aws-config` stack removes the recorder, delivery channel, role and topic. Afterwards, check that **AWS Config → Settings** shows no recorder still on. If you created a recorder another way, stop it there. The retained S3 bucket stays and keeps its objects until you empty and delete it. Keep the Lab 0 budget alert on.
+- **Cleanup:** stop **customer-managed** recording first, then delete `sg-aws-config` and handle retained **S3** — see [Lab 11 — AWS Config recording]({{ '/labs/11-cleanup/' | relative_url }}#lab11-config-recording). Deleting the stack removes recorder, delivery channel, role and topic when successful; **Settings** must show recording off; empty versioned buckets before delete if you want objects gone.
 
 Optional Guided Setup groups (aggregator, SSM, key rotation, email notification) are for
 multi-account, deep-discovery or production use. Only mark a group skipped after your release's
@@ -291,8 +292,18 @@ imports.
 > them, but **don't treat §2–§3 as complete, and don't run imports (Lab 4)**, until your release's
 > identity prerequisites are confirmed. Keep anything you created; don't delete it.
 
+### Programmatic connector user (not a human console login)
+{: #lab3-iam-programmatic}
+
+This lab’s IAM user **`servicenow-sgc-lab`** exists so the **ServiceNow connector** (and its scheduled jobs) can authenticate to AWS with an **access key** and, after §0b, **`sts:AssumeRole`** into `SnowOrganizationAccountAccessRole`. It is **not** meant as a person’s daily **AWS Management Console** sign-in.
+
+On **IAM → Users**, AWS may show an in-console banner that **IAM users should only be used for programmatic access**, and that **human** console access should flow through your organization’s **team** / enterprise identity path. That matches how **this lab user** should be used. It is **guidance for your setup**, not a claim that console IAM users are technically impossible in every AWS design worldwide.
+
+![IAM Users page banner recommending programmatic access for IAM users]({{ '/assets/img/lab03/iam-users-programmatic-access-banner.png' | relative_url }})
+*On one lab account: **IAM → Users** banner — programmatic use cases and **team page** for human access. The lab lists only the connector user (`servicenow-sgc-lab`) with no access keys until you create one in §1.*
+
 1. AWS console → **IAM → Users → Create user** → name `servicenow-sgc-lab`.
-2. **Do not** enable console access. This identity only calls APIs.
+2. **Do not** enable console access for this lab user. Keys are for **API / connector** access only.
 3. Permissions → **Attach policies directly** → **Create policy** → **JSON**, and paste
    [`aws/iam-readonly-lab-policy.json`](https://github.com/eltonaguiar/ServiceNow_ServiceGraph_Lab/blob/main/aws/iam-readonly-lab-policy.json)
    (from the cloned repo — see [Lab 0 §4]({{ '/labs/00-prerequisites/' | relative_url }})).

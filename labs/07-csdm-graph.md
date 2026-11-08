@@ -90,7 +90,7 @@ capabilities — it does not host your app, run payment software, or prove live 
       <li><a href="#hands-on-part-c-resolution-troubleshooting">Resolution troubleshooting</a></li>
       <li><a href="#hands-on-part-c-resolve">Resolve / keep for audit</a></li>
       <li><a href="#hands-on-part-c-checkpoint">Checkpoint C</a></li>
-      <li><a href="#hands-on-part-c-screenshots">Screenshot inventory</a></li>
+      <li><a href="#hands-on-part-c-screenshots">Screenshots</a></li>
     </ul>
   </div>
   <div>
@@ -695,7 +695,7 @@ timeline dates may differ.*
 | Manual **Save** / green toast / method card | **Missing** this batch — use Step 3b text |
 | **Preview** Relationships vs Population summary | **Missing** this batch — use Step 4 table |
 | **View Map** | Published (`payments-lab-view-map.png`) |
-| **Payment Processing** + empty **Business Capabilities** | Published (`business-service-payment-processing.png`) |
+| **Payment Processing** business service form | Published (`business-service-payment-processing.png`) |
 | **Unsaved** capability **CI Relationship** trap | Published (`business-capability-relationship-unsaved.png`) |
 
 ---
@@ -983,6 +983,8 @@ System number and timestamps may differ on your PDI.*
 On **`Payment Processing`** → **Offerings** → **New**: parent **Payment Processing**, name **Payment
 Processing — Development**, matching lifecycle/classification.
 
+*No separate screenshot for the offering form or Step 9 wizard preview is in this repo yet.*
+
 ### Step 9 — Link offering → application service
 {: #hands-on-step-9}
 
@@ -1261,28 +1263,10 @@ When finished practicing, move the ticket through **your** instance’s resoluti
 <li>You understand <b>Manually added</b> and related lists do <b>not</b> prove automatic CSDM impact propagation</li>
 </ul>
 
-### Screenshot inventory (Lab 7 — published vs missing)
+### Screenshots (Lab 7)
 {: #hands-on-part-c-screenshots}
 
-**Published (repo — do not remove):**
-
-| File | Used for |
-|---|---|
-| `choose-method-dropdown-top.png` | Step 3 — **Choose a Method** (top) |
-| `choose-method-dropdown-scrolled.png` | Step 3 — dropdown scrolled |
-| `payments-lab-screenshot.png` | Step 4 — wizard **Preview** |
-| `payments-lab-view-map.png` | Step 5 — **View Map** entry point |
-| `business-service-payment-processing.png` | Step 7 — empty **Business Capabilities** (pre–Step 11) |
-| `business-capability-relationship-unsaved.png` | Step 11 — **historical** unsaved-trap only |
-
-**Missing (verified in UI; transfer failed — no new PNGs promised this workspace):**
-
-| Capture | Session |
-|---|---|
-| Saved capability form **Accept Customer Payments** | t574–580 |
-| **Business Capabilities (1)** saved relationship row | t574–580 |
-| Five-node **Dependency Views** after capability | t580 |
-| Part C incident related lists / resolved banner | t567–571 |
+Published PNGs appear inline in Part A/B (wizard, View Map, business service, capability trap). **Offering details**, **Depends on** wizard preview, saved capability, five-node dependency view, and Part C incident captures are **not** in the repo yet — UI work on the reported PDI can still be **done** without those files.
 
 ---
 
@@ -1297,7 +1281,7 @@ When finished practicing, move the ticket through **your** instance’s resoluti
 | **Part C** — practice incident | **Done** on reported PDI (**INC0010001**, Resolved, audit retained) |
 | **Technical management service** | **Not** in scope (optional future) |
 | **Service Mapping / real discovery / payment software** | **Not** claimed |
-| **Published curriculum (this page)** | **Complete** for required hands-on track; screenshots partial — see [inventory](#hands-on-part-c-screenshots) |
+| **Published curriculum (this page)** | **Complete** for required hands-on track; some steps lack PNGs |
 
 ### Lab 7 completion criteria (curriculum audit — t581)
 {: #lab7-completion-criteria}

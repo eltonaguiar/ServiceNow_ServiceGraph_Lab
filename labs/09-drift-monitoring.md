@@ -21,9 +21,9 @@ permalink: /labs/09-drift-monitoring/
     <li><a href="#lab9-schedule-context">SG-AWS schedules (observed names)</a></li>
     <li><a href="#lab9-observed-experiment">Observed experiment (t608)</a></li>
     <li><a href="#lab9-tag-drift-lesson">Tag vs VM field drift</a></li>
-    <li><a href="#lab9-rollback">Rollback (pending)</a></li>
-    <li><a href="#lab9-freshness">Freshness & monitoring (pending)</a></li>
-    <li><a href="#lab9-screenshots">Screenshot inventory</a></li>
+    <li><a href="#lab9-rollback">Rollback (observed t637)</a></li>
+    <li><a href="#lab9-freshness">Freshness filter (observed t637)</a></li>
+    <li><a href="#lab9-screenshots">Screenshots (not in repo)</a></li>
     <li><a href="#lab9-checkpoint">Checkpoint</a></li>
     <li><a href="#lab9-glossary">Glossary</a></li>
     <li><a href="#lab9-sources">Sources</a></li>
@@ -80,7 +80,7 @@ On one PDI, **Organization** parent and siblings (release/order may differ):
 
 ---
 
-## Observed drift experiment (t608 — partial; lab not complete)
+## Observed drift experiment (t608 / t636)
 {: #lab9-observed-experiment}
 
 **AWS change (one-time):** EC2 **`sgclab-app-01`** remained **stopped**; tag **`Environment`** changed **`lab` → `drift-test`**; all else unchanged per parent report.
@@ -117,9 +117,9 @@ On one PDI, **Organization** parent and siblings (release/order may differ):
 
 **Empty Target record** on an import row: **normal** on multi-target transforms — **not** proof the run failed.
 
-### Screenshot-verified CMDB (user PDI; not in repo this publish)
+### CMDB verification (observed — screenshot not in repo)
 
-**`cmdb_key_value`** for CI **`sgclab-app-01`**: **Key** **Environment**, **Value** **`drift-test`**. Confirms tag drift landed on the **key/value** table — file transfer for new captures **failed**; see [inventory](#lab9-screenshots).
+**`cmdb_key_value`** for CI **`sgclab-app-01`**: **Key** **Environment**, **Value** **`drift-test`**. **t636** transform summary on the observed run: **`cmdb_key_value`** **unchanged 7**, **updated 1**. User-verified on the PDI; no Lab 9 PNG is published yet ([note](#lab9-screenshots)).
 
 ---
 
@@ -137,50 +137,44 @@ On one PDI, **Organization** parent and siblings (release/order may differ):
 
 ---
 
-## Rollback to lab tags (pending)
+## Rollback to lab tags (observed t637)
 {: #lab9-rollback}
 
-Restore AWS tag **`Environment: lab`** (or your template default), re-run **`SG-AWS-EC2`**, re-verify **`cmdb_key_value`**. **Not completed** in reported run — do before claiming cleanup done.
+On the reported PDI (**t637**): AWS tag **`Environment`** returned to **`lab`**, **`SG-AWS-EC2`** was run again, and **`cmdb_key_value`** was re-verified. **Rollback is complete** on that instance — do not treat older **t608-only** notes as “rollback still pending.”
 
 ---
 
-## Freshness filter and run monitoring (pending)
+## Freshness filter and run monitoring (observed t637)
 {: #lab9-freshness}
 
-Curriculum still includes:
+On the reported PDI (**t637**): a **source-aware** personal saved filter for stale connector CIs was saved (**`last_discovered` > 7 days** plus discovery-source constraints — exact query varies by instance).
 
-- Saved filter: **`last_discovered` > 7 days** and connector discovery source ([starter SQL in prior outline](/labs/09-drift-monitoring/#lab9-freshness) — adapt to your fields)
-- **`scripts/verify_cmdb.py --stale-days 7`** on your environment
-- **Concurrent Import Sets** / **Transform Histories** tabs ([Lab 4]({{ '/labs/04-run-import/' | relative_url }}))
+Habits you may still extend on your own PDI:
 
-**Checkpoint items below remain open** until you complete rollback + freshness on your PDI.
+- **`scripts/verify_cmdb.py --stale-days 7`**
+- **Concurrent Import Sets** / **Transform Histories** when reviewing imports ([Lab 4]({{ '/labs/04-run-import/' | relative_url }}))
 
 ---
 
-## Screenshot inventory (honest)
+## Screenshots (not in repo)
 {: #lab9-screenshots}
 
-| Capture | Status |
-|---|---|
-| Lab 4/6 published PNGs | Unchanged on site |
-| **`cmdb_key_value` Environment drift-test** | **Verified by user; not on build filesystem** — no fabrication |
-| Execution **EXE00001018** / import-set rows | **Missing** this publish |
-| RTE summary / concurrent jobs | **Missing** |
+This lab has **no** published PNGs under `assets/img/lab09/` ([live page](https://eltonaguiar.github.io/ServiceNow_ServiceGraph_Lab/labs/09-drift-monitoring/) is text and tables only). Drift, rollback, execution history, and the saved freshness filter were **verified in the UI** on the reported PDI; **missing screenshots are a publishing gap, not proof those steps were skipped.**
 
 ---
 
-## Checkpoint — not complete
+## Checkpoint
 {: #lab9-checkpoint}
 
 <ul class="check">
-<li><b>Done (observed t608):</b> AWS tag drift <code>lab</code> → <code>drift-test</code>; <b>SG-AWS-EC2</b> only; <code>cmdb_key_value</code> updated; run 0 errors</li>
-<li><b>Done (reading):</b> Can explain loader → staging → ETL → IRE using <a href="{{ '/labs/06-etl-mappings/' | relative_url }}#lab6-data-loader">Lab 6</a></li>
-<li><b>Pending:</b> AWS / CMDB <b>rollback</b> to lab tag values</li>
-<li><b>Pending:</b> Saved stale-CI filter and scheduled-job / SGC Central monitoring habit</li>
-<li><b>Pending:</b> Mapping-level proof for tag fields (<code>tagsStr</code> trace)</li>
+<li><b>Done (t608 / t636):</b> AWS tag <code>lab</code> → <code>drift-test</code>; <b>SG-AWS-EC2</b> only; <code>cmdb_key_value</code> <b>updated 1</b>; run <b>0 errors</b></li>
+<li><b>Done (t637):</b> Rollback <code>drift-test</code> → <code>lab</code>; CMDB re-verified</li>
+<li><b>Done (t637):</b> Source-aware <b>7-day</b> stale-CI filter saved</li>
+<li><b>Done (reading):</b> Loader → staging → ETL → IRE via <a href="{{ '/labs/06-etl-mappings/' | relative_url }}#lab6-data-loader">Lab 6</a></li>
+<li><b>Optional depth:</b> ETL / <code>tagsStr</code> mapping trace on your instance</li>
 </ul>
 
-**Do not mark Lab 9 complete** until rollback and monitoring checkpoints match your work.
+**Screenshots** for the steps above are still **not** in the repo — add privacy-reviewed captures when available; do not substitute other labs’ PNGs.
 
 Next: [Lab 10 — troubleshooting]({{ '/labs/10-troubleshooting/' | relative_url }}) (when checkpoints above are honest for you)
 
