@@ -54,16 +54,25 @@ rely on eventual Free plan suspension as your cleanup procedure ([Lab 3]({{ '/la
 
 **Order matters:** kill keys before deleting resources so a leftover schedule cannot keep calling AWS.
 
-### Observed on one lab account (cleanup in progress — not a template for yours)
+### Observed progress snapshot (one lab account — yours may differ)
 
-| Check | Observed state | Implication |
+*Qualification: table reflects **verified UI at one point in time** during cleanup. It is **not** proof of zero AWS charges, not a guarantee every background delete finished, and **not** “Lab 11 complete” for all learners.*
+
+| Check | Observed state (snapshot) | Notes |
 |---|---|---|
-| IAM access keys | **Access keys (0)** after delete | User cannot call AWS APIs with old key |
-| ServiceNow connection | **AWS Default Connection** **Active = false** | **Not** proof ServiceNow schedules are off — verify **System Scheduler** separately |
-| Stack **`sgclab`** | **DELETE_COMPLETE** | Lab VPC/EC2 stack removed when this status is shown |
-| Stack **`sg-aws-config`** | **Still present** | Recorder, delivery channel, role, **SNS**, **S3** may still exist |
+| IAM access keys | **Access keys (0)** | Lab user cannot authenticate with deleted key |
+| ServiceNow **AWS Default Connection** | **Active = false** | Schedules may still run — check **System Scheduler** |
+| Stack **`sgclab`** | **DELETE_COMPLETE** | Lab VPC / EC2 template stack |
+| **AWS Config → Settings** | Customer-managed recorder **Recording is off** (after **Confirm**) | **service-linked recorders (0)** |
+| Stack **`sg-aws-config`** | **DELETE_COMPLETE** | Deleted with **CloudFormation Express mode** enabled — see caveat below |
+| **Config S3 delivery bucket** | **Pending** | Template **`ConfigBucket`** uses **`DeletionPolicy: Retain`** — bucket **stays** after stack delete; user navigating **S3** to empty/delete |
+| Stack **`sg-aws-snow-role`** | **Still active / pending cleanup** | Lab 3 STS role stack — delete when you are ready ([Lab 3]({{ '/labs/03-iam-connection/' | relative_url }}#lab3-config)) |
+| IAM user **`servicenow-sgc-lab`** | **Pending** (if user not removed) | Delete user after keys |
+| Billing | **Not verified here** | **Do not** assert $0 — use Cost Explorer |
 
-**AWS Config console (observed, not stopped yet):** **Settings** → customer-managed recorder → **Recording is on** → **Stop recording** available; **service-linked recorders (0)**. **Do not** document this as “already stopped” until you perform and verify the steps below.
+**Express mode caveat:** With **[CloudFormation quick starts / accelerated operations](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-create-stacks.html)** (Express mode) on delete, the console can show **DELETE_COMPLETE** while AWS **still finishes deleting some resources in the background**. Re-check the stack events, **S3**, **IAM** roles, and **Config** settings before you call teardown done.
+
+**Why the bucket remains:** `EnableAWSConfig.yml` sets the delivery bucket **`DeletionPolicy: Retain`** so stack delete does **not** remove historical Config JSON in **S3** — you empty and delete the bucket yourself if you want objects gone ([Lab 3]({{ '/labs/03-iam-connection/' | relative_url }})).
 
 ---
 
@@ -98,21 +107,24 @@ Setup context and narrow resource types: [Lab 3 — AWS Config]({{ '/labs/03-iam
 ### Small safe steps (you perform — not done in this repo)
 
 1. **Console:** **AWS Config** → same **Region** as Lab 3 (e.g. **US East (Ohio)**) → **Settings**.
-2. Under **Customer-managed recorder**, confirm **Recording is on** (matches observed UI: **Stop recording** visible).
-3. Choose **Stop recording** for that recorder → confirm per console prompts.
-4. **Verify:** Settings shows recording **off** for that customer-managed recorder; note **service-linked recorders** separately if any appear later.
-5. **CloudFormation:** When recording is stopped and you are ready, delete stack **`sg-aws-config`** (same Region):
+2. Under **Customer-managed recorder**, if **Recording is on**, choose **Stop recording** → **Confirm**.
+3. **Verify:** **Recording is off**; **service-linked recorders (0)** on observed account after stop.
+4. **CloudFormation:** Delete stack **`sg-aws-config`** when recording is off (same Region):
 
    ```bash
    aws cloudformation delete-stack --stack-name sg-aws-config
    aws cloudformation wait stack-delete-complete --stack-name sg-aws-config
    ```
 
-6. **S3 bucket (retention warning):** Lab 3 notes the template may **retain** the delivery bucket. After stack delete, open **S3** — if the bucket remains, **empty** it (versioned buckets may need **delete markers** / versions removed) before **Delete bucket**. **Permanent data loss** in that bucket if you delete without backup. See [S3 lifecycle](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html) in AWS docs for long-term archive choices.
+5. **Express mode:** If you use accelerated delete, treat **DELETE_COMPLETE** as a milestone — confirm background cleanup per AWS guidance and stack **Events**.
 
-7. **Other Regions / accounts:** If you ever enabled Config elsewhere, repeat **Settings** per Region.
+6. **S3 bucket (required when `Retain`):** Open **S3** → delivery bucket → **Empty** (handle **versioning** if enabled) → **Delete bucket** when you accept **permanent data loss** for Config history objects. **Observed snapshot:** stack gone, **bucket cleanup still in progress**.
 
-**Status:** This guide does **not** claim cleanup is finished until **you** complete and verify steps 3–6 on your account.
+7. **Stack `sg-aws-snow-role`:** Delete when no longer needed (after connector identity teardown).
+
+8. **Other Regions / accounts:** Repeat **Config Settings** per Region if recording was enabled elsewhere.
+
+**Status:** Observed snapshot shows **recorder off** and **`sg-aws-config` DELETE_COMPLETE** — **retained S3**, **`sg-aws-snow-role`**, schedules, IAM user removal, and billing review may still be **pending**. **Do not** mark the whole lab complete or claim zero charges.
 
 ---
 
@@ -141,14 +153,13 @@ Setup context and narrow resource types: [Lab 3 — AWS Config]({{ '/labs/03-iam
 {: #lab11-checkpoint}
 
 <ul class="check">
-<li>IAM lab user keys deleted; connector connection disabled</li>
-<li><code>sgclab</code> stack <b>DELETE_COMPLETE</b> (or equivalent verification)</li>
-<li>You can explain Config <b>recording</b> in plain language (inventory snapshots — not traffic capture)</li>
-<li>Customer-managed Config recorder <b>stopped</b> and verified in <b>Settings</b> — or honestly still pending</li>
-<li><code>sg-aws-config</code> removed after stop; retained <b>S3</b> handled with data-loss awareness</li>
-<li>ServiceNow import schedules deactivated</li>
-<li>Billing/Cost Explorer reviewed on the <b>correct</b> account</li>
+<li><b>Observed on one account:</b> keys <b>0</b>; connection <b>Inactive</b>; <code>sgclab</code> and <code>sg-aws-config</code> <b>DELETE_COMPLETE</b>; Config recorder <b>off</b></li>
+<li><b>Still open (same account):</b> retained <b>Config</b> S3 bucket; <code>sg-aws-snow-role</code>; full IAM user removal; schedules; Cost Explorer</li>
+<li>You can explain Config <b>recording</b> vs traffic capture (ELI5 above)</li>
+<li>You understand <b>DeletionPolicy: Retain</b> and <b>Express mode</b> delete caveats</li>
 </ul>
+
+<p><strong>Lab 11 is not marked complete</strong> in this doc — partial progress is documented honestly.</p>
 
 ---
 
@@ -166,6 +177,13 @@ Per AWS documentation ([How AWS Config works](https://docs.aws.amazon.com/config
 - **S3 delivery** — **configuration history files** (per type, on an interval when changes occur) and **snapshots** on demand; JSON in **S3**, not “live video.”
 
 Lab 3 narrowed types to EC2 Instance, VPC, Subnet, Security Group — fewer types → fewer recorded items, **not** zero cost by itself ([Config pricing](https://aws.amazon.com/config/pricing/)).
+
+</details>
+
+<details markdown="1">
+<summary><strong>CloudFormation Express mode on delete (background cleanup)</strong></summary>
+
+When **Express mode** (or similar accelerated stack operations) is enabled, **DELETE_COMPLETE** can appear before every physical resource is gone. Check **CloudFormation → Events**, **S3**, **IAM**, and **Config → Settings** again after a short wait. This does not replace [Cost Explorer](https://docs.aws.amazon.com/cost-management/latest/userguide/ce-what-is.html) for whether usage stopped billing.
 
 </details>
 
@@ -188,7 +206,7 @@ Cleanup goal: stop **metered Config recording** and remove lab **recorder/delive
 <li>CSDM / dependency screenshots from Lab 7</li>
 </ul>
 
-No screenshot is embedded for **Stop recording** in this publish (transfer limitation) — use your **Settings** page when verifying.
+Screenshots from cleanup runs are **not** embedded in this publish (transfer limitation) — verify in your own console.
 
 ---
 
