@@ -282,7 +282,26 @@ outstanding and can only be produced by running the imports with approval.
 
 ## Open question
 
-**Why did `CEX0001013` load 0 rows?** Facts: `state=complete`, `errors=0`, `skipped=0`, data source `last_success_import_time=2026-11-07 07:01:37`, import set table 0 rows, two import sets (`ISET0010025`, `ISET0010026`) both `processed`. "Complete with zero rows" means the AWS/data-layer response was empty rather than an error — but I did not get to the API-response level from outside, and I did not run anything to find out. That is the single piece still needed before Step 2 can be expected to work.
+**Why did `CEX0001013` load 0 rows?** Facts: `state=complete`, `errors=0`, `skipped=0`, data source `last_success_import_time=2026-11-07 07:01:37`, import set table 0 rows, two import sets (`ISET0010025`, `ISET0010026`) both `processed`. "Complete with zero rows" means the response was empty rather than an error — but nothing I can read afterwards records *what* that response was.
+
+**Be honest about what can still be answered.** The historical run's empty payload was not retained, so its cause is very likely **unrecoverable after the fact**. Two weak substitutes are often mistaken for proof:
+
+| Evidence | What it can show | What it cannot |
+|---|---|---|
+| Reading `data_loader` / `parallel_loading_script` on both data sources | Which API the loader calls, how region/account are parameterised, how paging is handled — i.e. whether an empty result is *plausible* | Why *that* run returned nothing. It is a reading of code, not of the response |
+| Re-running 140 and seeing `rows = 0` again | The condition **recurs** | The cause, unless the run captures the HTTP status, endpoint, and body. A second zero-row datapoint is just a second zero-row datapoint |
+
+Evidence that would actually discriminate: a captured response (status + body or error) from the loader for this account/region, or a direct equivalent call through the same connection alias whose result can be compared with the loader's. Anything short of that leaves the IAM-permission hypothesis a hypothesis.
+
+### Approval lanes — keep these separate
+
+| Lane | Scope | Contains | Authorisation state |
+|---|---|---|---|
+| **A. Read-only** | Reads only, no execution, no writes | Loader scripts, data source and connection-alias config, whether any log/attachment retained the response for `ISET0010025`/`ISET0010026`, `CEX0001013` fields | Within the original read-only brief |
+| **B. Execution** | Runs something | Re-running 140 and/or 160, re-running 180 | **Not approved.** Needs a separate decision, and is only worth doing if diagnostics capture is arranged first |
+| **C. Configuration change** | Writes | IAM policy for the alias role, account/region scope, loader or mapping edits | **Not approved**, and only justified by evidence from A or B |
+
+B must not be used to "see if it fixes itself", and C must never be bundled into B — the moment both change, nothing is attributable. Deploying the documentation in this repo is none of these lanes: it validated rendering, not the connector.
 
 ---
 

@@ -227,6 +227,8 @@ Work in this order. Stop at the first rung that fails; you will usually finish a
 2. **Read the execution history, not the schedule.** `sn_cmdb_int_util_cmdb_integration_execution_list.do`
    (`CEX…`). `state = complete` with **rows = 0** is the single most decisive signal on this
    connector: the job ran and AWS returned nothing. Zero execution records means it never ran.
+   (A second run showing `rows = 0` again only proves it recurs — capture the loader's response
+   before re-running if you need to name a cause. See *Approval lanes* in `SOLVED_FREEBUFF.MD`.)
 3. **Confirm the staging tables.** `sn_aws_integ_sg_aws_network_interface_list.do`,
    `sn_aws_integ_sg_aws_storage_volume_list.do`, `sn_aws_integ_sg_aws_ec2_list.do`. If EC2's table
    contains the resource and the prerequisite's table is empty, the cause is upstream of mapping.
