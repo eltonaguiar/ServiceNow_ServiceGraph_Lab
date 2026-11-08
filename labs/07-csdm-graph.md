@@ -59,6 +59,7 @@ permalink: /labs/07-csdm-graph/
       <li><a href="#hands-on-part-b">Overview</a></li>
       <li><a href="#csdm-plain-language">Design vs deploy vs offering</a></li>
       <li><a href="#hands-on-outage-example">Outage story (Incident)</a></li>
+      <li><a href="#hands-on-incident-fields">Incident form fields</a></li>
       <li><a href="#hands-on-relationship-guide">Relationship guide</a></li>
       <li><a href="#hands-on-how-populated">How relationships get here</a></li>
       <li><a href="#hands-on-records-eli5">Records + navigation</a></li>
@@ -595,8 +596,8 @@ timeline dates may differ.*
 | Manual **Save** / green toast / method card | **Missing** this batch — use Step 3b text |
 | **Preview** Relationships vs Population summary | **Missing** this batch — use Step 4 table |
 | **View Map** | Published (`payments-lab-view-map.png`) |
-| **Payment Processing** business service form | **Pending** re-upload (bytes not on build VM) |
-| **Business Capabilities** / wrong **CI Relationship** draft | **Pending** re-upload |
+| **Payment Processing** + empty **Business Capabilities** | Published (`payment-processing-empty-business-capabilities.png`) |
+| **Unsaved** capability **CI Relationship** trap | Published (`capability-ci-relationship-trap-unsaved.png`) |
 
 ---
 
@@ -653,6 +654,27 @@ does **not** model a full technical-management stack. **Service Mapping** discov
 Relating records helps analysts **walk the chain** offering → application service → VM; it does **not**
 automatically compute revenue impact or prove PCI scope.
 
+#### Incident form fields (typical — verify your PDI)
+{: #hands-on-incident-fields}
+
+On many instances, **Incident Management** exposes reference fields that *can* point at service graph rows
+when analysts or rules populate them. **Nothing in this lab configures automatic field sync** from CI
+outages to tickets.
+
+| Incident field (common label) | What to set in *this* lab story | ELI5 for the caller desk |
+|---|---|---|
+| **Business service** (or **Service**) | **`Payment Processing`** | “Which customer-facing service name are we talking about?” |
+| **Service offering** (if present) | **`Payment Processing — Development`** | “Which slice — here, internal Dev, not production checkout.” |
+| **Configuration item** | **`sgclab-app-01`** (optional) | “Which piece of gear might be involved?” — **stopped** VM, not live payment code. |
+| **Business application** (if present) | **`Payments`** | Portfolio context — design record, **not** proof the outage is in that codebase. |
+| **Affected application service** / **Service instance** (names vary) | **`Payments (lab)`** when your form has it | Ops view of the deployed stack tied to the map. |
+| **Category / Subcategory** | Your process | Process metadata — **not** set by this lab. |
+| **Assignment group** | Your process | Who fixes it — **not** derived from CSDM links alone without workflow rules. |
+
+**Honest limit:** Filling references helps humans and **may** feed **Event Management** rules **you**
+configure elsewhere. A green connector import or a saved **View Map** does **not** guarantee Incident
+gets the right service field on every alert.
+
 ### Relationship guide (types, direction, reference vs `cmdb_rel_ci`)
 {: #hands-on-relationship-guide}
 
@@ -681,6 +703,31 @@ types casually — downstream products expect consistent parent/child rules ([mo
 
 </details>
 
+<details markdown="1">
+<summary><strong>Relationship TYPE vs INSTANCE — admin vs learner, and what is automatic</strong></summary>
+
+| Concept | Table / UI | Who maintains it | Automatic in this lab? |
+|---|---|---|---|
+| **Relationship type** (OOB name pairs) | **`cmdb_rel_type`** — **System Definition** → **CI Relationship Types** | Platform / CMDB admin | **No** — product ships types like **Depends on** and **Provided by** |
+| **Custom type** (rename rules — cautious) | Same table; may affect required-relationship plugins | CMDB admin only | **No** — learners should **not** invent types on a shared PDI |
+| **Relationship instance** (one edge) | **`cmdb_rel_ci`** — **New** on lists, **Related Items**, wizard | Wizard, human, connector, Discovery, imports | **Mixed** — see below |
+
+**How instances appear (mechanisms):**
+
+| Mechanism | Example in Lab 7 | Auto? |
+|---|---|---|
+| **Application service wizard** | **Consumes::Consumed by** business app → **`Payments (lab)`**; offering **Depends on::Used by** | **Wizard-assisted** — you click **Update**; wizard writes **`cmdb_rel_ci`** |
+| **Manual population** | **`Payments (lab)`** membership → **`sgclab-app-01`** | **Manual** CI pick — not Discovery |
+| **Service Graph Connector + IRE** | VPC, VM, datacenter rows | **Scheduled/API import** — not Service Mapping |
+| **Offering Parent reference** | Dev offering → **Payment Processing** | **Reference column** on **`service_offering`** — related but not always a duplicate **`cmdb_rel_ci`** |
+| **Business Capabilities → New** | Opens relationship form with **Child** prefilled | **Manual UI** — **Parent** must be an existing **business capability** record |
+| **Service Mapping / Discovery** | Not exercised | Would be **product-driven** if licensed and configured |
+
+**Learner check:** Before **Submit** on **`cmdb_rel_ci`**, confirm **Parent** class matches the type rules
+for that edge ([modify required relationships](https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/modify-req-fields-appservice.html)).
+
+</details>
+
 ### How relationships get here (not everything is auto)
 {: #hands-on-how-populated}
 
@@ -698,12 +745,13 @@ types casually — downstream products expect consistent parent/child rules ([mo
 ### Records configured — ELI5 + verified navigation
 {: #hands-on-records-eli5}
 
-| Record | ELI5 “why it exists” | Verified breadcrumb (one PDI) |
-|---|---|---|
-| **Business application `Payments`** | Design-time portfolio entry: “we own a Payments application concept.” | **All** → **CSDM** → **Design** → **Business Application** → **New** |
-| **Application service `Payments (lab)`** | Ops map for one deployed stack in Dev. | **All** → **CSDM** → **Manage Technology Management Services** → **Service Instance** → **New** (wizard) |
-| **Business service `Payment Processing`** | Customer-facing service name for portfolio/incident language. | **All** → **Service Portfolio Management** → **Business Services** → **New** |
-| **Offering `Payment Processing — Development`** | Dev slice customers/operators recognize on tickets. | **`Payment Processing`** form → **Offerings** related list → **New** |
+| Record | ELI5 “why it exists” | Typical incident tie-in | Verified breadcrumb (one PDI) |
+|---|---|---|---|
+| **Business application `Payments`** | Design-time portfolio entry: “we own a Payments application concept.” | Optional **business application** on ticket — portfolio only. | **All** → **CSDM** → **Design** → **Business Application** → **New** |
+| **Application service `Payments (lab)`** | Ops map for one deployed stack in Dev. | **Affected application service** (if field exists). | **All** → **CSDM** → **Manage Technology Management Services** → **Service Instance** → **New** (wizard) |
+| **Business service `Payment Processing`** | Customer-facing service name for portfolio/incident language. | **Business service** on the incident — primary “what broke?” label. | **All** → **Service Portfolio Management** → **Business Services** → **New** |
+| **Offering `Payment Processing — Development`** | Dev slice customers/operators recognize on tickets. | **Service offering** when your form supports it. | **`Payment Processing`** form → **Offerings** related list → **New** |
+| **VM CI `sgclab-app-01`** | Imported AWS server row — inventory, not app logic. | Optional **Configuration item**; **stopped** ≠ live payments. | **Configuration** → **All** → filter **`cmdb_ci_vm_instance`** / connector import ([Lab 4]({{ '/labs/04-run-import/' | relative_url }})) |
 
 **Observed field highlights (not universal):** business application **Status** **Implementing**; **Owners**
 tab may require **IT Application owner** (hidden mandatory until expand). Business service **Phase** **Pipeline**,
@@ -726,8 +774,11 @@ criticality **4 - not critical**, learning short description (no real payment pr
 Create via **Service Portfolio Management → Business Services → New**. Leave optional portfolio/taxonomy
 fields blank unless required.
 
-**Screenshot (user batch, bytes not on build VM):** saved **Payment Processing** form with empty **Business
-Capabilities** tab — **repo: pending re-upload** after privacy review.
+![Payment Processing business service — Business Capabilities tab empty (Offerings tab shows 1 related offering)]({{ '/assets/img/lab07/payment-processing-empty-business-capabilities.png' | relative_url }})
+
+*Screenshot: saved **`Payment Processing`** business service; **Business Capabilities** related list has
+**no** rows — **no capability record was created in this lab.* System number and timestamps may differ on
+your PDI.*
 
 ### Step 8 — Offering `Payment Processing — Development`
 {: #hands-on-step-8}
@@ -768,8 +819,10 @@ partial state** (unsaved; user correctly backed out).
    = **Payment Processing** business service.
 3. Confirm on capability **Related Items** — **never** submit with **Parent** blank.
 
-**Screenshot (user batch, bytes not on build VM):** unsaved wrong **CI Relationship** form — **repo: pending
-re-upload**.
+![Unsaved CI Relationship trap — blank Parent, Provided by::Provides, Child Payment Processing (do not Submit)]({{ '/assets/img/lab07/capability-ci-relationship-trap-unsaved.png' | relative_url }})
+
+*Screenshot: **unsaved** **CI Relationship** (**New record** header) — illustrates the common trap only.
+**Do not Submit** this row; **no** business capability exists yet.*
 
 <details markdown="1">
 <summary><strong>Why the Business Capabilities New action prefilled Child = Payment Processing</strong></summary>
@@ -850,6 +903,7 @@ from product definitions — expand acronyms in the prose beside them.
 | CI relationships in CSDM | https://www.servicenow.com/docs/r/servicenow-platform/common-service-data-model-csdm/ci-relationships.html |
 | Required relationships (wizard settings) | https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/modify-req-fields-appservice.html |
 | DPM business capability relationships | https://www.servicenow.com/docs/r/it-service-management/digital-portfolio-management/dpm-business-capability.html |
+| Incident Management (product) | https://www.servicenow.com/docs/r/it-service-management/incident-management/incident-management.html |
 | Amazon VPC overview | https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html |
 | Lab inventory template | https://github.com/eltonaguiar/ServiceNow_ServiceGraph_Lab/blob/main/aws/lab-stack.yaml |
 
