@@ -117,9 +117,9 @@ On one PDI, **Organization** parent and siblings (release/order may differ):
 
 **Empty Target record** on an import row: **normal** on multi-target transforms — **not** proof the run failed.
 
-### Screenshot-verified CMDB (user PDI; not in repo this publish)
+### Screenshot-verified CMDB (user PDI — no PNG in repo)
 
-**`cmdb_key_value`** for CI **`sgclab-app-01`**: **Key** **Environment**, **Value** **`drift-test`**. Confirms tag drift landed on the **key/value** table — file transfer for new captures **failed**; see [inventory](#lab9-screenshots).
+**`cmdb_key_value`** for CI **`sgclab-app-01`**: **Key** **Environment**, **Value** **`drift-test`**. Confirms tag drift landed on the **key/value** table. **No** matching screenshot is committed under `assets/img/lab09/` on **`main`** or [live Lab 9](https://eltonaguiar.github.io/ServiceNow_ServiceGraph_Lab/labs/09-drift-monitoring/) — see [inventory](#lab9-screenshots).
 
 ---
 
@@ -160,12 +160,18 @@ Curriculum still includes:
 ## Screenshot inventory (honest)
 {: #lab9-screenshots}
 
-| Capture | Status |
-|---|---|
-| Lab 4/6 published PNGs | Unchanged on site |
-| **`cmdb_key_value` Environment drift-test** | **Verified by user; not on build filesystem** — no fabrication |
-| Execution **EXE00001018** / import-set rows | **Missing** this publish |
-| RTE summary / concurrent jobs | **Missing** |
+**Repo fact:** There is **no** `assets/img/lab09/` directory on **`main`**. This lab page has **zero** `![...](...)` embeds — live and published content is **text/tables only**.
+
+| Capture (must match t608 workflow) | `main` / live | Notes |
+|---|---|---|
+| **AWS EC2** — **`sgclab-app-01`** tags **`Environment: drift-test`** (after **`lab` → `drift-test`**) | **Missing** | Proves the intentional drift change |
+| **ServiceNow** — **`cmdb_key_value`** row for **`sgclab-app-01`**, **Environment** = **`drift-test`** | **Missing** | User-verified fact; needs privacy-reviewed PNG |
+| **Execute Now** / run — **`SG-AWS-EC2`** (and/or data source) with **EXE00001018** visible | **Missing** | Tie to observed execution id |
+| **Concurrent Import Sets** / **Transform Histories** — summary **0 errors**, **updated 1** on **`cmdb_key_value`** | **Missing** | Execution history inspection |
+| **Saved personal filter** — **source-aware** stale CIs, **`last_discovered` > 7 days** (curriculum [#lab9-freshness](#lab9-freshness)) | **Missing** | Freshness/monitoring — still **pending** in checkpoint |
+| Lab 4/6 cross-lab PNGs | Published elsewhere | Not substitutes for Lab 9 drift evidence |
+
+**Do not** reuse wizard, CSDM, or cleanup PNGs from other labs as stand-ins for the rows above.
 
 ---
 
