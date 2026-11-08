@@ -695,8 +695,12 @@ timeline dates may differ.*
 | Manual **Save** / green toast / method card | **Missing** this batch — use Step 3b text |
 | **Preview** Relationships vs Population summary | **Missing** this batch — use Step 4 table |
 | **View Map** | Published (`payments-lab-view-map.png`) |
-| **Payment Processing** + empty **Business Capabilities** | Published (`business-service-payment-processing.png`) |
+| **Payment Processing** + empty **Business Capabilities** | Published (`business-service-payment-processing.png`) — on **`main`** and [live Lab 7](https://eltonaguiar.github.io/ServiceNow_ServiceGraph_Lab/labs/07-csdm-graph/#hands-on-step-7) |
+| **Offering `Payment Processing — Development`** (new form / **Offerings** row) | **Missing** — no PNG in repo |
+| **Wizard Step 9** — offering **Depends on::Used by** → **`Payments (lab)`** preview | **Missing** — no PNG in repo |
 | **Unsaved** capability **CI Relationship** trap | Published (`business-capability-relationship-unsaved.png`) |
+
+**Orphan duplicates on `main` (same bytes as embedded files — do not add a second embed):** `payment-processing-empty-business-capabilities.png`, `capability-ci-relationship-trap-unsaved.png`.
 
 ---
 
@@ -983,11 +987,18 @@ System number and timestamps may differ on your PDI.*
 On **`Payment Processing`** → **Offerings** → **New**: parent **Payment Processing**, name **Payment
 Processing — Development**, matching lifecycle/classification.
 
+**Screenshot gap (repo audit):** There is **no** dedicated **service offering** form or **Offerings → New**
+capture in this repository. The [Step 7](#hands-on-step-7) image is the **business service** form (caption
+notes **Offerings** tab with **1** related row when captured after the offering exists). Do not treat unrelated
+lab PNGs as offering evidence.
+
 ### Step 9 — Link offering → application service
 {: #hands-on-step-9}
 
 Wizard **Business Service Offering** tab: select the Dev offering → **Update**. **Preview** should show
 **Depends on::Used by** from offering parent to **`Payments (lab)`** child (observed).
+
+**Screenshot gap:** No **wizard preview** PNG for Step 9 is committed (see [screenshot inventory](#hands-on-part-c-screenshots)).
 
 ### Step 10 — View Map vs Dependency Views
 {: #hands-on-views}
@@ -1272,13 +1283,17 @@ When finished practicing, move the ticket through **your** instance’s resoluti
 | `choose-method-dropdown-scrolled.png` | Step 3 — dropdown scrolled |
 | `payments-lab-screenshot.png` | Step 4 — wizard **Preview** |
 | `payments-lab-view-map.png` | Step 5 — **View Map** entry point |
-| `business-service-payment-processing.png` | Step 7 — empty **Business Capabilities** (pre–Step 11) |
+| `business-service-payment-processing.png` | Step 7 — business service form; **published on main/live** |
 | `business-capability-relationship-unsaved.png` | Step 11 — **historical** unsaved-trap only |
 
-**Missing (verified in UI; transfer failed — no new PNGs promised this workspace):**
+**Not embedded (duplicate bytes — keep off the page):** `payment-processing-empty-business-capabilities.png`, `capability-ci-relationship-trap-unsaved.png`.
 
-| Capture | Session |
+**Missing (verified in UI; no suitable repo file — do not substitute unrelated PNGs):**
+
+| Capture | Session / step |
 |---|---|
+| **Offering** create/save — **`Payment Processing — Development`** | Step 8 |
+| Application service wizard — **Business Service Offering** / **Depends on::Used by** preview | Step 9 |
 | Saved capability form **Accept Customer Payments** | t574–580 |
 | **Business Capabilities (1)** saved relationship row | t574–580 |
 | Five-node **Dependency Views** after capability | t580 |
