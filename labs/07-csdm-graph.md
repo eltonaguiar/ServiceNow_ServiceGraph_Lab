@@ -689,8 +689,8 @@ timeline dates may differ.*
 | Manual **Save** / green toast / method card | **Missing** this batch — use Step 3b text |
 | **Preview** Relationships vs Population summary | **Missing** this batch — use Step 4 table |
 | **View Map** | Published (`payments-lab-view-map.png`) |
-| **Payment Processing** + empty **Business Capabilities** | Published (`payment-processing-empty-business-capabilities.png`) |
-| **Unsaved** capability **CI Relationship** trap | Published (`capability-ci-relationship-trap-unsaved.png`) |
+| **Payment Processing** + empty **Business Capabilities** | Published (`business-service-payment-processing.png`) |
+| **Unsaved** capability **CI Relationship** trap | Published (`business-capability-relationship-unsaved.png`) |
 
 ---
 
@@ -963,11 +963,12 @@ criticality **4 - not critical**, learning short description (no real payment pr
 Create via **Service Portfolio Management → Business Services → New**. Leave optional portfolio/taxonomy
 fields blank unless required.
 
-![Payment Processing business service — Business Capabilities tab empty (Offerings tab shows 1 related offering)]({{ '/assets/img/lab07/payment-processing-empty-business-capabilities.png' | relative_url }})
+![Payment Processing business service — Business Capabilities tab empty (Offerings tab shows 1 related offering)]({{ '/assets/img/lab07/business-service-payment-processing.png' | relative_url }})
 
-*Screenshot: saved **`Payment Processing`** business service; **Business Capabilities** related list has
-**no** rows — **no capability record was created in this lab.* System number and timestamps may differ on
-your PDI.*
+*Screenshot: saved **`Payment Processing`** business service (`business-service-payment-processing.png`,
+mirrored from [ServiceNow_ServiceGraph_Demo](https://github.com/eltonaguiar/ServiceNow_ServiceGraph_Demo) /
+commit `ab37d274`); **Business Capabilities** related list has **no** rows — **no capability record was
+created in this lab.* System number and timestamps may differ on your PDI.*
 
 ### Step 8 — Offering `Payment Processing — Development`
 {: #hands-on-step-8}
@@ -1008,10 +1009,12 @@ partial state** (unsaved; user correctly backed out).
    = **Payment Processing** business service.
 3. Confirm on capability **Related Items** — **never** submit with **Parent** blank.
 
-![Unsaved CI Relationship trap — blank Parent, Provided by::Provides, Child Payment Processing (do not Submit)]({{ '/assets/img/lab07/capability-ci-relationship-trap-unsaved.png' | relative_url }})
+![Unsaved CI Relationship trap — blank Parent, Provided by::Provides, Child Payment Processing (do not Submit)]({{ '/assets/img/lab07/business-capability-relationship-unsaved.png' | relative_url }})
 
-*Screenshot: **unsaved** **CI Relationship** (**New record** header) — illustrates the common trap only.
-**Do not Submit** this row; **no** business capability exists yet.*
+*Screenshot: **unsaved** **CI Relationship** (**New record** header) (`business-capability-relationship-unsaved.png`,
+mirrored from [ServiceNow_ServiceGraph_Demo](https://github.com/eltonaguiar/ServiceNow_ServiceGraph_Demo) /
+commit `ab37d274`) — illustrates the common trap only. **Do not Submit** this row; **no** business capability
+exists yet.*
 
 <details markdown="1">
 <summary><strong>Why the Business Capabilities New action prefilled Child = Payment Processing</strong></summary>
