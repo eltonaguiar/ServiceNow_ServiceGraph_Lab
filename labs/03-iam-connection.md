@@ -292,8 +292,17 @@ imports.
 > them, but **don't treat §2–§3 as complete, and don't run imports (Lab 4)**, until your release's
 > identity prerequisites are confirmed. Keep anything you created; don't delete it.
 
+### Programmatic connector user (not a human console login)
+{: #lab3-iam-programmatic}
+
+This lab’s IAM user **`servicenow-sgc-lab`** exists so the **ServiceNow connector** (and its scheduled jobs) can authenticate to AWS with an **access key** and, after §0b, **`sts:AssumeRole`** into `SnowOrganizationAccountAccessRole`. It is **not** meant as a person’s daily **AWS Management Console** sign-in.
+
+On **IAM → Users**, AWS may show an in-console banner that **IAM users should only be used for programmatic access**, and that **human** console access should flow through your organization’s **team** / enterprise identity path. That matches how **this lab user** should be used. It is **guidance for your setup**, not a claim that console IAM users are technically impossible in every AWS design worldwide.
+
+*Privacy-reviewed screenshot of that banner was requested for this repo; **asset transfer did not land** in this revision — verify the banner in your own console. Intended path when available: `assets/img/lab03/iam-users-programmatic-access-banner.png`.*
+
 1. AWS console → **IAM → Users → Create user** → name `servicenow-sgc-lab`.
-2. **Do not** enable console access. This identity only calls APIs.
+2. **Do not** enable console access for this lab user. Keys are for **API / connector** access only.
 3. Permissions → **Attach policies directly** → **Create policy** → **JSON**, and paste
    [`aws/iam-readonly-lab-policy.json`](https://github.com/eltonaguiar/ServiceNow_ServiceGraph_Lab/blob/main/aws/iam-readonly-lab-policy.json)
    (from the cloned repo — see [Lab 0 §4]({{ '/labs/00-prerequisites/' | relative_url }})).

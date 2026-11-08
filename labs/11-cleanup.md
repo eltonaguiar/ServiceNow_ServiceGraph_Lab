@@ -41,6 +41,10 @@ legacy accounts it also prevents continuing out-of-pocket charges.
 Retained **AWS Config** / **Simple Storage Service (S3)** resources can continue **metered** usage. Do **not**
 rely on eventual Free plan suspension as your cleanup procedure ([Lab 3]({{ '/labs/03-iam-connection/' | relative_url }})).
 
+### Why targeted lab cleanup (not “close the whole AWS account”)
+
+On a **shared** AWS account, other teams or personal workloads may still run. **Lab cleanup** removes **Service Graph lab** stacks, keys, Config recording, and connector schedules — it is **not** the same as account closure. A **disabled ServiceNow connection** and **deleted CloudFormation stacks** also **do not** guarantee every **billable** artifact is gone (retained **S3**, snapshots, Elastic IPs, other regions, or non-lab resources).
+
 ---
 
 ## 1. Revoke the credentials first
@@ -60,15 +64,18 @@ rely on eventual Free plan suspension as your cleanup procedure ([Lab 3]({{ '/la
 
 | Check | Observed state (snapshot) | Notes |
 |---|---|---|
-| IAM access keys | **Access keys (0)** | Lab user cannot authenticate with deleted key |
-| ServiceNow **AWS Default Connection** | **Active = false** | Schedules may still run — check **System Scheduler** |
-| Stack **`sgclab`** | **DELETE_COMPLETE** | Lab VPC / EC2 template stack |
-| **AWS Config → Settings** | Customer-managed recorder **Recording is off** (after **Confirm**) | **service-linked recorders (0)** |
-| Stack **`sg-aws-config`** | **DELETE_COMPLETE** | Deleted with **CloudFormation Express mode** enabled — see caveat below |
-| **Config S3 delivery bucket** | **Pending** | Template **`ConfigBucket`** uses **`DeletionPolicy: Retain`** — bucket **stays** after stack delete; user navigating **S3** to empty/delete |
-| Stack **`sg-aws-snow-role`** | **Still active / pending cleanup** | Lab 3 STS role stack — delete when you are ready ([Lab 3]({{ '/labs/03-iam-connection/' | relative_url }}#lab3-config)) |
-| IAM user **`servicenow-sgc-lab`** | **Pending** (if user not removed) | Delete user after keys |
-| Billing | **Not verified here** | **Do not** assert $0 — use Cost Explorer |
+| IAM access keys | **Access keys (0)** | No live key; user record may still exist ([Lab 3 — programmatic user]({{ '/labs/03-iam-connection/' | relative_url }}#lab3-iam-programmatic)) |
+| IAM user **`servicenow-sgc-lab`** | **Still present** | Delete user + inline policies when cleanup continues |
+| ServiceNow **AWS Default Connection** | **Active = false** | Schedules may still run — see [§4](#lab11-schedules) |
+| Stacks **`sgclab`**, **`sg-aws-config`**, **`sg-aws-snow-role`** | **All DELETE_COMPLETE** | Three lab stacks gone on observed account |
+| Role **`SnowOrganizationAccountAccessRole`** | **DELETE_COMPLETE** (with snow-role stack) | Verify in **IAM → Roles** if stack used Express mode |
+| **AWS Config → Settings** | Customer-managed recorder **Recording is off** | **service-linked recorders (0)** |
+| **Config S3 bucket (`ConfigBucket`, Retain)** | **Emptied and deleted** | **16** objects, **19.8 KB**, **0** failures, then bucket delete |
+| **Ohio (`us-east-2`) footprint** | **Volumes 0**; **owned snapshots 0**; **Elastic IPs 0**; lab **EC2 Terminated** | Spot-check other regions if you used them |
+| **Cost Explorer** (unfiltered Nov MTD, group by service) | **$0.00 total**, **0 services** | **Snapshot only** — lag and filters matter; not “never charged again” |
+| **Credits / invoice** (observed) | **~140** remaining of **400** total; est. used **~100** base + **20** budget + **20** EC2 launch rewards | [Billing estimates](https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/billing-what-is.html) can lag **~24h**; invoice **finalizes** totals |
+| **Import schedules** | **Still pending / selective** | Do **not** assume all schedules off — AWS-only subset per §4 |
+| **CMDB / import visibility** (CSV snapshot) | Parent **Organization = false**; **EC2 / NIC = false**; **`Storage-Volume = true`**; many **AWS children true** “After Parent Runs” | “Updated This Week” filters **hid** rows in earlier UI shots |
 
 **Express mode caveat:** With **[CloudFormation quick starts / accelerated operations](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-create-stacks.html)** (Express mode) on delete, the console can show **DELETE_COMPLETE** while AWS **still finishes deleting some resources in the background**. Re-check the stack events, **S3**, **IAM** roles, and **Config** settings before you call teardown done.
 
@@ -118,34 +125,48 @@ Setup context and narrow resource types: [Lab 3 — AWS Config]({{ '/labs/03-iam
 
 5. **Express mode:** If you use accelerated delete, treat **DELETE_COMPLETE** as a milestone — confirm background cleanup per AWS guidance and stack **Events**.
 
-6. **S3 bucket (required when `Retain`):** Open **S3** → delivery bucket → **Empty** (handle **versioning** if enabled) → **Delete bucket** when you accept **permanent data loss** for Config history objects. **Observed snapshot:** stack gone, **bucket cleanup still in progress**.
+6. **S3 bucket (required when `Retain`):** Open **S3** → delivery bucket → **Empty** (handle **versioning** if enabled) → **Delete bucket** when you accept **permanent data loss** for Config history objects. **Observed snapshot:** **16** objects emptied, bucket deleted.
 
-7. **Stack `sg-aws-snow-role`:** Delete when no longer needed (after connector identity teardown).
+7. **Stack `sg-aws-snow-role`:** Delete when no longer needed (after connector identity teardown). **Observed snapshot:** **DELETE_COMPLETE**.
 
 8. **Other Regions / accounts:** Repeat **Config Settings** per Region if recording was enabled elsewhere.
 
-**Status:** Observed snapshot shows **recorder off** and **`sg-aws-config` DELETE_COMPLETE** — **retained S3**, **`sg-aws-snow-role`**, schedules, IAM user removal, and billing review may still be **pending**. **Do not** mark the whole lab complete or claim zero charges.
+**Status:** Observed snapshot shows **three stacks deleted**, **Config off**, **retained bucket removed**, and **Ohio lab compute/storage checks clean** — **IAM user still exists**, **AWS import schedules** being turned off selectively, and **billing** monitored with estimate lag. **Do not** mark Lab 11 complete for all learners or claim universal $0 / no future charges.
 
 ---
 
 ## 4. Stop the schedules
 {: #lab11-schedules}
 
-**System Scheduler → Scheduled Jobs** → deactivate AWS (and Azure, if used) import jobs.
+**System Scheduler → Scheduled Jobs** → turn off jobs that would keep calling **AWS** after keys and stacks are gone.
 
 **Active = false** on a connection record is **insufficient** proof schedules stopped.
+
+### Selective deactivation (do not blanket-disable everything)
+
+On the observed instance, **not every** `SG-*` schedule should be deactivated:
+
+| Do | Don't |
+|---|---|
+| Filter **Name** **starts with** `SG-AWS` **and** **Active = true** | Rely on “**Updated This Week**” alone — it can **hide** jobs still marked active |
+| Deactivate **AWS connector** import schedules only | Turn off **SCCM**, **Azure**, **Dynatrace**, or other non-AWS lab schedules unless you intend to |
+
+**CMDB note:** A fresh full **SG-name** export showed **Organization** and some parents **false**, while **Storage-Volume** and many **AWS child** rows remained **true** after parent runs — cleanup of **AWS schedules** does not by itself prove the CMDB is empty of connector rows. More screenshot evidence may follow; treat schedule and CMDB state as **pending** until you verify your instance.
 
 ---
 
 ## 5. Confirm the bill
 {: #lab11-billing}
 
-- AWS **Billing → Cost Explorer**, group by service, last 7 days
+- AWS **Billing → Cost Explorer**, group by service — use an **unfiltered** month-to-date view when checking whether lab services still show lines (filters can mislead)
 - **Budgets** — alarm warns; it is **not** a spend cap
 - After Config teardown: confirm **Config** and **S3** lines trend down (lag is normal)
+- **Credits & invoices:** remaining promotional credits and **estimated** usage can update on a **~24 hour** delay; the **invoice** finalizes totals. A **$0.00** Cost Explorer snapshot is **not** a universal guarantee of free usage forever or on every account type
 - Azure **Cost Management** if you ran Lab 8
 
 **Stopped EC2 is not free** — **Elastic Block Store (EBS)** and related charges can continue.
+
+**Observed snapshot (one Free-plan account):** unfiltered **November** month-to-date Cost Explorer grouped by service showed **$0.00** total and **0** services, with **~140** credits remaining against **400** total (estimated consumption split across base, budget, and EC2 launch rewards). Your numbers will differ.
 
 ---
 
@@ -153,10 +174,11 @@ Setup context and narrow resource types: [Lab 3 — AWS Config]({{ '/labs/03-iam
 {: #lab11-checkpoint}
 
 <ul class="check">
-<li><b>Observed on one account:</b> keys <b>0</b>; connection <b>Inactive</b>; <code>sgclab</code> and <code>sg-aws-config</code> <b>DELETE_COMPLETE</b>; Config recorder <b>off</b></li>
-<li><b>Still open (same account):</b> retained <b>Config</b> S3 bucket; <code>sg-aws-snow-role</code>; full IAM user removal; schedules; Cost Explorer</li>
+<li><b>Observed:</b> keys <b>0</b>; three stacks <b>DELETE_COMPLETE</b>; Config <b>off</b>; retained Config bucket <b>emptied/deleted</b>; Ohio volumes/snapshots/EIPs <b>0</b>; lab instance <b>Terminated</b></li>
+<li><b>Still open:</b> IAM user <code>servicenow-sgc-lab</code>; selective <b>SG-AWS</b> schedule deactivation; CMDB rows (e.g. Storage-Volume / children); ongoing billing estimate lag</li>
+<li>You can explain <b>targeted cleanup</b> vs closing a shared account (Objective)</li>
 <li>You can explain Config <b>recording</b> vs traffic capture (ELI5 above)</li>
-<li>You understand <b>DeletionPolicy: Retain</b> and <b>Express mode</b> delete caveats</li>
+<li>Lab user is <b>programmatic connector</b> identity — not human console login ([Lab 3]({{ '/labs/03-iam-connection/' | relative_url }}#lab3-iam-programmatic))</li>
 </ul>
 
 <p><strong>Lab 11 is not marked complete</strong> in this doc — partial progress is documented honestly.</p>
