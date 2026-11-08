@@ -202,6 +202,84 @@ Run `SG-AWS-Network-Interface` once (Execute Now) and watch `CEX` `rows`. If it 
 
 ---
 
+## Lab impact and lab fixes (2026-11-08)
+
+**Yes — the failure was reproducible by following the lab as written.** The labs did not cause the
+instance's state (that was the NIC feed loading 0 rows and the volume feed never running), but they
+taught learners to create and then ignore exactly that gap.
+
+### Impact — what the pages said before
+
+| Page | Pre-existing text | Why it misleads |
+|---|---|---|
+| Lab 4 §8 (PoC chain) | `140 \| SG-AWS-Network-Interface \| (staging may be empty) \| **0** rows OK: Config records only Instance/VPC/Subnet/SG — **skip** for basic PoC` | Presents `0 rows` as a pass — the exact signal that hid the real defect — and tells the learner to skip the feed that creates NICs |
+| Lab 4 §8 | order table jumped `150 → 180`; **`SG-AWS-Storage-Volume` (160) was absent entirely** | A learner following the table can never create volume CIs |
+| Lab 4 §8 closing note | "**Not a clean graph:** … `storage_volume` 1/1; `nic` 2/2; `relations` 3/3 unresolved" | States the symptom as expected without linking it to the two skipped feeds, so it reads as a connector quirk |
+| Lab 5 §4 (Partials) | "AWS Config records only Instance/VPC/Subnet/SecurityGroup — **no** NIC/Volume in scope. Partial NIC/storage edges are **expected**; exact loader prerequisites are **not proven** here." | Both halves are wrong: the EC2 payload demonstrably carries the `eni-` and `vol-` ids, and the prerequisites are precisely 140 and 160 |
+
+Net effect: a learner produces the 6 partials, is told they are expected, and has no instruction to
+check `rows` — so the investigation in this document never gets triggered.
+
+### Fixes applied
+
+**`labs/04-run-import.md` — new §9, "Why the PoC shows `nic` / `storage_volume` partials — and how to get a clean graph"** (anchor `#lab4-partial-dependencies`, committed `9a3dfe2`):
+
+* Table of the three reference-only stub entities and the fields they do/don't map; attributes live in the 140/160 mappings; `cmdb_identifier.independent = false`.
+* Two explicit options: **A** accept the partials on the PoC path (they are good Lab 5 reading), or **B** run **140 → 160 → 180** and expect `ire_partial` 6 → 0 with real NIC/volume CIs.
+* Warning not to activate `SG-AWS-Organization` to automate it (36-child cascade).
+* Boxed warning that `state = complete` with `rows = 0` means AWS returned nothing — investigate, don't accept — citing the real case (`CEX0001013`, volume never executed, `cmdb_ci_nic` empty).
+* Collapsible quick-check table: did it run / did it fetch / did rows land / did CIs appear / does the key exist in `sys_object_source`.
+* Table rows for 140 and 160 rewritten to say what they create and to link §9 (160 added to the chain table for the first time).
+
+**`labs/05-ire.md` §4** — replaced the out-of-scope claim with "now proven, not assumed": the payload does carry NIC/volume, EC2 emits stubs, 140/160 own the records, identifiers are dependent. Added a two-row table separating **"skipped"** (expected; accept or fix with 140 → 160 → 180) from **"ran with `rows = 0`"** (a real defect → Lab 10), with `sn_cmdb_int_util_cmdb_integration_execution` → `rows` as the discriminator. Checkpoint bullet updated to match.
+
+**`labs/10-troubleshooting.md`** — case study added in `cffaffe` (four collapsible blocks: case, fast path, table reference, AI capabilities), then in `9a3dfe2` a lead-in noting the Lab 4 PoC path reproduces a milder version deliberately, so a reader arriving from §9 knows which entry point to use.
+
+### Verification of the lab changes
+
+* Commit `9a3dfe2` on `ServiceNow_ServiceGraph_Lab` `main`; GitHub Pages build `completed/success`.
+* `curl` 200 on `/labs/04-run-import/` (33,477 bytes) with `<h2 id="lab4-partial-dependencies">` rendered, plus `SG-AWS-Storage-Volume`, "reference-only stubs" and `rows = 0` present.
+* `/labs/05-ire/` serves "now proven, not assumed" and links to `#lab4-partial-dependencies`.
+* `/labs/10-troubleshooting/` exposes `id="lab10-missing-dependency"`, so the cross-links resolve.
+
+### Behaviour change for a learner
+
+Before: skip 140, never see 160, accept 6 partials. After: the ordered chain is complete, the
+partials are explained, and `rows = 0` is a stop-and-look rather than a green tick — which is what
+would have surfaced this instance's actual defect in the first ten minutes.
+
+### What this does **not** prove — limits and objections answered
+
+Three claims are often conflated here. Only the first is fully proven.
+
+| Claim | Status | Basis |
+|---|---|---|
+| The 140/160 feeds **own** the `cmdb_ci_nic` / `cmdb_ci_storage_volume` records, and EC2 only links to them | **Proven** | Their mapping definitions carry the attributes (`object_id`, `private_ip`, `volume_id`, …) while the EC2 entities carry only `source_native_key`; both identifiers are `independent = false` |
+| **Why** the NIC loader returned 0 rows | **Not proven** | Evidence stops at `state=complete`, `rows=0`, `errors=0`. Which API call it makes, what that call returned, or which permission/scope produced an empty page is unknown |
+| That **AWS Config** does or does not record `NetworkInterface` / `Volume` for this account+region | **Not proven either way** | The EC2 payload containing `eni-…` / `vol-…` ids proves the *EC2 feed* saw them; it says nothing about the Config recorder's resource-type scope, and nothing about which source the 140/160 loaders read |
+
+**Objection: "EC2 staging containing the ids doesn't establish that AWS Config records those resource types."**
+Correct, and it is not what the guide now says. What the staging rows prove is narrow and sufficient
+for the lab fix: EC2 *sees* both resources, so the account/region scope is reachable and the partials
+are not "resource does not exist in AWS". They do not prove the Config recorder records those types,
+nor that the 140/160 data sources use Config at all.
+
+What I actually checked on those two data sources: `sys_data_source` records exist
+(`2a5c4a8253203010a3e4ddeeff7b12c5` NIC, `9f35074653603010a3e4ddeeff7b1208` volume), type `CUSTOM`
+(load by script), bound to the same connection alias `c3f0b8c453b32010c23bddeeff7b12ee`, with
+`import_set_table_name` = `sn_aws_integ_sg_aws_network_interface` / `..._storage_volume`. I did **not**
+read their `data_loader` / `parallel_loading_script` bodies or the underlying AWS calls, so the
+API-permission hypothesis remains a hypothesis.
+
+**Consequence for the guide — one overreach corrected.** An earlier Lab 5 edit asserted that the
+Config recorder "is not what feeds these classes". That is not established, and the page now says to
+verify which API the loader uses **before** changing Config scope, rather than assuming Config is
+irrelevant.
+
+**Deployment ≠ validation.** Publishing the pages validated rendering and links only. No instance
+change has been made, so the acceptance test (`ire_partial` 6 → 0 after 140 → 160 → 180) is still
+outstanding and can only be produced by running the imports with approval.
+
 ## Open question
 
 **Why did `CEX0001013` load 0 rows?** Facts: `state=complete`, `errors=0`, `skipped=0`, data source `last_success_import_time=2026-11-07 07:01:37`, import set table 0 rows, two import sets (`ISET0010025`, `ISET0010026`) both `processed`. "Complete with zero rows" means the AWS/data-layer response was empty rather than an error — but I did not get to the API-response level from outside, and I did not run anything to find out. That is the single piece still needed before Step 2 can be expected to work.

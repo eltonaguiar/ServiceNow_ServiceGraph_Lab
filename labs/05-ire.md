@@ -82,7 +82,7 @@ So the partials mean one of two things, and they look identical on this page:
 
 Check `sn_cmdb_int_util_cmdb_integration_execution.list` → **`rows`** column to tell them apart: `0` means the AWS call returned nothing.
 
-Do **not** widen paid **AWS Config** merely to "clean" these edges — the recorder is not what feeds these classes, and widening it fixes nothing here.
+Be careful with **AWS Config** scope here: the EC2 payload carrying the `eni-…` / `vol-…` ids proves EC2 *sees* those resources, but it does **not** establish which API the 140/160 loaders use or whether the Config recorder covers those resource types. Both import data sources are `CUSTOM` (load by script) on the same connection alias — check what the loader actually calls before changing (paid) Config scope, and do not widen it on the assumption that it fixes these edges.
 
 Use **`cmdb_ire_partial_payloads.list`** on your instance; do not commit raw payloads.
 
