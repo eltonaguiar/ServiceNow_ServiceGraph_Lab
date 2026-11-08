@@ -299,7 +299,8 @@ This lab’s IAM user **`servicenow-sgc-lab`** exists so the **ServiceNow connec
 
 On **IAM → Users**, AWS may show an in-console banner that **IAM users should only be used for programmatic access**, and that **human** console access should flow through your organization’s **team** / enterprise identity path. That matches how **this lab user** should be used. It is **guidance for your setup**, not a claim that console IAM users are technically impossible in every AWS design worldwide.
 
-*Privacy-reviewed screenshot of that banner was requested for this repo; **asset transfer did not land** in this revision — verify the banner in your own console. Intended path when available: `assets/img/lab03/iam-users-programmatic-access-banner.png`.*
+![IAM Users page banner recommending programmatic access for IAM users]({{ '/assets/img/lab03/iam-users-programmatic-access-banner.png' | relative_url }})
+*On one lab account: **IAM → Users** banner — programmatic use cases and **team page** for human access. The lab lists only the connector user (`servicenow-sgc-lab`) with no access keys until you create one in §1.*
 
 1. AWS console → **IAM → Users → Create user** → name `servicenow-sgc-lab`.
 2. **Do not** enable console access for this lab user. Keys are for **API / connector** access only.

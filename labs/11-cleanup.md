@@ -51,8 +51,10 @@ On a **shared** AWS account, other teams or personal workloads may still run. **
 {: #lab11-credentials}
 
 1. AWS → **IAM → Users → servicenow-sgc-lab → Security credentials** → **Deactivate**, then
-   **Delete** the access key.
-2. Delete the IAM user (or at least remove its policies).
+   **Delete** the access key. **Access keys (0)** means **credentials are revoked** — AWS APIs
+   no longer accept that key. That is the **required** stop for scheduled connector calls.
+2. **Optional:** delete the IAM user (and inline policies) when you are done with the lab identity.
+   Keeping the empty user record does **not** restore API access without a new key.
 3. In ServiceNow, delete or disable the connection / credential record the connector created.
 4. Azure (optional Lab 8): delete client secret and Reader role assignment.
 
@@ -64,9 +66,9 @@ On a **shared** AWS account, other teams or personal workloads may still run. **
 
 | Check | Observed state (snapshot) | Notes |
 |---|---|---|
-| IAM access keys | **Access keys (0)** | No live key; user record may still exist ([Lab 3 — programmatic user]({{ '/labs/03-iam-connection/' | relative_url }}#lab3-iam-programmatic)) |
-| IAM user **`servicenow-sgc-lab`** | **Still present** | Delete user + inline policies when cleanup continues |
-| ServiceNow **AWS Default Connection** | **Active = false** | Schedules may still run — see [§4](#lab11-schedules) |
+| IAM access keys | **Access keys (0)** — **revoked** | Connector cannot authenticate; distinct from optional user delete ([Lab 3]({{ '/labs/03-iam-connection/' | relative_url }}#lab3-iam-programmatic)) |
+| IAM user **`servicenow-sgc-lab`** | **Still present (optional cleanup)** | User delete is **not** required once keys are gone |
+| ServiceNow **AWS Default Connection** | **Active = false** | Parent scheduling chain addressed in [§4](#lab11-schedules) |
 | Stacks **`sgclab`**, **`sg-aws-config`**, **`sg-aws-snow-role`** | **All DELETE_COMPLETE** | Three lab stacks gone on observed account |
 | Role **`SnowOrganizationAccountAccessRole`** | **DELETE_COMPLETE** (with snow-role stack) | Verify in **IAM → Roles** if stack used Express mode |
 | **AWS Config → Settings** | Customer-managed recorder **Recording is off** | **service-linked recorders (0)** |
@@ -74,8 +76,9 @@ On a **shared** AWS account, other teams or personal workloads may still run. **
 | **Ohio (`us-east-2`) footprint** | **Volumes 0**; **owned snapshots 0**; **Elastic IPs 0**; lab **EC2 Terminated** | Spot-check other regions if you used them |
 | **Cost Explorer** (unfiltered Nov MTD, group by service) | **$0.00 total**, **0 services** | **Snapshot only** — lag and filters matter; not “never charged again” |
 | **Credits / invoice** (observed) | **~140** remaining of **400** total; est. used **~100** base + **20** budget + **20** EC2 launch rewards | [Billing estimates](https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/billing-what-is.html) can lag **~24h**; invoice **finalizes** totals |
-| **Import schedules** | **Still pending / selective** | Do **not** assume all schedules off — AWS-only subset per §4 |
-| **CMDB / import visibility** (CSV snapshot) | Parent **Organization = false**; **EC2 / NIC = false**; **`Storage-Volume = true`**; many **AWS children true** “After Parent Runs” | “Updated This Week” filters **hid** rows in earlier UI shots |
+| **Parent schedule `SG-AWS-Organization`** | **Inactive** — **verified** | Stops the **scheduled chain** that fans out child imports ([§4](#lab11-schedules)) |
+| **Child `SG-AWS-*` schedules (24)** | **Active = true** (snapshot) | **After Parent Runs** — parent inactive; do **not** claim all children inactive |
+| **CMDB CIs from imports** | Rows may remain (e.g. Storage-Volume) | **Learning records** — not AWS metered resources; **no requirement** to delete CIs for billing cleanup |
 
 **Express mode caveat:** With **[CloudFormation quick starts / accelerated operations](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-create-stacks.html)** (Express mode) on delete, the console can show **DELETE_COMPLETE** while AWS **still finishes deleting some resources in the background**. Re-check the stack events, **S3**, **IAM** roles, and **Config** settings before you call teardown done.
 
@@ -131,27 +134,44 @@ Setup context and narrow resource types: [Lab 3 — AWS Config]({{ '/labs/03-iam
 
 8. **Other Regions / accounts:** Repeat **Config Settings** per Region if recording was enabled elsewhere.
 
-**Status:** Observed snapshot shows **three stacks deleted**, **Config off**, **retained bucket removed**, and **Ohio lab compute/storage checks clean** — **IAM user still exists**, **AWS import schedules** being turned off selectively, and **billing** monitored with estimate lag. **Do not** mark Lab 11 complete for all learners or claim universal $0 / no future charges.
+**Status:** Observed snapshot shows **three stacks deleted**, **Config off**, **retained bucket removed**, **Ohio lab compute/storage checks clean**, **keys revoked**, and **parent AWS schedule inactive (verified)** — **child schedules may still show Active**; **optional** IAM user delete; **billing** estimate lag. **Do not** mark Lab 11 complete for all learners or claim universal $0 / no future charges.
 
 ---
 
 ## 4. Stop the schedules
 {: #lab11-schedules}
 
-**System Scheduler → Scheduled Jobs** → turn off jobs that would keep calling **AWS** after keys and stacks are gone.
+**System Scheduler → Scheduled Jobs** → confirm the **parent** AWS import job is **inactive** so the connector’s **scheduled chain** does not keep firing against AWS after keys and stacks are gone.
 
 **Active = false** on a connection record is **insufficient** proof schedules stopped.
 
-### Selective deactivation (do not blanket-disable everything)
+### Parent job vs child jobs (observed pattern)
 
-On the observed instance, **not every** `SG-*` schedule should be deactivated:
+Service Graph AWS jobs are often wired **After Parent Runs** to a parent such as **`SG-AWS-Organization`**. On the observed instance:
+
+- **Parent `SG-AWS-Organization`:** **Inactive** — this is the **verified** scheduling check for stopping **automatic** AWS import runs.
+- **24 remaining `SG-AWS-*` child jobs:** still **Active = true**, **Run** = **After Parent Runs**, **Parent** = **`SG-AWS-Organization`**.
+
+With the **parent inactive**, the **scheduled chain is stopped** even though children still display **Active**. A child can still be **executed manually** from the list (separate from the cron/parent chain). **Do not** document “all SG-AWS schedules inactive” unless you have verified each row.
+
+![Scheduled Jobs filtered to SG-AWS — top of list showing parent and children]({{ '/assets/img/lab11/schedules-sg-aws-parents-top.png' | relative_url }})
+*Filter **Name** starts with **`SG-AWS`** and **Active = true** (no “Updated This Week” filter). Top rows: parent **Organization** and children such as **EC2 instances**, **Subnets**, **VPCs** — **Run** = **After Parent Runs**.*
+
+![Scheduled Jobs — bottom of same filtered list]({{ '/assets/img/lab11/schedules-sg-aws-parents-bottom.png' | relative_url }})
+*Bottom of the same filtered view: additional **SG-AWS-*** children still **Active**, all tied to parent **`SG-AWS-Organization`**.*
+
+### Instance security (do not bypass)
+
+When editing some schedule fields inline, ServiceNow may show **`Security prevents writing to this field`**. **Do not** use this lab to advise ACL changes, elevated roles, or “force” edits to flip child **Active** flags. The observed cleanup path is: **revoke AWS keys**, **disable connection**, **inactivate parent schedule**, tear down **AWS** resources — not blanket-deactivate every child or bypass platform security.
+
+### Scope: AWS only; CMDB rows are optional
 
 | Do | Don't |
 |---|---|
-| Filter **Name** **starts with** `SG-AWS` **and** **Active = true** | Rely on “**Updated This Week**” alone — it can **hide** jobs still marked active |
-| Deactivate **AWS connector** import schedules only | Turn off **SCCM**, **Azure**, **Dynatrace**, or other non-AWS lab schedules unless you intend to |
+| Verify **`SG-AWS-Organization`** (or your parent) is **Inactive** | Blanket-deactivate every **SCCM**, **Azure**, or **Dynatrace** schedule |
+| Leave non-AWS lab schedules alone unless you intend to | Delete CMDB CIs just because imports ran — rows are **learning evidence** and are **not** AWS charges |
 
-**CMDB note:** A fresh full **SG-name** export showed **Organization** and some parents **false**, while **Storage-Volume** and many **AWS child** rows remained **true** after parent runs — cleanup of **AWS schedules** does not by itself prove the CMDB is empty of connector rows. More screenshot evidence may follow; treat schedule and CMDB state as **pending** until you verify your instance.
+A full **SG-name** export may still show CIs (e.g. **Storage-Volume**) with **After Parent Runs** semantics in data — that is normal after imports. **No CMDB delete is required** for AWS billing cleanup once keys, stacks, Config, and the **parent** schedule are handled.
 
 ---
 
@@ -175,7 +195,8 @@ On the observed instance, **not every** `SG-*` schedule should be deactivated:
 
 <ul class="check">
 <li><b>Observed:</b> keys <b>0</b>; three stacks <b>DELETE_COMPLETE</b>; Config <b>off</b>; retained Config bucket <b>emptied/deleted</b>; Ohio volumes/snapshots/EIPs <b>0</b>; lab instance <b>Terminated</b></li>
-<li><b>Still open:</b> IAM user <code>servicenow-sgc-lab</code>; selective <b>SG-AWS</b> schedule deactivation; CMDB rows (e.g. Storage-Volume / children); ongoing billing estimate lag</li>
+<li><b>Verified:</b> parent <code>SG-AWS-Organization</code> <b>Inactive</b> (scheduled chain stopped); <b>child</b> jobs may still show <b>Active</b></li>
+<li><b>Optional / ongoing:</b> delete IAM user; manual schedule runs still possible; CMDB rows kept for learning; billing estimate lag</li>
 <li>You can explain <b>targeted cleanup</b> vs closing a shared account (Objective)</li>
 <li>You can explain Config <b>recording</b> vs traffic capture (ELI5 above)</li>
 <li>Lab user is <b>programmatic connector</b> identity — not human console login ([Lab 3]({{ '/labs/03-iam-connection/' | relative_url }}#lab3-iam-programmatic))</li>
@@ -227,8 +248,6 @@ Cleanup goal: stop **metered Config recording** and remove lab **recorder/delive
 <li>Verifier output from Labs 4 and 9</li>
 <li>CSDM / dependency screenshots from Lab 7</li>
 </ul>
-
-Screenshots from cleanup runs are **not** embedded in this publish (transfer limitation) — verify in your own console.
 
 ---
 
