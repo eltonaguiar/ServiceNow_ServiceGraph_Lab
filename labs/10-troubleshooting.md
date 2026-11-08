@@ -156,7 +156,7 @@ sys_import_set_row_list.do  (filter: error is not empty)
 ## Case study — "2 NIC, 1 volume, 3 relationships, all `MISSING_DEPENDENCY`"
 {: #lab10-missing-dependency}
 
-A real investigation on `dev296154` (Australia, Oct–Nov 2026). EC2 imports kept finishing
+A real investigation on `dev296154` (Australia, Oct–Nov 2026) — and note that **following the Lab 4 PoC order reproduces a milder version of it on purpose**, because that path skips `SG-AWS-Network-Interface` (140) and never runs `SG-AWS-Storage-Volume` (160). If you landed here from [Lab 4 §9]({{ '/labs/04-run-import/' | relative_url }}#lab4-partial-dependencies), start with the fast path and use this case only to see the deeper failure. EC2 imports kept finishing
 **complete** with 0 errors, yet every run produced the same 6 partial entries: `cmdb_ci_nic` (2),
 `cmdb_ci_storage_volume` (1), `cmdb_rel_ci` (3) — while the VM itself updated fine, tags included.
 Nothing was broken in the mapping. Read the blocks below in order: what happened, the fast

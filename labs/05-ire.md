@@ -67,7 +67,22 @@ Walkthrough after EC2:
 - Partial payload work on VM / **endpoint_vnic**; skeletal **`cmdb_ci_nic`** / **`cmdb_ci_storage_volume`** with **`MISSING_DEPENDENCY`**.
 - Rerun comments: **nic 2**, **storage_volume 1**, **relations 3** partial/warning — unchanged on later pass.
 
-Lab **AWS Config** records only Instance/VPC/Subnet/SecurityGroup ([Lab 3]({{ '/labs/03-iam-connection/' | relative_url }})) — **no** NIC/Volume in scope. Partial NIC/storage edges are **expected**; exact loader prerequisites are **not proven** here. Do **not** widen paid Config merely to “clean” optional graph edges.
+**Why those edges are open — now proven, not assumed.** Earlier revisions of this page said NIC/Volume were out of scope and the loader prerequisites were "not proven". Both are wrong, and the correction matters because it tells you whether to ignore the partials or fix them:
+
+- The EC2 payload **does** carry the network interface and the volume (verified: the EC2 staging rows contain `eni-…` and `vol-…` ids).
+- The EC2 mapping emits them as **reference-only stubs** — `source_native_key` only (plus a `cmdb_ci` reference on NIC 1) — no `object_id`, no `public_ip`, no `size`.
+- The real CIs come from **`SG-AWS-Network-Interface` (order 140)** and **`SG-AWS-Storage-Volume` (order 160)**. Both classes have a **dependent** identifier (`independent = false`), so a stub cannot create the record — only link to an existing one.
+
+So the partials mean one of two things, and they look identical on this page:
+
+| Situation | Meaning | What to do |
+|---|---|---|
+| 140/160 **skipped** (the Lab 4 PoC path) | Expected. Nothing to link to. | Accept and continue, or run 140 → 160 → 180 for a clean graph — [Lab 4 §9]({{ '/labs/04-run-import/' | relative_url }}#lab4-partial-dependencies) |
+| 140/160 **ran but loaded 0 rows** | The prerequisite is broken, not skipped. This is a real defect. | Investigate before touching mappings — [Lab 10 case study]({{ '/labs/10-troubleshooting/' | relative_url }}#lab10-missing-dependency) |
+
+Check `sn_cmdb_int_util_cmdb_integration_execution.list` → **`rows`** column to tell them apart: `0` means the AWS call returned nothing.
+
+Do **not** widen paid **AWS Config** merely to "clean" these edges — the recorder is not what feeds these classes, and widening it fixes nothing here.
 
 Use **`cmdb_ire_partial_payloads.list`** on your instance; do not commit raw payloads.
 
@@ -93,7 +108,7 @@ On **your own** lab PDI only: record `object_id` → break identifier → duplic
 <li>List shows <b>one</b> VM; <code>SG-AWS</code> source; state <b>Off</b></li>
 <li>Rerun keeps <b>one</b> row and same <code>object_id</code> (you verified separately)</li>
 <li>Read <b>Dependent</b> rule with <b>Object ID</b> — <b>no</b> rule edits</li>
-<li>Can explain open <b>nic</b>/<b>storage</b> partials under narrow Config scope</li>
+<li>Can explain open <b>nic</b>/<b>storage</b> partials — skipped 140/160, versus 140/160 that ran with <code>rows = 0</code></li>
 </ul>
 
 Next: [Lab 6 — ETL mappings]({{ '/labs/06-etl-mappings/' | relative_url }}) (read-only first)

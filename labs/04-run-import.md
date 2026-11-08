@@ -192,15 +192,58 @@ Open **Scheduled Imports** under the **Service Graph Connector for AWS** applica
 | Order | Schedule (exact name) | Validate in | Verified shape (your ids differ) |
 |---|---|---|---|
 | **130** | `SG-AWS-Subnets` | `cmdb_ci_cloud_subnet.list` | **4** processed, **33** inserts, **6** updates, **0** errors |
-| **140** | `SG-AWS-Network-Interface` | *(staging may be empty)* | **0** rows OK: Config records only Instance/VPC/Subnet/SG — **skip** for basic PoC |
+| **140** | `SG-AWS-Network-Interface` | `cmdb_ci_nic.list` | Creates the NIC CIs that EC2 will only *reference*. Skipping it is allowed for the PoC **if you accept the partials** — see [§9](#lab4-partial-dependencies). **0 rows is a signal to investigate, not a pass.** |
 | **150** | `SG-AWS-Security-Group` | `cmdb_ci_compute_security_group.list` | **3** processed, **22** inserts; **3** CIs incl. `labgroup` |
+| **160** | `SG-AWS-Storage-Volume` | `cmdb_ci_storage_volume.list` | Creates the EBS volume CIs that EC2 will only *reference*. Was missing from the original PoC list — see [§9](#lab4-partial-dependencies). |
 | **180** | `SG-AWS-EC2` | **`cmdb_ci_vm_instance.list`** | Row comment **inserted 1 / updated 1**; VM **`sgclab-app-01`**, state **Off**, AWS id matches; tags `Environment`/`Application`/`Owner` visible |
 
 **EC2 is not `cmdb_ci_ec2_instance` on this connector path** — always open **Virtual Machine Instance** / `cmdb_ci_vm_instance`.
 
 **Rerun check:** second **Execute Now** on `SG-AWS-EC2` → list still **1** row, same `object_id` (duplicate identification **pass**); transform **processed** count can be **>1** without creating a second VM. **`discovery_source`:** verified **`SG-AWS`** on the walkthrough VM ([Lab 5]({{ '/labs/05-ire/' | relative_url }})).
 
-**Not a clean graph:** EC2 row comments still report partial/warning counts (`storage_volume` 1/1; `nic` 2/2; `relations` 3/3 unresolved) while **`os_template`**, **`compute_template`**, **`endpoint_block`**, **`endpoint_vnic`**, **`storage_mapping`** were created. Subnet import **corroborates** EC2 unchanged (no duplicate VM).
+**Not a clean graph:** EC2 row comments still report partial/warning counts (`storage_volume` 1/1; `nic` 2/2; `relations` 3/3 unresolved) while **`os_template`**, **`compute_template`**, **`endpoint_block`**, **`endpoint_vnic`**, **`storage_mapping`** were created. Subnet import **corroborates** EC2 unchanged (no duplicate VM). These six are **caused by the PoC order skipping 140 and 160** — see [§9](#lab4-partial-dependencies).
+
+## 9. Why the PoC shows `nic` / `storage_volume` partials — and how to get a clean graph
+{: #lab4-partial-dependencies}
+
+If you followed §8 exactly, your EC2 run reports **2 `cmdb_ci_nic`**, **1 `cmdb_ci_storage_volume`** and **3 `cmdb_rel_ci`** partial/warning entries — every single run. Those six are not a broken mapping and not a bug in the connector. This section is the explanation, verified against a real instance.
+
+**What is actually happening.** The EC2 mapping does not create NICs or volumes. Its `Cloud Mgmt Network Interface 1/2` and `Storage Volume 1` entities are **reference-only stubs**:
+
+| Entity in the EC2 mapping | Fields it maps |
+|---|---|
+| `Cloud Mgmt Network Interface 1` | `source_native_key`, `cmdb_ci` (reference to the VM entity) |
+| `Cloud Mgmt Network Interface 2` | `source_native_key` |
+| `Storage Volume 1` | `source_native_key` |
+
+The attributes (`object_id`, `name`, `private_ip`, `public_ip`, `volume_id`, `size`, …) live in the **`SG-AWS-Network-Interface` (140)** and **`SG-AWS-Storage-Volume` (160)** mappings. Both CI classes use a **dependent identifier** (`cmdb_identifier.independent = false`), so a stub that only carries `discovery_source` plus a source key cannot create a record — it can only *link* to one that already exists.
+
+So if 140/160 never ran, there is nothing to link to, and IRE parks the item as `MISSING_DEPENDENCY` in `cmdb_ire_partial_payloads` (values reduced to `discovery_source: SG-AWS`). Correct behaviour, unhelpful symptom.
+
+**Two legitimate choices**
+
+| Choice | Do this | Accept |
+|---|---|---|
+| **A. PoC, partials expected** | Nothing extra. Continue to [Lab 5]({{ '/labs/05-ire/' | relative_url }}) — the partials are excellent reading material | The 6 partials stay on every run; the VM, tags and the created supporting CIs are still correct |
+| **B. Clean graph** | Execute **140**, then **160**, then re-run **180** (`SG-AWS-EC2`) | `ire_partial` drops to **0**; `cmdb_ci_nic` gains your eni with a real `object_id`; VM→NIC and VM→volume relations appear |
+
+Do **not** activate `SG-AWS-Organization` to get this automatically — it cascades 36 children including SSM/EKS (see the banner above). Run 140 → 160 → 180 by hand.
+
+**If 140 itself loads 0 rows, stop and investigate.** A run that completes with `state = complete` but **`rows = 0`** means the AWS call returned nothing — the import never had data to map. That is a different problem from "we skipped it", and it is exactly the failure found in a real session: `SG-AWS-Network-Interface` ran once (`CEX0001013`) with `rows = 0`, `SG-AWS-Storage-Volume` had **never executed at all**, so `cmdb_ci_nic` stayed empty and every EC2 run reported 6 partials. The cause there was not the mapping; it was the prerequisites never producing data. Check `sn_cmdb_int_util_cmdb_integration_execution.list` (`rows` column) and the staging table `sn_aws_integ_sg_aws_network_interface.list` before touching any mapping. Full walkthrough: [Lab 10 — case study]({{ '/labs/10-troubleshooting/' | relative_url }}#lab10-missing-dependency).
+
+<details markdown="1">
+<summary><strong>Quick check: did the prerequisites actually produce anything?</strong></summary>
+
+| Question | Where | Failing answer |
+|---|---|---|
+| Did 140/160 run at all? | `sn_cmdb_int_util_cmdb_integration_execution.list` (`CEX…`) | **no record** = never ran |
+| Did they fetch data? | same table, **`rows`** column | **0** = AWS returned nothing |
+| Did rows land in staging? | `sn_aws_integ_sg_aws_network_interface.list`, `sn_aws_integ_sg_aws_storage_volume.list` | empty table |
+| Did the CIs get created? | `cmdb_ci_nic.list`, `cmdb_ci_storage_volume.list` — read `discovery_source` and `object_id` | 0 rows, or rows with `discovery_source = ServiceNow` (Mid Server disks, blank `object_id`) |
+| Does the exact key exist? | `sys_object_source.list`, filter `id` contains your `eni-…` / `vol-…` | no row = CI never created |
+
+</details>
+
 
 ## Troubleshooting pointers
 
