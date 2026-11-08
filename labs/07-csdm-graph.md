@@ -36,6 +36,7 @@ capabilities — it does not host your app, run payment software, or prove live 
       <li><a href="#pre-lab-template">Our lab stack (template)</a></li>
       <li><a href="#pre-lab-csdm">What CSDM adds</a></li>
       <li><a href="#pre-lab-csdm-domains">CSDM domains (ELI5)</a></li>
+      <li><a href="#pre-lab-csdm-tables-quick-ref">Key tables quick reference</a></li>
       <li><a href="#pre-lab-workshop-questions">Workshop questions → records</a></li>
       <li><a href="#pre-lab-maturity">What is automatic vs manual</a></li>
       <li><a href="#pre-lab-enterprise-mapping">Enterprise scale (hypothetical)</a></li>
@@ -298,6 +299,72 @@ targets for **Incident**, **Problem**, and **Change** processes the way operatio
 
 You **do not** need every row populated on a PDI. This lab intentionally stops with a **thin** slice:
 connector inventory + one **service instance** + one **business service** stack + one **linked capability** (this curriculum).
+
+</details>
+
+<details markdown="1">
+<summary><strong>Key CSDM tables &amp; concepts (quick reference + lab example)</strong></summary>
+{: #pre-lab-csdm-tables-quick-ref}
+
+CSDM is a **framework** for how ServiceNow **IT Service Management (ITSM)**, **IT Operations Management (ITOM)**, **Service Portfolio Management (SPM)**, and architecture tooling **talk about the same records** — not one Navigator module you install once. Service Mapping, the **CMDB**, and CSDM **5** vocabulary overlap: interviews and workshops should name **domains**, **tables**, and **relationships** you will actually store.
+
+**Version note (CSDM 5):** Documentation increasingly labels **Application service** rows as **Service instance** and **Technical service** as **Technology management service** ([Exploring CSDM](https://www.servicenow.com/docs/r/yokohama/servicenow-platform/common-service-data-model-csdm/csdm-content-frame-exploring.html)). Your PDI may still show older UI text.
+
+| Concept | Typical table / class | What it represents | Usually operational Incident / Change target? |
+|---|---|---|---|
+| **Business application** | `cmdb_ci_business_app` | Portfolio / **design** application (multi-environment product view) | **Usually not** — planning &amp; ownership; admins *may* allow references, but not the normal ops story ([Design domain](https://www.servicenow.com/docs/r/yokohama/servicenow-platform/common-service-data-model-csdm/design-domain.html)) |
+| **Application service / Service instance** | `cmdb_ci_service_discovered` (manual / populated lab) or `cmdb_ci_service_auto` (mapped / pattern-driven) | **Deployed**, supportable stack for one environment | **Yes** — common CI / service layer for ops |
+| **Technology management service** | `cmdb_ci_service_technical` | Shared **platform** (database cluster, network slice, hosting tier) | **Yes** — technical ops scope |
+| **Technical service offering** | `service_offering` (classification **Technical Service**) | Consumable **technical** support commitment supporting app services or dynamic CI groups | **Yes** — technical support context; **not** the same as a catalog **item** record |
+| **Business service** | `cmdb_ci_service_business` (or related **Service** row on base `cmdb_ci_service`) | Business-consumed **outcome** name | **Yes** — business-facing service context |
+| **Business service offering** | `service_offering` (classification **Business Service**) | Specific variant (Dev / Prod) with commitments | **Yes** — often paired with **Service** on incidents when qualifiers allow |
+| **Business capability** | `cmdb_ci_business_capability` | Organizational **ability**; links design to services | **No** — design / portfolio; not a default outage CI |
+
+**Offerings vs catalog:** A `service_offering` row describes a **variant and commitments** on a service — it is **not** automatically a Service Catalog **item**, and creating one does **not** by itself generate SLAs or workflow.
+
+### Simplified spine (illustration — not a prescribed CSDM diagram)
+
+Edge labels mix **documented `cmdb_rel_ci` types** (where this lab uses them), **wizard language**, and **reference fields** (e.g. offering **Parent**). Directions are **interview shorthand**; your instance may use different types or optional relationships ([CI relationships in CSDM](https://www.servicenow.com/docs/r/servicenow-platform/common-service-data-model-csdm/ci-relationships.html)).
+
+```mermaid
+flowchart TB
+  BC[Business capability]
+  BA[Business application]
+  AS[Application service / Service instance]
+  TSO[Technical service offering]
+  TS[Technology management service]
+  BSO[Business service offering]
+  BS[Business service]
+  CI[Infrastructure CI e.g. VM]
+
+  BC -->|Provided by::Provides| BS
+  BA -->|Consumes::Consumed by| AS
+  AS -->|Depends on| TSO
+  TSO -->|Published from| TS
+  AS -->|Depends on / Runs on| CI
+  BSO -->|Depends on| AS
+  BS -->|Published as| BSO
+```
+
+**Authoritative for this lab** (hands-on names &amp; types you built): **Provided by::Provides** capability → **Payment Processing**; **Consumes::Consumed by** **`Payments`** → **`Payments (lab)`**; offering **Depends on::Used by** → **`Payments (lab)`**; app service **Depends on::Used by** → **`sgclab-app-01`**. See [Dependency Views](#hands-on-views) after Step 11 — do not silently rename those records.
+
+| Concept | This lab (example) | Notes |
+|---|---|---|
+| **Capability** | **Accept Customer Payments** | **Created &amp; linked** (Checkpoint D) |
+| **Business application** | **`Payments`** | **Created** — portfolio / design |
+| **Application service** | **`Payments (lab)`** (`cmdb_ci_service_discovered`, Development) | **Created** — manual population to VM |
+| **Technical service offering** | *AWS Compute Hosting — Lab* | **Example only** — **not** created in this lab |
+| **Infrastructure CI** | **`sgclab-app-01`** (`cmdb_ci_vm_instance`) | **Imported** — Service Graph / AWS |
+| **Business service + offering** | **Payment Processing** + **Payment Processing — Development** | **Created** — consumption layer |
+
+**Interview framing:** **Business application** → product **ownership** and portfolio. **Application service** → what ops can **support in one environment** (incident / change / event anchor). **Technical service offering** → **platform building blocks** and hosting commitments (when you model them). Offerings describe **variants**, not automatic catalog items.
+
+| Source | Topic |
+|---|---|
+| [Exploring CSDM](https://www.servicenow.com/docs/r/yokohama/servicenow-platform/common-service-data-model-csdm/csdm-content-frame-exploring.html) | Domains, Service Instance naming |
+| [Design domain](https://www.servicenow.com/docs/r/yokohama/servicenow-platform/common-service-data-model-csdm/design-domain.html) | Design records vs ITSM targets |
+| [CI relationships in CSDM](https://www.servicenow.com/docs/r/servicenow-platform/common-service-data-model-csdm/ci-relationships.html) | Relationship semantics |
+| [Application services](https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/application-services.html) | Service instances &amp; offerings in CMDB |
 
 </details>
 
