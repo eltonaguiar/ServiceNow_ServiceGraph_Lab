@@ -2,7 +2,7 @@
 layout: default
 title: CSDM and the service graph
 lab: 7
-time: 65 min
+time: 90 min
 level: CSDM
 order: 7
 permalink: /labs/07-csdm-graph/
@@ -35,6 +35,7 @@ permalink: /labs/07-csdm-graph/
       <li><a href="#pre-lab-template">Our lab stack (template)</a></li>
       <li><a href="#pre-lab-csdm">What CSDM adds</a></li>
       <li><a href="#pre-lab-maturity">What is automatic vs manual</a></li>
+      <li><a href="#pre-lab-enterprise-mapping">Enterprise scale (hypothetical)</a></li>
     </ul>
   </div>
   <div>
@@ -57,10 +58,13 @@ permalink: /labs/07-csdm-graph/
     <ul class="toc-list">
       <li><a href="#hands-on-part-b">Overview</a></li>
       <li><a href="#csdm-plain-language">Design vs deploy vs offering</a></li>
-      <li><a href="#hands-on-step-6">Step 6 — Find Business Applications</a></li>
-      <li><a href="#hands-on-step-7">Step 7 — Create business application</a></li>
-      <li><a href="#hands-on-step-8">Step 8 — Link to application service</a></li>
-      <li><a href="#hands-on-step-9">Step 9 — Offerings (optional)</a></li>
+      <li><a href="#hands-on-outage-example">Outage story (Incident)</a></li>
+      <li><a href="#hands-on-relationship-guide">Relationship guide</a></li>
+      <li><a href="#hands-on-how-populated">How relationships get here</a></li>
+      <li><a href="#hands-on-records-eli5">Records + navigation</a></li>
+      <li><a href="#hands-on-step-6">Steps 6–11 (business stack)</a></li>
+      <li><a href="#hands-on-step-12">Step 11 — Capabilities (pending)</a></li>
+      <li><a href="#hands-on-views">View Map vs Dependency Views</a></li>
       <li><a href="#hands-on-checkpoint-b">Checkpoint B</a></li>
       <li><a href="#lab7-overall-status">Lab 7 overall status</a></li>
     </ul>
@@ -226,6 +230,104 @@ the VM. **This lab** does not move workloads into ServiceNow.
 | EC2, VPC, subnet, security group | **Service Graph Connector** + **IRE** ([Labs 2–6]({{ '/labs/04-run-import/' | relative_url }})) |
 | “This grouping is **Payments (lab)**” | **Human** ([Hands-On Lab](#hands-on-lab)) |
 | Full automated dependency map | **Service Mapping** (optional product; **not** required here) |
+
+### Enterprise scale: manual vs automated mapping (hypothetical)
+{: #pre-lab-enterprise-mapping}
+
+<details markdown="1">
+<summary><strong>How larger organizations usually set up Service Mapping and CSDM — and why this lab is only manual</strong></summary>
+
+**This lab** uses **Manual** wizard population to **`sgclab-app-01`** on a **stopped** VM with **no**
+payment software installed. That is **learning metadata**, **not** automated discovery of a running
+Payments stack. Product docs warn that manual maps **do not automatically follow** relationship changes
+([application services](https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/application-services.html)).
+
+#### Hypothetical payments company (not a real customer story)
+
+Imagine a bank that runs **Payments** in **separate Dev and Prod** application services (different
+**Environment** values, different entry points). Business owners maintain **`cmdb_ci_business_app`**
+and **`cmdb_ci_business_capability`** records; operators run **`Payments-Prod`** and **`Payments-Dev`**
+service instances. **Business service offerings** (customer language) and **technical management service
+offerings** (shared database/platform teams) can both exist — this lab modeled **business** offerings
+only; we did **not** create **technical management service** rows.
+
+Naming like **`Payments (lab)`** or **`Payment Processing — Development`** is **our teaching pattern**,
+not a universal enterprise standard.
+
+#### Typical enterprise phases (simplified)
+
+1. **Portfolio / design** — business applications, capabilities, owners ([CI relationships](https://www.servicenow.com/docs/r/servicenow-platform/common-service-data-model-csdm/ci-relationships.html)).
+2. **Conventions** — environment tags, ownership, region, **Identity and Access Management (IAM)** boundaries.
+3. **Inventory** — **Service Graph Connector** / cloud APIs, **Discovery**, **AWS Config** (each needs its own
+   credentials and scope — **not** one shared credential for everything).
+4. **Service Mapping** (if licensed) — **Top-down** (patterns + credentials into guest OS), **tag-based**
+   (complements top-down; does not draw all connections alone), **manual**, **dynamic CI group**, per
+   [application services](https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/application-services.html).
+5. **Identification and Reconciliation Engine (IRE)** — authoritative merge rules; duplicates break trust.
+6. **Pilot** — one production-like service; owners **validate** maps; change process when topology drifts.
+7. **Scale** — phased onboarding, **CMDB Health**, access reviews, network/firewall paths for Discovery MID
+   servers or cloud APIs.
+
+#### Inventory connector vs Discovery vs Service Mapping (different doors)
+
+| Entry path | What it usually brings | Credentials / licensing (varies by release) |
+|---|---|---|
+| **Service Graph Connector** (this course) | Cloud **inventory** CIs and relationships from vendor APIs | Cloud **IAM** role/user scoped to inventory; **IRE** on the instance |
+| **Discovery** (horizontal scan) | Live IP ranges, MID Server reachability, software on hosts | MID Server + SNMP/SSH/WinRM as configured; **not** the same IAM as AWS connector |
+| **Service Mapping** (application map) | **Top-down** or **tag** population of **application services** | **`service_mapping_admin`** / **`sm_admin`**, pattern credentials into apps, often **ITOM** entitlement |
+| **Wizard Manual** (this lab) | You choose CIs; map stays until someone edits it | **`app_service_admin`**; **no** Service Mapping licence required for this method |
+
+Do **not** assume one AWS key or one MID configuration covers every row.
+
+#### Refresh, stale maps, access, and network
+
+- **Connectors** refresh on schedules you configure; **stale** rows still happen when cloud changes outpace imports or IRE rejects updates.
+- **Manual** application services **do not** add CIs when new VMs appear — someone must edit membership or adopt **Dynamic CI Groups** / **Dynamic Service** rules ([Create a Service instance](https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/create-it-services.html)).
+- **Top-down Service Mapping** needs **network path** from MID or credentials to guest processes — firewalls and least-privilege accounts are explicit design work.
+- **Access:** cloud inventory roles, Discovery credentials, and Service Mapping pattern logins are **separate** security reviews — enterprise teams keep an **accountable service owner** who signs off on map accuracy, not only on connector green checks.
+
+#### Support and process integration
+
+Larger shops tie **map validation** to **Change** or **release** records, run periodic **CMDB Health** dashboards, and teach service owners to open **Dependency Views** before major cutovers. **Incident** and **Event Management** may use relationship data **only** when products, rules, and data quality are in place — a pretty graph in training is not production impact automation.
+
+#### Responsibility matrix (capabilities, not promises)
+
+| Activity | Often automatic | Often manual / hybrid | Limitations |
+|---|---|---|---|
+| Cloud VM/VPC inventory | Connector, Config | CSV/fix scripts | Partial graphs (this lab’s NIC/storage gaps) |
+| Installed software on host | Discovery / patterns | Owner attestations | Needs reachability + credentials for top-down |
+| Application service **membership** | Service Mapping, tags | Wizard **Manual**, dynamic groups | Manual maps drift; tag maps miss untagged CIs |
+| **Business application** ↔ **application service** | Imports, EA tools | Wizard **Set Relationships** | Wrong relationship **type** breaks downstream products |
+| **Business capability** ↔ **service** | DPM / imports | **`cmdb_rel_ci`** with **Provided by::Provides** | Capability record must exist as **Parent** ([DPM](https://www.servicenow.com/docs/r/it-service-management/digital-portfolio-management/dpm-business-capability.html)) |
+| Incident “what broke?” | Event rules **if configured** | Analyst walk of relationships | **No** automatic guarantee without supported rules + accurate CI data |
+
+#### Three relationship ideas beginners confuse
+
+| Idea | Example edge | What it is **not** |
+|---|---|---|
+| **Inventory / hosting** | VM in AWS account; connector insert | Proof the app process is running |
+| **Application dependency** | **Depends on::Used by** toward DB/load balancer | Same as business **Consumes** toward portfolio app |
+| **Business portfolio** | **Consumes::Consumed by** / **Uses::Used by** business app → app service | Automatic outage dollars or PCI scope |
+
+#### Business vs technical offerings (even if you only built business)
+
+| | **Business service offering** | **Technical management service offering** |
+|---|---|---|
+| **Audience** | Business / customer language | Platform / ops teams (databases, networks) |
+| **Table** | **`service_offering`** (classification **Business Service**) | **`service_offering`** (classification **Technical Service**) |
+| **This lab** | **Payment Processing — Development** | **Not created** — document only |
+
+#### Stale data and impact
+
+Manual and hybrid maps go **stale** when engineers change cloud resources without updating ServiceNow.
+**Event Management** / **Incident** impact views need **configured** rules and trustworthy edges — our
+**Traffic based discovery** property = **Enabled** does **not** prove discovery ran.
+
+</details>
+
+**Your concise takeaway:** Use this lab to **name** and **relate** records honestly; use enterprise
+automation only with **licensed** products, **credentials**, **owners**, and **validation** — not by
+assuming the connector lab equals Service Mapping.
 
 ---
 
@@ -493,6 +595,8 @@ timeline dates may differ.*
 | Manual **Save** / green toast / method card | **Missing** this batch — use Step 3b text |
 | **Preview** Relationships vs Population summary | **Missing** this batch — use Step 4 table |
 | **View Map** | Published (`payments-lab-view-map.png`) |
+| **Payment Processing** business service form | **Pending** re-upload (bytes not on build VM) |
+| **Business Capabilities** / wrong **CI Relationship** draft | **Pending** re-upload |
 
 ---
 
@@ -504,7 +608,7 @@ timeline dates may differ.*
 <li>You know our VM is <b>Amazon Linux 2023</b>, <b>stopped</b>, and the template does <b>not</b> promise <b>SSH</b></li>
 <li>You completed the wizard with <b>Environment</b> <b>Development</b> (when offered), <b>Manual</b> population to <code>sgclab-app-01</code> on <code>cmdb_ci_service_discovered</code>, and optional relationship panes empty if you had nothing to link</li>
 <li>You can explain <b>Preview → Relationships: no records</b> vs <b>View Map</b> still showing an entry-point arrow — observational on one PDI, not a universal guarantee before save</li>
-<li><b>View Map</b> shows <code>sgclab-app-01</code> as an entry point — you still do <b>not</b> claim <b>Depends on</b> / <code>cmdb_rel_ci</code> completeness, <b>Service Mapping</b>, real Payments software, or that <b>Traffic based discovery</b> ran</li>
+<li><b>View Map</b> shows <code>sgclab-app-01</code> as an entry point — <b>Dependency Views</b> may later show more <code>cmdb_rel_ci</code> edges after Part B; still no <b>Service Mapping</b>, real Payments software, or discovery proof</li>
 </ul>
 
 <p><strong>Checkpoint A is complete</strong> when the bullets above match your work. You may pause here;
@@ -515,124 +619,189 @@ timeline dates may differ.*
 ## Hands-On Part B — CSDM continuation (after Checkpoint A)
 {: #hands-on-part-b}
 
-Continue only if you already have **`Payments (lab)`** on table **`cmdb_ci_service_discovered`**
-(extends **`cmdb_ci_service_auto`**), **Environment** **Development**, **Non-Operational**, and **View
-Map** entry point **`sgclab-app-01`**. This part adds **design-time** CSDM objects — not AWS changes and
-**not** proof of production Payments impact.
+Continue after **`Payments (lab)`** (`cmdb_ci_service_discovered`, **Environment** **Development**,
+**Non-Operational**, **View Map** entry **`sgclab-app-01`**). Part B adds **portfolio / service**
+records and **`cmdb_rel_ci`** links. **No AWS changes.** **No** real payment processing.
 
 ### Design vs deploy vs offering (everyday words)
 {: #csdm-plain-language}
 
 | Idea | Table / class (typical) | Everyday meaning |
 |---|---|---|
-| **Business application** | **`cmdb_ci_business_app`** | The **catalog name** for what the business calls “Payments” — design and planning, not one stopped VM. |
-| **Application service** (service instance) | **`cmdb_ci_service_discovered`** (manual map) | **One deployed stack instance** you operate — here **`Payments (lab)`** in **Development** pointing at **`sgclab-app-01`**. |
-| **Application** (installed software) | **`cmdb_ci_appl`** and related | **Programs running on a host** — discovery territory; our lab has **no** payment app installed. |
-| **Service offering** | **`service_offering`** | A **packaged slice** of a service (technical or business classification) for request/catalog context — optional until you need catalog or portfolio views. |
-| **Business service** | Conceptual / portfolio layer | What the **business sells or consumes** — often tied to offerings and capabilities; **not** the same row as **`cmdb_ci_business_app`**. |
+| **Business application** | **`cmdb_ci_business_app`** | **Portfolio / design:** “We have a Payments product in our catalog.” |
+| **Application service** | **`cmdb_ci_service_discovered`** | **Deployed stack instance:** “This Dev copy runs on `sgclab-app-01`.” |
+| **Business service** | **`service_offering`** root / portfolio service row | **What the business experiences:** “Payment Processing” as a customer-facing service name. |
+| **Business service offering** | **`service_offering`** (classification **Business Service**) | **Packaged variant:** e.g. “Payment Processing — Development”. |
+| **Configuration item (CI)** | many `cmdb_ci_*` | **A thing in the CMDB** — VM, datacenter, manual endpoint, etc. |
 
-Official CSDM v5 calls for relating **business applications** to **application services**. Direction on
-many current docs: **Uses** / **Used by** ([CI relationships in the CSDM](https://www.servicenow.com/docs/r/servicenow-platform/common-service-data-model-csdm/ci-relationships.html)) — the business application **uses** the deployed application service; the service **is used by** the business application. Older models and **Enterprise Architecture Workspace** flows may still show **Consumes** / **Consumed by** for lifecycle timelines — pick types your **CI Relationship Types** list allows; do not mix families interchangeably.
+### Payment outage story (for **Incident Management**)
+{: #hands-on-outage-example}
 
-You could have linked a business application in the wizard **Set Relationships** tab (you left optional
-panes empty). Part B does the same story **after** the fact, which matches many real PDIs.
+Imagine a caller says: *“Customers cannot pay online.”*
 
-**Not claiming:** A business application record proves **no** outage blast radius, **no** Service Mapping
-map, and **no** real Payments deployment in AWS.
+| Layer | Record in this lab | What Incident cares about |
+|---|---|---|
+| **Business service** | **Payment Processing** | **Business name** on the ticket — “what broke for the customer?” |
+| **Business service offering** | **Payment Processing — Development** | **Which flavor** (here: internal Dev; not production). |
+| **Application service** | **Payments (lab)** | **Technical deployment** operators check — maps to CIs. |
+| **Configuration items** | **`sgclab-app-01`**, AWS datacenter CI, etc. | **Concrete gear** — stopped VM, network, region. |
+| **Business application** | **Payments** | **Design / portfolio** context — *not* proof the VM is running payment code. |
 
-### Step 6 — Find **Business Applications** in Navigator (do this next)
+**Technical management service** (separate CSDM lane) would describe shared infrastructure teams run; this lab
+does **not** model a full technical-management stack. **Service Mapping** discovery is **not** proven here.
+
+Relating records helps analysts **walk the chain** offering → application service → VM; it does **not**
+automatically compute revenue impact or prove PCI scope.
+
+### Relationship guide (types, direction, reference vs `cmdb_rel_ci`)
+{: #hands-on-relationship-guide}
+
+<details markdown="1">
+<summary><strong>Out-of-box relationship types used in this lab (verify on your instance)</strong></summary>
+
+ServiceNow stores typed edges in **`cmdb_rel_ci`**. Each type has a **forward** and **inverse** label
+(`Parent::Child` naming in the type picker).
+
+| Type pair (observed / documented) | Parent → Child (meaning) | Where this lab uses it |
+|---|---|---|
+| **Consumes::Consumed by** | Business application → Application service | Wizard **Set Relationships** on one PDI ([CI relationships](https://www.servicenow.com/docs/r/servicenow-platform/common-service-data-model-csdm/ci-relationships.html) notes **Uses::Used by** for CSDM v5 — **keep what the wizard created** unless your admin standardizes types) |
+| **Depends on::Used by** | Offering or app service → downstream CI/service | Offering → **`Payments (lab)`**; **`Payments (lab)`** → **`sgclab-app-01`** (observed in **Dependency Views**) |
+| **Provided by::Provides** | **Business capability** → Business service (or business application) | **Step 11** — capability must exist **first** as **Parent** ([DPM capability doc](https://www.servicenow.com/docs/r/it-service-management/digital-portfolio-management/dpm-business-capability.html)) |
+
+**Reference field vs relationship:** **`service_offering`** **Parent** pointing at **Payment Processing**
+is a **reference column** on the offering row (tooltip may say “reference”). That is **not** the same as a
+new **`cmdb_rel_ci`** row unless your instance also mirrors it.
+
+**Relationship TYPE vs INSTANCE:** Admins define **types** on **`cmdb_rel_type`** (out-of-box names like
+**Depends on**). You create **instances** with **New** on a list or related lists. **Do not** rename OOB
+types casually — downstream products expect consistent parent/child rules ([modify required relationships](https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/modify-req-fields-appservice.html)).
+
+**Admin navigation (typical):** **System Definition** → **CI Relationship Types** (`cmdb_rel_type.list`) —
+**`admin`** or CMDB admin roles. **Not** required for learners on a PDI.
+
+</details>
+
+### How relationships get here (not everything is auto)
+{: #hands-on-how-populated}
+
+| Source | What it usually creates |
+|---|---|
+| **Application Service wizard** (Part A/B) | **Business application**, offering links, **Manual** membership |
+| **Service Graph Connector + ETL** ([Labs 4–6]({{ '/labs/04-run-import/' | relative_url }})) | Infrastructure **CIs** and some **`cmdb_rel_ci`** from AWS — partial in this lab |
+| **Service Mapping / Discovery** | Rich maps — **not** required; **not** proven |
+| **Integrations / imports** | Bulk edges — out of scope |
+| **Manual Related Items / `cmdb_rel_ci` New** | Human fixes — capabilities, corrections |
+
+**Associated CIs** lists may show AWS datacenter, VM, endpoint, and application service together — that is
+**inventory membership**, not proof every edge is production-complete or that the VM runs payment software.
+
+### Records configured — ELI5 + verified navigation
+{: #hands-on-records-eli5}
+
+| Record | ELI5 “why it exists” | Verified breadcrumb (one PDI) |
+|---|---|---|
+| **Business application `Payments`** | Design-time portfolio entry: “we own a Payments application concept.” | **All** → **CSDM** → **Design** → **Business Application** → **New** |
+| **Application service `Payments (lab)`** | Ops map for one deployed stack in Dev. | **All** → **CSDM** → **Manage Technology Management Services** → **Service Instance** → **New** (wizard) |
+| **Business service `Payment Processing`** | Customer-facing service name for portfolio/incident language. | **All** → **Service Portfolio Management** → **Business Services** → **New** |
+| **Offering `Payment Processing — Development`** | Dev slice customers/operators recognize on tickets. | **`Payment Processing`** form → **Offerings** related list → **New** |
+
+**Observed field highlights (not universal):** business application **Status** **Implementing**; **Owners**
+tab may require **IT Application owner** (hidden mandatory until expand). Business service **Phase** **Pipeline**,
+**Status** **Requirements**, **Consumer type** **Internal**, **Service classification** **Business Service**,
+criticality **4 - not critical**, learning short description (no real payment processing).
+
+### Step 6 — Business application `Payments` + wizard link
 {: #hands-on-step-6}
 
-**Your next action (parent):** In **All**, search **`Business Application`** (singular or plural) and
-**write down every module line** that appears — do **not** create a record until you know which entry
-you used.
+1. Create **`Payments`** on **`cmdb_ci_business_app`** via **CSDM → Design → Business Application**.
+2. Re-open wizard **Provide Basic Details** on **`Payments (lab)`** → **Set Relationships** → **Business
+   Application** → move **`Payments`** **Available → Selected** → **Update**.
+3. **Preview / Step 3** should show **Parent `Payments`**, type **Consumes::Consumed by**, **Child
+   `Payments (lab)`** — **keep wizard-created type** on this PDI (do not force **Uses** unless your EA
+   standard requires it per [CI relationships](https://www.servicenow.com/docs/r/servicenow-platform/common-service-data-model-csdm/ci-relationships.html)).
 
-Typical patterns ( **your list may differ** — not guaranteed on every PDI):
-
-| If you see something like… | Likely intent |
-|---|---|
-| **Configuration** → **Business Applications** | Classic **business application** list (`cmdb_ci_business_app`) |
-| **CSDM** → **Design** (or **Manage Portfolio**) → **Business Application** | CSDM-aligned design domain |
-| **Enterprise Architecture** / workspace tiles | Portfolio views — may need extra roles (**not** verified here) |
-
-Open the list and confirm the table behind it (list title or form table name). **Screenshot checkpoint:**
-list header + navigator breadcrumb (no tenant secrets). **No** screenshot shipped for this step in the repo
-yet.
-
-### Step 7 — Create a learning **Business Application** record
+### Step 7 — Business service `Payment Processing`
 {: #hands-on-step-7}
 
-**Suggested learning name:** **`Payments`** on **`cmdb_ci_business_app`** — distinct from application
-service **`Payments (lab)`** so you can explain **design vs deploy**.
+Create via **Service Portfolio Management → Business Services → New**. Leave optional portfolio/taxonomy
+fields blank unless required.
 
-| Field | Learning intent |
-|---|---|
-| **Name** | `Payments` (or your org’s naming standard) |
-| **Short description** | State it is a **learning** record; **no** production payment system |
-| Other portfolio fields | Fill only if your instance marks them required |
+**Screenshot (user batch, bytes not on build VM):** saved **Payment Processing** form with empty **Business
+Capabilities** tab — **repo: pending re-upload** after privacy review.
 
-**Roles:** Enterprise Architecture / portfolio features may need roles beyond **`app_service_admin`** — if
-**New** is missing, note entitlement; do not assume **`admin`** sees every module.
-
-**Expected:** A saved **`cmdb_ci_business_app`** row exists — **you** must confirm; this doc does **not**
-claim you already created it.
-
-### Step 8 — Relate business application ↔ application service
+### Step 8 — Offering `Payment Processing — Development`
 {: #hands-on-step-8}
 
-Pick **one** supported path (verify on your instance):
+On **`Payment Processing`** → **Offerings** → **New**: parent **Payment Processing**, name **Payment
+Processing — Development**, matching lifecycle/classification.
 
-**Path 1 — Application service form (observed in product guidance):**
-
-1. Open **`Payments (lab)`** (class **`cmdb_ci_service_discovered`**).
-2. **Related items** → add **CI relationship** (wording varies).
-3. Relationship type: prefer **Used by** (parent/child direction per editor) or the pair your instance
-   labels **Uses** / **Used by** for CSDM v5 ([CI relationships](https://www.servicenow.com/docs/r/servicenow-platform/common-service-data-model-csdm/ci-relationships.html)).
-4. Related CI class **`cmdb_ci_business_app`**, select **`Payments`**.
-
-**Path 2 — Wizard-style link (if you recreate or edit in wizard):** **Basic Details** → **Business
-Application** tab → move **`Payments`** to **Selected** ([Create a service instance](https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/create-it-services.html)).
-
-**Path 3 — Business application form:** Related list pointing at the application service — only if your form
-exposes it (not guaranteed).
-
-**Screenshot checkpoint:** relationship row showing **types + sys_ids/names** (redact if needed).
-
-**Expected:** One supported **business application ↔ application service** relationship — **not** automatic
-proof of impact analysis, **not** **`cmdb_rel_ci` Depends on** completeness for infrastructure.
-
-### Step 9 — Service offerings (optional; do not fill every box)
+### Step 9 — Link offering → application service
 {: #hands-on-step-9}
 
-Only if your curriculum needs catalog/portfolio depth:
+Wizard **Business Service Offering** tab: select the Dev offering → **Update**. **Preview** should show
+**Depends on::Used by** from offering parent to **`Payments (lab)`** child (observed).
 
-- **`service_offering`** with **Service classification** = **Technical Service** — technology management
-  delivery ([application services](https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/application-services.html) doc).
-- **`service_offering`** with **Service classification** = **Business Service** — customer-facing packaging.
+### Step 10 — View Map vs Dependency Views
+{: #hands-on-views}
 
-Link offerings in wizard **Set Relationships** or equivalent relationship editors — same rule: use **typed**
-relationships your instance lists. **Skipping Step 9 is valid** for this AWS connector lab.
+| View | What you see here |
+|---|---|
+| **View Map** (application service) | Still mostly **manual entry point → VM** — expected |
+| **Show dependency views** (business service **Related Items** hierarchy icon) | Broader graph: business service → offering → **`Payments (lab)`** → **`sgclab-app-01`**; **Load more** may add existing cloud CIs; **business application** may appear adjacent — layout ≠ relationship direction |
 
-### Checkpoint B — broader CSDM (in progress until you verify)
+Hover labels observed: business service → offering **reference**; offering → app service **Depends on::Used
+by**; app service → VM **Depends on::Used by**. **Operational status** on associated lists is **not** live AWS
+run-state proof.
+
+### Step 11 — Business capabilities (**pending — do not submit wrong form**)
+{: #hands-on-step-12}
+
+On **`Payment Processing`**, tab **Business Capabilities** is **empty**. **New** opened **CI Relationship**
+with **Parent** blank, **Type** **Provided by::Provides**, **Child** **Payment Processing** — **incorrect
+partial state** (unsaved; user correctly backed out).
+
+**Correct sequence (per [DPM business capability](https://www.servicenow.com/docs/r/it-service-management/digital-portfolio-management/dpm-business-capability.html)):**
+
+1. **All** → **CSDM** → **Design** → **Business Capability** → **New** — create a learning capability on
+   **`cmdb_ci_business_capability`**.
+2. Create **`cmdb_rel_ci`**: **Parent** = that **capability**, **Type** = **Provided by::Provides**, **Child**
+   = **Payment Processing** business service.
+3. Confirm on capability **Related Items** — **never** submit with **Parent** blank.
+
+**Screenshot (user batch, bytes not on build VM):** unsaved wrong **CI Relationship** form — **repo: pending
+re-upload**.
+
+<details markdown="1">
+<summary><strong>Why the Business Capabilities New action prefilled Child = Payment Processing</strong></summary>
+
+The related list opens the relationship editor for **capability → service** edges. A **business capability**
+record must exist first and be chosen as **Parent**. The prefilled **Child** is the current business service.
+
+</details>
+
+### Checkpoint B — business stack (capability still open)
 {: #hands-on-checkpoint-b}
 
 <ul class="check">
-<li>You located <b>Business Applications</b> via Navigator and noted which module path you used</li>
-<li>You can explain <b>business application</b> (<code>cmdb_ci_business_app</code>) vs <b>application service</b> (<code>Payments (lab)</code> / <code>cmdb_ci_service_discovered</code>) in plain language</li>
-<li>You created or intentionally deferred <b>Payments</b> on <code>cmdb_ci_business_app</code> with learning wording</li>
-<li>You added a supported <b>Uses</b>/<b>Used by</b> (or instance-equivalent) link — not <b>Consumes</b> unless EA workspace requires it per docs</li>
-<li>You do <b>not</b> claim business service catalog completeness, real Payments ROI, or AWS workload changes</li>
+<li><b>Business application</b> <code>Payments</code> and <b>application service</b> <code>Payments (lab)</code> linked (observed <b>Consumes::Consumed by</b>)</li>
+<li><b>Business service</b> and <b>Dev offering</b> created with learning descriptions</li>
+<li>Offering → app service <b>Depends on::Used by</b> via wizard; app service → VM edge visible in <b>Dependency Views</b></li>
+<li>You distinguish <b>View Map</b> (narrow) vs <b>Dependency Views</b> (portfolio graph)</li>
+<li><b>Business capability</b> relationship — <b>not done</b>; wrong unsaved form was abandoned</li>
+<li>No real Payments app, no discovery proof, no AWS changes</li>
 </ul>
 
 ### Lab 7 overall status
 {: #lab7-overall-status}
 
-| Milestone | Status on this page |
+| Milestone | Status |
 |---|---|
-| **Part A** — manual application service + View Map | **Minimum** lab checkpoint ([Checkpoint A](#hands-on-checkpoint-a)) |
-| **Part B** — business application + relationship | **Continuation** — execution **pending** until you complete Steps 6–8 |
-| **Step 9** offerings | **Optional** |
-| **Full CSDM “every box”** | **Not** required; arbitrary offering trees discouraged |
+| **Part A** — wizard + Manual + View Map entry | **Done** (minimal checkpoint) |
+| **Part B** — business app, business service, offering, links | **Done** on reported PDI |
+| **Step 11** — business capability | **Pending** |
+| **Every CSDM object / technical management service** | **Not** required |
+| **Lab 7 “complete”** | **Honest:** strong connector + portfolio exercise; capability still open |
+
 
 ---
 
@@ -680,6 +849,7 @@ from product definitions — expand acronyms in the prose beside them.
 | Application services (types, offerings) | https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/application-services.html |
 | CI relationships in CSDM | https://www.servicenow.com/docs/r/servicenow-platform/common-service-data-model-csdm/ci-relationships.html |
 | Required relationships (wizard settings) | https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/modify-req-fields-appservice.html |
+| DPM business capability relationships | https://www.servicenow.com/docs/r/it-service-management/digital-portfolio-management/dpm-business-capability.html |
 | Amazon VPC overview | https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html |
 | Lab inventory template | https://github.com/eltonaguiar/ServiceNow_ServiceGraph_Lab/blob/main/aws/lab-stack.yaml |
 
@@ -688,8 +858,8 @@ from product definitions — expand acronyms in the prose beside them.
 ## What is next
 {: #whats-next}
 
-Finish [Part B](#hands-on-part-b) if you want a **business application** linked to **`Payments (lab)`**.
-Lab 8 (optional) adds a **second cloud source** and reconciliation — only after your service model makes
-sense on paper.
+Complete **Step 11** (business capability) if you want portfolio closure. Read [Enterprise scale (hypothetical)](#pre-lab-enterprise-mapping)
+before assuming this manual lab equals **Service Mapping**. Lab 8 (optional) adds a **second cloud source** —
+only after your service model makes sense on paper.
 
 Next: [Lab 8 — multisource CMDB with Azure]({{ '/labs/08-multisource-azure/' | relative_url }}) (optional track)
